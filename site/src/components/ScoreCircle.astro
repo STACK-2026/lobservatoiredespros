@@ -1,0 +1,166 @@
+---
+/**
+ * ScoreCircle , cercle circulaire avec score /10 + anneau progress anime.
+ *
+ * Animation : au scroll-in-view, l'anneau or se remplit + le chiffre compte
+ * de 0 jusqu'a la valeur cible.
+ */
+interface Props {
+  score: number; // 0 to 10
+  size?: number;
+  label?: string;
+  detailed?: boolean; // Affiche mini-legende "Score de Confiance"
+}
+
+const { score, size = 120, label = "Score de Confiance", detailed = true } = Astro.props;
+const clamped = Math.max(0, Math.min(10, score));
+const pct = (clamped / 10) * 100;
+const circumference = 2 * Math.PI * 44; // R=44 dans viewBox 100
+const offset = circumference * (1 - pct / 100);
+const uid = `sc-${Math.random().toString(36).slice(2, 7)}`;
+
+// Couleur selon tier
+const color = clamped >= 7.5 ? "#B8863D" : clamped >= 5 ? "#19376D" : "#7A6E63";
+---
+
+<div class={`score-circle-wrap ${detailed ? "detailed" : ""}`} style={`--sc-size: ${size}px; --sc-color: ${color};`}>
+  <svg class="sc-svg" viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
+    <defs>
+      <linearGradient id={`${uid}-grad`} x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color={color} stop-opacity="0.9" />
+        <stop offset="100%" stop-color={color} stop-opacity="1" />
+      </linearGradient>
+    </defs>
+    <!-- Track -->
+    <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(26, 22, 20, 0.08)" stroke-width="3" />
+    <!-- Progress -->
+    <circle
+      cx="50" cy="50" r="44"
+      fill="none"
+      stroke={`url(#${uid}-grad)`}
+      stroke-width="3.2"
+      stroke-linecap="round"
+      transform="rotate(-90 50 50)"
+      stroke-dasharray={circumference}
+      stroke-dashoffset={circumference}
+      class="sc-progress"
+      data-sc-offset-target={offset}
+      data-sc-circumference={circumference}
+    />
+    <!-- Petit point au bout du ring -->
+    <circle
+      cx="50" cy="6"
+      r="2.4"
+      fill={color}
+      class="sc-dot"
+      style={`transform-origin: 50px 50px; transform: rotate(${(pct / 100) * 360}deg); opacity: 0;`}
+    />
+  </svg>
+  <div class="sc-center">
+    <span class="sc-value" data-sc-score={clamped.toFixed(1)}>0.0</span>
+    <span class="sc-max">/ 10</span>
+  </div>
+  {detailed && (
+    <span class="sc-label">{label}</span>
+  )}
+</div>
+
+<style>
+  .score-circle-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--sc-size);
+    height: var(--sc-size);
+  }
+  .score-circle-wrap.detailed {
+    flex-direction: column;
+    height: auto;
+    gap: 0.5rem;
+  }
+  .sc-svg {
+    display: block;
+    transform: translateZ(0);
+  }
+  .sc-progress {
+    transition: stroke-dashoffset 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sc-dot {
+    transition: opacity 400ms ease 800ms;
+  }
+  .score-circle-wrap.sc-visible .sc-dot { opacity: 1; }
+  .sc-center {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--sc-size);
+    height: var(--sc-size);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    pointer-events: none;
+  }
+  .sc-value {
+    font-family: var(--font-display);
+    font-size: calc(var(--sc-size) * 0.28);
+    font-weight: 500;
+    color: var(--sc-color);
+    line-height: 1;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+  }
+  .sc-max {
+    font-family: var(--font-mono);
+    font-size: calc(var(--sc-size) * 0.1);
+    color: var(--ink-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .sc-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  // Trigger ring draw + counter on scroll-in
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const wrap = entry.target as HTMLElement;
+          wrap.classList.add("sc-visible");
+          const progress = wrap.querySelector(".sc-progress") as SVGCircleElement | null;
+          if (progress) {
+            const target = parseFloat(progress.dataset.scOffsetTarget || "0");
+            progress.style.strokeDashoffset = String(target);
+          }
+          const val = wrap.querySelector(".sc-value") as HTMLElement | null;
+          if (val) {
+            const target = parseFloat(val.dataset.scScore || "0");
+            const duration = 1500;
+            const start = performance.now();
+            function tick(now: number) {
+              const elapsed = now - start;
+              const p = Math.min(elapsed / duration, 1);
+              const eased = 1 - Math.pow(1 - p, 4);
+              val!.textContent = (eased * target).toFixed(1);
+              if (p < 1) requestAnimationFrame(tick);
+              else val!.textContent = target.toFixed(1);
+            }
+            requestAnimationFrame(tick);
+          }
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.4 }
+  );
+  document.querySelectorAll(".score-circle-wrap").forEach((el) => observer.observe(el));
+</script>

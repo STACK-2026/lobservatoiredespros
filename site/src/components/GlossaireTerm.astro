@@ -1,0 +1,192 @@
+---
+/**
+ * GlossaireTerm , wrap un terme technique avec un tooltip glossaire.
+ *
+ * Usage :
+ *   <GlossaireTerm slug="sirene">Sirene</GlossaireTerm>
+ *   <GlossaireTerm slug="naf">NAF 43.22A</GlossaireTerm>
+ *
+ * Rendu :
+ *   , underline pointillée subtile sur le mot
+ *   , hover/focus : tooltip apparait avec definition courte + lien
+ *   , click : navigue vers /glossaire/#slug
+ *   , accessibility : aria-describedby + role="button" + kbd focus
+ */
+import { glossaire } from "../data/glossaire";
+
+interface Props {
+  slug: string;
+  /** Texte de lien optionnel, sinon utilise le terme du glossaire */
+  text?: string;
+  /** Style */
+  variant?: "default" | "quiet" | "pill";
+}
+
+const { slug, text, variant = "default" } = Astro.props;
+const terme = glossaire.find((t) => t.slug === slug);
+const label = text || terme?.terme || slug;
+const definition = terme?.definition || "";
+const uid = `gt-${slug}-${Math.random().toString(36).slice(2, 7)}`;
+---
+
+<span class={`g-term g-${variant}`}>
+  <button
+    type="button"
+    class="g-trigger"
+    aria-describedby={uid}
+    data-g-term={slug}
+  >
+    <slot>{label}</slot>
+    <svg class="g-icon" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5" />
+      <path d="M8 4.5v0.01 M8 6.5v5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+    </svg>
+  </button>
+  <span id={uid} class="g-tooltip" role="tooltip">
+    <span class="g-tooltip-terme">{terme?.terme || label}</span>
+    {terme?.acronyme && <span class="g-tooltip-acronym">{terme.acronyme}</span>}
+    <span class="g-tooltip-def">{definition || "Terme éditorial."}</span>
+    <a class="g-tooltip-link" href={`/glossaire/#${slug}`}>Voir le glossaire &rarr;</a>
+  </span>
+</span>
+
+<style>
+  .g-term {
+    position: relative;
+    display: inline-block;
+  }
+  .g-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22em;
+    padding: 0;
+    background: transparent;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: help;
+    border-bottom: 1px dotted rgba(184, 134, 61, 0.55);
+    line-height: inherit;
+    text-align: left;
+  }
+  .g-trigger:hover,
+  .g-trigger:focus-visible {
+    border-bottom-color: var(--or);
+    color: var(--or-deep);
+  }
+  .g-trigger:focus-visible { outline: 2px solid var(--or); outline-offset: 2px; border-radius: 2px; }
+  .g-icon {
+    color: var(--ink-muted);
+    opacity: 0.7;
+    transition: opacity 180ms, color 180ms;
+    flex-shrink: 0;
+  }
+  .g-trigger:hover .g-icon,
+  .g-trigger:focus-visible .g-icon {
+    opacity: 1;
+    color: var(--or-deep);
+  }
+
+  .g-quiet .g-trigger { border-bottom: none; }
+  .g-quiet .g-trigger:hover { border-bottom: 1px dotted var(--or); }
+
+  .g-pill .g-trigger {
+    background: rgba(184, 134, 61, 0.08);
+    border: 1px solid rgba(184, 134, 61, 0.3);
+    border-radius: 999px;
+    padding: 0.28em 0.65em 0.28em 0.75em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--or-deep);
+  }
+
+  .g-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    width: max-content;
+    max-width: min(320px, calc(100vw - 2rem));
+    padding: 0.85rem 1rem 0.9rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid rgba(184, 134, 61, 0.4);
+    border-radius: 6px;
+    box-shadow: 0 14px 34px rgba(26, 22, 20, 0.22);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms var(--ease-out-quart);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    letter-spacing: 0;
+    text-align: left;
+    font-weight: 400;
+    text-transform: none;
+  }
+  .g-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--ink);
+  }
+  .g-term:hover .g-tooltip,
+  .g-term:focus-within .g-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  .g-tooltip-terme {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--or-soft);
+    margin-bottom: 0.2rem;
+  }
+  .g-tooltip-acronym {
+    display: block;
+    font-size: 0.7rem;
+    color: rgba(247, 243, 236, 0.65);
+    margin-bottom: 0.4rem;
+    font-style: italic;
+  }
+  .g-tooltip-def {
+    display: block;
+    color: rgba(247, 243, 236, 0.92);
+    margin-bottom: 0.5rem;
+  }
+  .g-tooltip-link {
+    display: inline-block;
+    font-size: 0.75rem;
+    color: var(--or-soft);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .g-tooltip-link:hover {
+    color: var(--paper);
+  }
+
+  @media (max-width: 640px) {
+    .g-tooltip { max-width: 260px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .g-tooltip { transition: opacity 10ms; }
+  }
+</style>
+
+<script>
+  // Click outside to close active tooltip (mobile)
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest(".g-term")) {
+      document.querySelectorAll(".g-term").forEach((el) => (el as HTMLElement).blur());
+    }
+  });
+</script>

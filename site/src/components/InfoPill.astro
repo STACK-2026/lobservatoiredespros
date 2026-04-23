@@ -1,0 +1,224 @@
+---
+/**
+ * InfoPill , badge moderne avec dot coloré + label + tooltip glossaire.
+ *
+ * Variants de dot :
+ *   , verified (vert)  : SIRET vérifié INSEE, RGE actif
+ *   , or (doré)        : Portrait Lauréat, Qualibat
+ *   , warn (orange)    : Qualibat expiré
+ *   , info (bleu)      : information neutre
+ *   , neutral (gris)   : NAF, code, métadonnée
+ *
+ * Avec glossaireSlug : le pill devient cliquable, hover ouvre tooltip,
+ * click navigue vers /glossaire/#slug.
+ */
+import { glossaire } from "../data/glossaire";
+
+interface Props {
+  label: string;
+  variant?: "verified" | "or" | "warn" | "info" | "neutral";
+  glossaireSlug?: string;
+  value?: string;
+  size?: "sm" | "md";
+  pulse?: boolean;
+}
+
+const {
+  label,
+  variant = "neutral",
+  glossaireSlug,
+  value,
+  size = "md",
+  pulse = false,
+} = Astro.props;
+
+const terme = glossaireSlug ? glossaire.find((t) => t.slug === glossaireSlug) : null;
+const definition = terme?.definition || "";
+const href = glossaireSlug ? `/glossaire/#${glossaireSlug}` : undefined;
+const uid = `pill-${Math.random().toString(36).slice(2, 7)}`;
+---
+
+<span class={`info-pill info-pill-${variant} info-pill-${size} ${href ? "has-link" : ""}`}>
+  <span class={`pill-dot ${pulse ? "pulse" : ""}`} aria-hidden="true"></span>
+  <span class="pill-body">
+    <span class="pill-label">{label}</span>
+    {value && <span class="pill-value">{value}</span>}
+  </span>
+  {href && terme && (
+    <span class="pill-tooltip-wrapper">
+      <button type="button" class="pill-info" aria-describedby={uid}>
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1" opacity="0.55" />
+          <circle cx="8" cy="5" r="0.8" fill="currentColor" />
+          <path d="M8 7.5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+      </button>
+      <span id={uid} class="pill-tooltip" role="tooltip">
+        <span class="pt-head">{terme.terme}{terme.acronyme ? ` , ${terme.acronyme}` : ""}</span>
+        <span class="pt-def">{definition}</span>
+        <a class="pt-link" href={href}>Ouvrir le glossaire &rarr;</a>
+      </span>
+    </span>
+  )}
+  {href && !terme && (
+    <a class="pill-info-link" href={href} aria-label={`En savoir plus sur ${label}`}>
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1" opacity="0.55" />
+        <circle cx="8" cy="5" r="0.8" fill="currentColor" />
+        <path d="M8 7.5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+      </svg>
+    </a>
+  )}
+</span>
+
+<style>
+  .info-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 0.8rem;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.1);
+    color: var(--ink);
+    position: relative;
+    letter-spacing: 0.005em;
+    transition: border-color 200ms var(--ease-out-quart), background 200ms, transform 200ms;
+  }
+  .info-pill-sm { padding: 0.3rem 0.6rem; font-size: 0.72rem; }
+  .info-pill:hover { border-color: rgba(184, 134, 61, 0.45); transform: translateY(-1px); }
+
+  .pill-body { display: inline-flex; align-items: baseline; gap: 0.38rem; line-height: 1; }
+  .pill-label { color: var(--ink-soft); letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.68em; font-weight: 600; }
+  .pill-value { color: var(--ink); font-weight: 600; font-size: 0.88em; font-family: var(--font-mono); letter-spacing: 0.02em; }
+
+  .pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  /* Variants */
+  .info-pill-verified { background: rgba(74, 145, 58, 0.06); border-color: rgba(74, 145, 58, 0.28); }
+  .info-pill-verified .pill-dot { background: #4A913A; box-shadow: 0 0 0 0 rgba(74, 145, 58, 0.55); }
+  .info-pill-verified .pill-label { color: #3a6e30; }
+
+  .info-pill-or { background: rgba(184, 134, 61, 0.1); border-color: rgba(184, 134, 61, 0.45); }
+  .info-pill-or .pill-dot { background: var(--or); }
+  .info-pill-or .pill-label { color: var(--or-deep); }
+
+  .info-pill-warn { background: rgba(200, 120, 40, 0.07); border-color: rgba(200, 120, 40, 0.35); }
+  .info-pill-warn .pill-dot { background: #C87828; }
+  .info-pill-warn .pill-label { color: #9c5e1f; }
+
+  .info-pill-info { background: rgba(30, 58, 82, 0.06); border-color: rgba(30, 58, 82, 0.25); }
+  .info-pill-info .pill-dot { background: var(--observatoire); }
+  .info-pill-info .pill-label { color: var(--observatoire-deep); }
+
+  .info-pill-neutral .pill-dot { background: var(--ink-muted); }
+
+  .pulse { animation: pill-pulse 2.4s ease-out infinite; }
+  @keyframes pill-pulse {
+    0%   { box-shadow: 0 0 0 0 currentColor; }
+    70%  { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .info-pill-verified .pulse { color: rgba(74, 145, 58, 0.45); }
+  .info-pill-or .pulse { color: rgba(184, 134, 61, 0.45); }
+
+  /* Info button / link */
+  .pill-info, .pill-info-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    color: var(--ink-muted);
+    cursor: help;
+    margin-left: 0.1rem;
+    padding: 0;
+    opacity: 0.65;
+    transition: opacity 180ms, color 180ms;
+  }
+  .pill-info:hover, .pill-info-link:hover,
+  .info-pill:hover .pill-info, .info-pill:hover .pill-info-link {
+    opacity: 1;
+    color: var(--or-deep);
+  }
+  .pill-info-link { text-decoration: none; }
+
+  /* Tooltip */
+  .pill-tooltip-wrapper { position: relative; display: inline-flex; }
+  .pill-tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    width: max-content;
+    max-width: min(280px, calc(100vw - 2rem));
+    padding: 0.75rem 0.95rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid rgba(184, 134, 61, 0.4);
+    border-radius: 6px;
+    box-shadow: 0 14px 34px rgba(26, 22, 20, 0.24);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms, transform 180ms var(--ease-out-quart);
+    text-align: left;
+  }
+  .pill-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--ink);
+  }
+  .pill-tooltip-wrapper:hover .pill-tooltip,
+  .pill-tooltip-wrapper:focus-within .pill-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  .pt-head {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--or-soft);
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.01em;
+  }
+  .pt-def {
+    display: block;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: rgba(247, 243, 236, 0.92);
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .pt-link {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: var(--or-soft);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .pt-link:hover { color: var(--paper); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse { animation: none; }
+  }
+</style>

@@ -1,0 +1,169 @@
+---
+/**
+ * SummaryHero , banniere resume visuelle en tete de classement.
+ *
+ * Remplace le "En resume" plat par un visuel impactant :
+ *   , grand chiffre qui s'incremente
+ *   , narratif en Fraunces italique
+ *   , decoration graphique (constellation de points)
+ *   , signature Observatoire en coin
+ */
+interface Props {
+  count: number;
+  unit: string; // "plombiers", "electriciens", etc.
+  zone: string; // "Yonne (89)"
+  naf?: string;
+  source?: string;
+}
+
+const { count, unit, zone, naf, source = "Sirene INSEE" } = Astro.props;
+---
+
+<aside class="summary-hero fade-up" aria-label={`Resume du classement ${unit} ${zone}`}>
+  <div class="sh-inner">
+    <div class="sh-visual" aria-hidden="true">
+      <!-- Constellation de points (decoration) -->
+      <svg viewBox="0 0 140 140" width="140" height="140" class="sh-constellation">
+        <defs>
+          <radialGradient id="sh-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#B8863D" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="#B8863D" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="70" cy="70" r="50" fill="url(#sh-glow)" />
+        <!-- Points -->
+        <g fill="#B8863D" opacity="0.7">
+          <circle cx="70" cy="70" r="3" />
+          <circle cx="35" cy="40" r="1.2" class="sh-star" style="animation-delay: 0ms;" />
+          <circle cx="110" cy="38" r="1" class="sh-star" style="animation-delay: 150ms;" />
+          <circle cx="112" cy="95" r="1.5" class="sh-star" style="animation-delay: 300ms;" />
+          <circle cx="30" cy="108" r="1.3" class="sh-star" style="animation-delay: 450ms;" />
+          <circle cx="56" cy="18" r="0.9" class="sh-star" style="animation-delay: 600ms;" />
+          <circle cx="122" cy="70" r="1.1" class="sh-star" style="animation-delay: 750ms;" />
+          <circle cx="18" cy="68" r="1.2" class="sh-star" style="animation-delay: 900ms;" />
+          <circle cx="90" cy="125" r="1" class="sh-star" style="animation-delay: 1050ms;" />
+          <circle cx="100" cy="15" r="0.8" class="sh-star" style="animation-delay: 1200ms;" />
+          <circle cx="45" cy="125" r="0.9" class="sh-star" style="animation-delay: 1350ms;" />
+        </g>
+        <!-- Lignes constellation -->
+        <g stroke="#B8863D" stroke-width="0.4" fill="none" opacity="0.3">
+          <line x1="70" y1="70" x2="35" y2="40" />
+          <line x1="70" y1="70" x2="110" y2="38" />
+          <line x1="70" y1="70" x2="112" y2="95" />
+          <line x1="70" y1="70" x2="30" y2="108" />
+        </g>
+      </svg>
+    </div>
+    <div class="sh-text">
+      <p class="sh-meta">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span class="meta-label-or">Édition en cours &middot; {source}</span>
+      </p>
+      <p class="sh-count">
+        <span class="sh-num" data-count={count}>{count}</span>
+        <span class="sh-unit italic-fraunces">{unit}</span>
+      </p>
+      <p class="sh-narrative">
+        observés et classés dans <strong>{zone}</strong>
+        {naf && <> <span class="sh-naf">· NAF {naf}</span></>}
+      </p>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .summary-hero {
+    background: linear-gradient(180deg, var(--paper-warm) 0%, var(--paper) 100%);
+    border: 1px solid rgba(184, 134, 61, 0.35);
+    border-radius: 12px;
+    padding: 1.8rem 2rem 2rem;
+    margin: 2rem 0 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--or) 0%, var(--or-deep) 100%);
+  }
+  .sh-inner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.8rem;
+    align-items: center;
+  }
+  @media (max-width: 620px) {
+    .sh-inner { grid-template-columns: 1fr; text-align: center; }
+    .sh-visual { justify-self: center; }
+  }
+  .sh-visual {
+    width: 140px;
+    height: 140px;
+  }
+  .sh-constellation {
+    display: block;
+    transform-origin: center;
+    animation: sh-spin 56s linear infinite;
+  }
+  @keyframes sh-spin { to { transform: rotate(360deg); } }
+  .sh-star {
+    animation: sh-twinkle 3.5s ease-in-out infinite;
+  }
+  @keyframes sh-twinkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.4); }
+  }
+  .sh-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.9rem;
+  }
+  .sh-count {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+  .sh-num {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 5.2rem);
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .sh-unit {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 400;
+    color: var(--or-deep);
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+  .sh-narrative {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--ink-soft);
+    margin: 0.4rem 0 0;
+    line-height: 1.45;
+  }
+  .sh-narrative strong { color: var(--ink); font-weight: 600; }
+  .sh-naf {
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+    margin-left: 0.3rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sh-constellation { animation: none; }
+    .sh-star { animation: none; opacity: 0.7; }
+  }
+</style>

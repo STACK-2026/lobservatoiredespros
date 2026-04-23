@@ -2,17 +2,20 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import Masthead from "../../../components/Masthead.astro";
 import ByLine from "../../../components/ByLine.astro";
-import DropCap from "../../../components/DropCap.astro";
 import ProCard from "../../../components/ProCard.astro";
 import MethodologyBlock from "../../../components/MethodologyBlock.astro";
 import EditorialHeader from "../../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import InkBleedDivider from "../../../components/InkBleedDivider.astro";
+import SummaryHero from "../../../components/SummaryHero.astro";
+import GlossaireTerm from "../../../components/GlossaireTerm.astro";
+import InfoPill from "../../../components/InfoPill.astro";
+import DropCap from "../../../components/DropCap.astro";
 import { siteConfig } from "../../../utils/config";
-import { supabase, getMetiers, getZones, getProsByMetierDept } from "../../../lib/supabase";
+import { getMetiers, getZones, getProsByMetierDept } from "../../../lib/supabase";
 import { jsonLdBreadcrumbs, jsonLdRanking, jsonLdFAQ } from "../../../utils/seo";
 
 export async function getStaticPaths() {
-  // Build toutes les combinaisons metier x dept a partir de la DB
   const metiers = await getMetiers();
   const zones = await getZones("departement");
   const paths = [];
@@ -31,41 +34,43 @@ const { metier: metierObj, zone: deptObj } = Astro.props;
 const { metier, departement } = Astro.params as { metier: string; departement: string };
 
 const pros = await getProsByMetierDept(metier, departement);
+const topPros = pros.slice(0, 15);
+const restPros = pros.slice(15, 60);
 
 const titre = `Les meilleurs ${metierObj.nom_pluriel.toLowerCase()} dans le ${deptObj.nom} (${deptObj.code}) , Classement ${siteConfig.editionYear}`;
-const description = `Classement editorial des ${metierObj.nom_pluriel.toLowerCase()} du ${deptObj.nom} (${deptObj.code}). ${pros.length} professionnels classes selon notre grille de six criteres objectifs. Edition N°${siteConfig.editionNumber} de L'Observatoire.`;
+const description = `Classement éditorial des ${metierObj.nom_pluriel.toLowerCase()} du ${deptObj.nom} (${deptObj.code}). ${pros.length} professionnels classés selon notre grille de six critères objectifs. Édition N°${siteConfig.editionNumber} de L'Observatoire.`;
 const url = `${siteConfig.url}/${metier}/${departement}/`;
 
-const tarifsMetier: Record<string, { prestation: string; fourchette: string }[]> = {
+const tarifsMetier: Record<string, { prestation: string; fourchette: string; unit?: string }[]> = {
   plombier: [
-    { prestation: "Depannage urgence (hors piece)", fourchette: "70€ a 140€ HT" },
-    { prestation: "Pose salle de bain complete", fourchette: "3 200€ a 8 500€ HT" },
-    { prestation: "Remplacement chaudiere gaz", fourchette: "3 000€ a 6 500€ HT" },
-    { prestation: "Detartrage ballon eau chaude", fourchette: "90€ a 180€ HT" },
+    { prestation: "Dépannage urgence", fourchette: "70 à 140", unit: "€ HT" },
+    { prestation: "Pose salle de bain complète", fourchette: "3 200 à 8 500", unit: "€ HT" },
+    { prestation: "Remplacement chaudière gaz", fourchette: "3 000 à 6 500", unit: "€ HT" },
+    { prestation: "Détartrage ballon d'eau chaude", fourchette: "90 à 180", unit: "€ HT" },
   ],
   electricien: [
-    { prestation: "Changement tableau electrique aux normes", fourchette: "1 200€ a 2 800€ HT" },
-    { prestation: "Installation domotique basique", fourchette: "1 800€ a 4 500€ HT" },
-    { prestation: "Prise ou interrupteur supplementaire", fourchette: "65€ a 130€ HT" },
-    { prestation: "Renovation electrique T3", fourchette: "6 000€ a 14 000€ HT" },
+    { prestation: "Tableau électrique aux normes", fourchette: "1 200 à 2 800", unit: "€ HT" },
+    { prestation: "Installation domotique basique", fourchette: "1 800 à 4 500", unit: "€ HT" },
+    { prestation: "Prise / interrupteur supplémentaire", fourchette: "65 à 130", unit: "€ HT" },
+    { prestation: "Rénovation électrique T3", fourchette: "6 000 à 14 000", unit: "€ HT" },
   ],
   couvreur: [
-    { prestation: "Nettoyage toiture + demoussage", fourchette: "12€ a 20€ / m²" },
-    { prestation: "Refection toiture tuile", fourchette: "80€ a 140€ / m²" },
-    { prestation: "Zinguerie (cheneaux)", fourchette: "55€ a 90€ / ml" },
-    { prestation: "Depannage urgence fuite", fourchette: "180€ a 450€ forfait" },
+    { prestation: "Nettoyage toiture + démoussage", fourchette: "12 à 20", unit: "€ / m²" },
+    { prestation: "Réfection toiture tuile", fourchette: "80 à 140", unit: "€ / m²" },
+    { prestation: "Zinguerie (chéneaux)", fourchette: "55 à 90", unit: "€ / ml" },
+    { prestation: "Dépannage urgence fuite", fourchette: "180 à 450", unit: "€ forfait" },
   ],
   menuisier: [
-    { prestation: "Fenetre bois sur mesure (pose comprise)", fourchette: "700€ a 1 800€ / unite" },
-    { prestation: "Escalier bois droit", fourchette: "2 500€ a 6 000€ HT" },
-    { prestation: "Parquet massif (pose)", fourchette: "65€ a 130€ / m²" },
-    { prestation: "Porte interieure sur mesure", fourchette: "450€ a 1 200€ / unite" },
+    { prestation: "Fenêtre bois sur mesure posée", fourchette: "700 à 1 800", unit: "€ / unité" },
+    { prestation: "Escalier bois droit", fourchette: "2 500 à 6 000", unit: "€ HT" },
+    { prestation: "Parquet massif posé", fourchette: "65 à 130", unit: "€ / m²" },
+    { prestation: "Porte intérieure sur mesure", fourchette: "450 à 1 200", unit: "€ / unité" },
   ],
   isolation: [
-    { prestation: "Isolation combles perdus soufflee", fourchette: "25€ a 55€ / m²" },
-    { prestation: "ITE (facade)", fourchette: "110€ a 200€ / m²" },
-    { prestation: "Isolation rampant", fourchette: "55€ a 110€ / m²" },
-    { prestation: "Bilan energetique + devis MaPrimeRenov'", fourchette: "Gratuit a 350€" },
+    { prestation: "Combles perdus soufflée", fourchette: "25 à 55", unit: "€ / m²" },
+    { prestation: "ITE (façade)", fourchette: "110 à 200", unit: "€ / m²" },
+    { prestation: "Isolation rampant", fourchette: "55 à 110", unit: "€ / m²" },
+    { prestation: "Bilan énergétique MaPrimeRénov'", fourchette: "Gratuit à 350", unit: "€" },
   ],
 };
 const tarifs = tarifsMetier[metier] || [];
@@ -73,23 +78,23 @@ const tarifs = tarifsMetier[metier] || [];
 const faq = [
   {
     question: `Comment trouver un bon ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`,
-    answer: `Le plus simple est de consulter notre classement sur cette page. Les ${pros.length} professionnels listes sont actifs au registre Sirene de l'INSEE dans le departement ${deptObj.nom}. Leur position dans le classement est calculee selon notre grille de six criteres publics : anciennete, certifications RGE/Qualibat, avis clients, SIRET actif, site web, photos de realisations. Vous pouvez consulter notre methode complete sur /methode/.`,
+    answer: `Le plus simple est de consulter notre classement sur cette page. Les ${pros.length} professionnels listés sont actifs au registre Sirene de l'INSEE dans le département ${deptObj.nom}. Leur position dans le classement est calculée selon notre grille de six critères publics : ancienneté, certifications RGE/Qualibat, avis clients, SIRET actif, site web, photos de réalisations. Vous pouvez consulter notre méthode complète sur /methode/.`,
   },
   {
-    question: `Combien coute un ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`,
-    answer: `Les tarifs dependent de la prestation. Nous publions en bas de cette page des fourchettes indicatives pour les prestations courantes. Exiger un devis ecrit, signe, detaille est obligatoire au-dessus de 150€ TTC.`,
+    question: `Combien coûte un ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`,
+    answer: `Les tarifs dépendent de la prestation. Nous publions en bas de cette page des fourchettes indicatives pour les prestations courantes. Exiger un devis écrit, signé, détaillé est obligatoire au-dessus de 150€ TTC.`,
   },
   {
     question: "Que signifie la mention RGE ?",
-    answer: `Reconnu Garant de l'Environnement est une qualification attribuee par l'Etat via france-renov.gouv.fr. Elle est obligatoire pour beneficier des aides publiques MaPrimeRenov', TVA reduite 5.5%, CEE. Nous verifions cette mention sur la source officielle avant de l'afficher.`,
+    answer: `Reconnu Garant de l'Environnement est une qualification attribuée par l'État via france-renov.gouv.fr. Elle est obligatoire pour bénéficier des aides publiques MaPrimeRénov', TVA réduite 5.5%, CEE. Nous vérifions cette mention sur la source officielle avant de l'afficher.`,
   },
   {
     question: `Comment contester la position d'un ${metierObj.nom.toLowerCase()} dans le classement ?`,
-    answer: `Vous pouvez ecrire a ${siteConfig.legal.email} en precisant le professionnel concerne et les elements de contestation. Notre redaction reexamine les dossiers signales sous 15 jours ouvres.`,
+    answer: `Vous pouvez écrire à ${siteConfig.legal.email} en précisant le professionnel concerné et les éléments de contestation. Notre rédaction réexamine les dossiers signalés sous 15 jours ouvrés.`,
   },
   {
     question: "La liste est-elle exhaustive ?",
-    answer: `Cette selection regroupe tous les professionnels actifs au Sirene de l'INSEE dans le code NAF ${metierObj.code_naf || ""} du departement ${deptObj.nom} a la date du dernier recalcul. Les Scores de Confiance sont recalcules a chaque synchronisation mensuelle.`,
+    answer: `Cette sélection regroupe tous les professionnels actifs au Sirene de l'INSEE dans le code NAF ${metierObj.code_naf || ""} du département ${deptObj.nom} à la date du dernier recalcul. Les Scores de Confiance sont recalculés à chaque synchronisation mensuelle.`,
   },
 ];
 
@@ -110,19 +115,19 @@ const jsonLd = [
   jsonLdFAQ(faq),
 ];
 
-// Score max en pts Sirene sans enrichissement = 4.5, on affiche tel quel
-// (le score montera avec enrichissements RGE + avis + site + photos)
-const hasPros = pros.length > 0;
 const anciennete = (p: any) => {
   if (!p.date_creation_entreprise) return null;
   const y = parseInt(p.date_creation_entreprise.slice(0, 4), 10);
   return new Date().getFullYear() - y;
 };
+const hasPros = pros.length > 0;
 ---
 
 <BaseLayout title={titre} description={description} jsonLd={jsonLd}>
-  <article class="classement-page">
-    <div class="container-wide classement-head">
+  <article class="classement-v2">
+
+    <!-- HEADER -->
+    <header class="container-wide cl-top">
       <Breadcrumbs
         items={[
           { label: "Accueil", href: "/" },
@@ -130,10 +135,10 @@ const anciennete = (p: any) => {
           { label: deptObj.nom },
         ]}
       />
-      <Masthead category={`CLASSEMENT ${siteConfig.editionYear}`} signature={`${deptObj.nom} (${deptObj.code})`} />
+      <Masthead category={`CLASSEMENT ${siteConfig.editionYear}`} signature={`${deptObj.nom} · ${deptObj.code}`} />
 
-      <h1 class="heading-display classement-title">
-        Les meilleurs <span class="italic-fraunces">{metierObj.nom_pluriel.toLowerCase()}</span> du {deptObj.nom} <span class="folio">({deptObj.code})</span>
+      <h1 class="heading-display cl-title blur-reveal">
+        Les meilleurs <span class="italic-fraunces">{metierObj.nom_pluriel.toLowerCase()}</span> du {deptObj.nom}
       </h1>
 
       <ByLine
@@ -142,59 +147,137 @@ const anciennete = (p: any) => {
         updated="Mise à jour mensuelle"
         readingTime={Math.max(3, Math.ceil(pros.length / 20))}
       />
+    </header>
 
-      {hasPros && (
-        <aside class="encart-methodologie speakable" data-speakable>
-          <strong>En résumé.</strong> L'édition {siteConfig.editionNumber} de L'Observatoire retient <strong>{pros.length} {metierObj.nom_pluriel.toLowerCase()}</strong> actifs dans le {deptObj.nom}, classés selon leur <strong>Score de Confiance /10</strong> calculé sur six critères publics. Données sourcées du registre Sirene de l'INSEE (code NAF {metierObj.code_naf}).
-        </aside>
-      )}
-    </div>
+    <!-- SUMMARY HERO (visual impactant) -->
+    {hasPros && (
+      <section class="container-wide">
+        <SummaryHero
+          count={pros.length}
+          unit={metierObj.nom_pluriel.toLowerCase()}
+          zone={`${deptObj.nom} (${deptObj.code})`}
+          naf={metierObj.code_naf}
+          source="Sirene INSEE · France Rénov · Qualibat"
+        />
+      </section>
+    )}
 
-    <div class="container-wide classement-intro prose">
-      <DropCap>
-        Cartographier les {metierObj.nom_pluriel.toLowerCase()} du {deptObj.nom} est un exercice d'observation autant qu'une question de méthode. Nous croisons les données Sirene avec l'annuaire RGE de l'État, les fiches Qualibat, les profils Google Business, puis vérifions manuellement les sites web et portfolios. Ce qui suit est notre sélection éditoriale pour l'édition {siteConfig.editionNumber}, classée par Score de Confiance décroissant.
-      </DropCap>
-      <p>
-        Chaque portrait indique le score obtenu, les certifications vérifiées, l'ancienneté de l'entreprise, ses spécialités principales, sa ville d'exercice. La mention <strong>Lauréat</strong> distingue les entreprises ayant fait l'objet d'un entretien approfondi. La mention <strong>Vérifié</strong> signale un dossier complété et validé par notre rédaction.
-      </p>
-    </div>
+    <!-- METRICS BAR , pills contextualisees sous le hero -->
+    {hasPros && (
+      <section class="container-wide cl-metrics">
+        <div class="cm-pills stagger-children">
+          <InfoPill variant="verified" label="Actifs INSEE" value={`${pros.length}`} glossaireSlug="sirene" />
+          <InfoPill variant="neutral" label="Code NAF" value={metierObj.code_naf || ""} glossaireSlug="naf" />
+          <InfoPill variant="or" label="Avec RGE" value={`${pros.filter((p: any) => p.rge).length}`} glossaireSlug="rge" />
+          <InfoPill variant="or" label="Qualibat" value={`${pros.filter((p: any) => p.qualibat).length}`} glossaireSlug="qualibat" />
+          <InfoPill variant="info" label="Édition" value={`N°${siteConfig.editionNumber}`} />
+        </div>
+      </section>
+    )}
 
     {hasPros ? (
-      <section class="container-wide classement-liste">
-        <EditorialHeader category="LA SÉLECTION" title={`Classement ${siteConfig.editionMonth} ${siteConfig.editionYear}`} subtitle={`${pros.length} professionnels retenus par notre rédaction.`} />
-        <div class="classement-top3-marker folio">
-          <span>Position actuelle :</span>
-          <span class="current-rank" data-rank-current>01</span>
-        </div>
-        <div class="pros-list">
-          {pros.slice(0, 60).map((p, i) => (
-            <div data-rank-item={i + 1}>
-              <ProCard
-                rank={i + 1}
-                name={p.nom_entreprise}
-                slug={p.slug}
-                score={p.score_confiance || 0}
-                tier={p.tier as "or" | "argent" | "gratuit"}
-                ville={p.ville || ""}
-                zoneIntervention={p.code_postal || ""}
-                ancienneteAnnees={anciennete(p) || undefined}
-                rge={p.rge}
-                qualibat={p.qualibat}
-                specialites={[]}
-                resumeCourt={p.description || `Entreprise active au Sirene, code NAF ${metierObj.code_naf}. Score calculé sur données publiques.`}
-              />
+      <>
+        <!-- TOP CLASSEMENT , cards en premier, l'user scanne ca d'abord -->
+        <section class="container-wide cl-top-section">
+          <EditorialHeader
+            category="LA SÉLECTION"
+            title={`Top ${Math.min(15, topPros.length)} de l'édition ${siteConfig.editionMonth} ${siteConfig.editionYear}`}
+            subtitle={`${pros.length} professionnels classés par Score de Confiance décroissant.`}
+          />
+
+          <div class="cl-sticky-rank folio">
+            <span>Position visible :</span>
+            <span class="cl-current-rank" data-rank-current>01</span>
+          </div>
+
+          <div class="cl-pros-list">
+            {topPros.map((p, i) => (
+              <div data-rank-item={i + 1} class="cl-pros-item">
+                <ProCard
+                  rank={i + 1}
+                  name={p.nom_entreprise}
+                  slug={p.slug}
+                  score={p.score_confiance || 0}
+                  tier={p.tier as "or" | "argent" | "gratuit"}
+                  ville={p.ville || ""}
+                  zoneIntervention={p.code_postal || ""}
+                  ancienneteAnnees={anciennete(p) || undefined}
+                  rge={p.rge}
+                  qualibat={p.qualibat}
+                  specialites={[]}
+                  resumeCourt={p.description || `Entreprise active au Sirene, NAF ${metierObj.code_naf}.`}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <InkBleedDivider variant="ornament" />
+
+        <!-- INTRO ÉDITORIALE (deplacée apres le top , l'user l'a vu) -->
+        <section class="container-wide cl-intro">
+          <div class="cl-intro-inner prose">
+            <DropCap>
+              Cartographier les {metierObj.nom_pluriel.toLowerCase()} du {deptObj.nom} est un exercice d'observation autant qu'une question de méthode. Nous croisons les données <GlossaireTerm slug="sirene">Sirene</GlossaireTerm> avec l'annuaire <GlossaireTerm slug="rge">RGE</GlossaireTerm> de l'État, les fiches <GlossaireTerm slug="qualibat">Qualibat</GlossaireTerm>, les profils Google Business, puis vérifions manuellement les sites web et portfolios.
+            </DropCap>
+            <p>
+              Le <GlossaireTerm slug="score-de-confiance">Score de Confiance /10</GlossaireTerm> visible sur chaque portrait ci-dessus additionne six critères publics et auditables. La mention <strong>Lauréat</strong> distingue les entreprises ayant fait l'objet d'un entretien approfondi. La mention <strong>Vérifié</strong> signale un dossier complété et validé par notre rédaction.
+            </p>
+          </div>
+        </section>
+
+        {restPros.length > 0 && (
+          <section class="container-wide cl-rest">
+            <EditorialHeader
+              category={`POSITIONS 16 À ${15 + restPros.length}`}
+              title="La suite du classement"
+              subtitle="Les autres professionnels retenus à ce jour."
+            />
+            <div class="cl-pros-list">
+              {restPros.map((p, i) => (
+                <div data-rank-item={i + 16} class="cl-pros-item">
+                  <ProCard
+                    rank={i + 16}
+                    name={p.nom_entreprise}
+                    slug={p.slug}
+                    score={p.score_confiance || 0}
+                    tier={p.tier as "or" | "argent" | "gratuit"}
+                    ville={p.ville || ""}
+                    zoneIntervention={p.code_postal || ""}
+                    ancienneteAnnees={anciennete(p) || undefined}
+                    rge={p.rge}
+                    qualibat={p.qualibat}
+                    specialites={[]}
+                    resumeCourt={p.description || `Entreprise active au Sirene, NAF ${metierObj.code_naf}.`}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </section>
+        )}
+
         {pros.length > 60 && (
-          <p class="classement-more folio">
+          <p class="cl-more folio container-wide">
             + {pros.length - 60} autres professionnels actifs dans le {deptObj.nom}, en cours d'examen éditorial pour les prochaines éditions.
           </p>
         )}
-      </section>
+
+        <InkBleedDivider variant="hairline" />
+
+        <!-- MÉTHODE -->
+        <section class="container-wide">
+          <MethodologyBlock
+            appliedTo={`Pour ce classement, ${pros.length} candidats actifs Sirene ont été examinés dans le ${deptObj.nom}.`}
+          />
+        </section>
+      </>
     ) : (
-      <section class="container-editorial classement-empty">
-        <EditorialHeader category="EN COURS" title={`Classement ${metierObj.nom_pluriel} ${deptObj.nom} en cours de constitution`} align="center" />
+      <section class="container-editorial cl-empty">
+        <EditorialHeader
+          category="EN COURS"
+          title={`Classement ${metierObj.nom_pluriel} ${deptObj.nom} en cours de constitution`}
+          align="center"
+        />
         <p class="lead" style="text-align: center;">
           Notre rédaction constitue actuellement le classement des {metierObj.nom_pluriel.toLowerCase()} du {deptObj.nom}. Il sera publié dans la prochaine édition mensuelle.
         </p>
@@ -204,31 +287,46 @@ const anciennete = (p: any) => {
       </section>
     )}
 
-    {hasPros && (
-      <section class="container-wide">
-        <MethodologyBlock
-          appliedTo={`Pour ce classement, ${pros.length} candidats actifs Sirene ont été examinés dans le ${deptObj.nom}.`}
-        />
-      </section>
-    )}
-
     {tarifs.length > 0 && (
-      <section class="section-tarifs container-wide">
-        <EditorialHeader category="GUIDE TARIFAIRE" title={`Combien coûte un ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`} subtitle="Fourchettes indicatives observées dans le département. Hors TVA sauf mention contraire. Exiger un devis écrit reste obligatoire au-dessus de 150€ TTC." />
-        <div class="tarifs-grid stagger-children">
-          {tarifs.map((t) => (
-            <div class="tarif-row card-editorial">
-              <span class="meta-label">Prestation</span>
-              <p class="tarif-nom italic-fraunces">{t.prestation}</p>
-              <span class="meta-label-or">Fourchette</span>
-              <p class="tarif-prix">{t.fourchette}</p>
-            </div>
-          ))}
+      <!-- GUIDE TARIFAIRE , mockup moderne -->
+      <section class="cl-tarifs">
+        <div class="container-wide">
+          <EditorialHeader
+            category="GUIDE TARIFAIRE LOCAL"
+            title={`Combien coûte un ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`}
+            subtitle="Fourchettes indicatives observées dans le département. Hors TVA sauf mention contraire."
+          />
+          <div class="cl-tarifs-grid stagger-children">
+            {tarifs.map((t) => (
+              <div class="tarif-v2 card-editorial">
+                <span class="tarif-v2-meta meta-label">Prestation</span>
+                <p class="tarif-v2-prestation">{t.prestation}</p>
+                <div class="tarif-v2-price">
+                  <span class="tarif-v2-range">{t.fourchette}</span>
+                  <span class="tarif-v2-unit">{t.unit || "€"}</span>
+                </div>
+                <div class="tarif-v2-bar" aria-hidden="true">
+                  <span class="tarif-v2-bar-fill"></span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <aside class="cl-tarifs-warning">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.2" />
+              <path d="M10 6v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+              <circle cx="10" cy="13.5" r="0.7" fill="currentColor" />
+            </svg>
+            <p>
+              Un <GlossaireTerm slug="devis">devis</GlossaireTerm> écrit, daté, signé est <strong>obligatoire</strong> au-dessus de 150€ TTC. Vérifier la mention de l'<GlossaireTerm slug="decennale">assurance décennale</GlossaireTerm> sur le devis.
+            </p>
+          </aside>
         </div>
       </section>
     )}
 
-    <section class="container-editorial section-faq-page">
+    <!-- FAQ (reste tel quel, deja bien) -->
+    <section class="container-editorial cl-faq">
       <EditorialHeader category="QUESTIONS FRÉQUENTES" title={`${metierObj.nom_pluriel} du ${deptObj.nom} , questions posées`} />
       <div class="faq-list stagger-children">
         {faq.map((q, i) => (
@@ -244,10 +342,11 @@ const anciennete = (p: any) => {
       </div>
     </section>
 
-    <section class="section-cta-page">
-      <div class="container-editorial cta-page-inner">
-        <p class="meta-label-or">Vous êtes professionnel ?</p>
-        <h2 class="heading-display" style="font-size: clamp(1.8rem, 3.5vw, 2.8rem);">Rejoindre l'édition suivante.</h2>
+    <!-- CTA PRO -->
+    <section class="cl-cta-pro">
+      <div class="container-editorial cl-cta-inner blur-reveal">
+        <span class="meta-label-or">Vous êtes professionnel ?</span>
+        <h2 class="heading-display cl-cta-title">Rejoindre l'édition suivante.</h2>
         <p class="lead">
           Votre entreprise exerce dans le {deptObj.nom} et vous estimez qu'elle mérite une position supérieure ? Soumettez votre candidature Vérifié ou Lauréat. L'examen est gratuit. L'abonnement optionnel.
         </p>
@@ -258,41 +357,188 @@ const anciennete = (p: any) => {
 </BaseLayout>
 
 <style>
-  .classement-page { padding: 2rem 0 4rem; }
-  .classement-head { max-width: 62rem; margin: 0 auto; padding-block: 0 1.5rem; }
-  .classement-title { max-width: 22ch; margin: 0.6rem 0 1rem; }
-  .classement-intro { max-width: 46rem; margin: 2rem auto 3rem; }
-  .speakable { margin: 1.5rem 0 0; }
+  .classement-v2 { padding: 2rem 0 4rem; }
+  .cl-top {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 clamp(1.25rem, 5vw, 4rem) 0;
+  }
+  .cl-title {
+    max-width: 20ch;
+    margin: 0.6rem 0 1rem;
+  }
 
-  .classement-liste { max-width: 62rem; margin: 2rem auto 3rem; }
-  .classement-top3-marker {
-    display: flex; align-items: baseline; gap: 0.7rem;
-    margin: 0 0 1rem; padding-bottom: 0.6rem;
+  /* Metrics pills */
+  .cl-metrics {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 clamp(1.25rem, 5vw, 4rem) 0.5rem;
+  }
+  .cm-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Top Classement */
+  .cl-top-section {
+    max-width: 62rem;
+    margin: 1rem auto 2rem;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+  .cl-sticky-rank {
+    position: sticky;
+    top: 5rem;
+    z-index: 5;
+    background: var(--paper);
+    padding: 0.55rem 0.9rem;
     border-bottom: 1px solid rgba(26, 22, 20, 0.1);
+    border-top: 1px solid rgba(26, 22, 20, 0.1);
+    margin: 0 0 1rem;
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
   }
-  .current-rank {
-    font-family: var(--font-display); font-size: 1.3rem; font-weight: 500;
-    color: var(--or-deep); font-variant-numeric: tabular-nums;
+  .cl-current-rank {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--or-deep);
+    font-variant-numeric: tabular-nums;
   }
-  .pros-list { display: grid; gap: 1.1rem; }
-  .classement-more {
-    margin-top: 2rem; padding: 1rem 1.2rem;
-    background: var(--paper-warm); border-left: 2px solid var(--or);
-    border-radius: 0 2px 2px 0; color: var(--ink-soft);
-    max-width: 52rem;
-  }
-  .classement-empty { padding: 4rem 0; text-align: center; }
+  .cl-pros-list { display: grid; gap: 1.1rem; }
+  .cl-pros-item { transition: transform 300ms var(--ease-out-quart); }
 
-  .section-tarifs { padding: 3rem 0; max-width: 62rem; margin: 0 auto; }
-  .tarifs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.6rem; }
-  @media (max-width: 640px) { .tarifs-grid { grid-template-columns: 1fr; } }
-  .tarif-row { padding: 1.2rem 1.4rem 1.3rem; display: grid; gap: 0.25rem; }
-  .tarif-nom { font-size: 1.1rem; color: var(--ink); margin: 0.15rem 0; font-weight: 400; }
-  .tarif-prix { font-family: var(--font-display); font-size: 1.15rem; color: var(--or-deep); margin: 0; font-weight: 400; }
+  /* Intro deplacee */
+  .cl-intro {
+    max-width: 46rem;
+    margin: 2rem auto 2.5rem;
+    padding: 0 clamp(1.25rem, 5vw, 2rem);
+  }
+  .cl-intro-inner { font-size: 1.02rem; line-height: 1.7; }
 
-  .section-faq-page { padding: 2rem 0 3rem; }
+  .cl-rest {
+    max-width: 62rem;
+    margin: 2rem auto 3rem;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+  .cl-more {
+    margin: 1.5rem auto 2rem;
+    max-width: 54rem;
+    padding: 1rem 1.2rem;
+    background: var(--paper-warm);
+    border-left: 2px solid var(--or);
+    border-radius: 0 2px 2px 0;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .cl-empty { padding: 4rem 0; text-align: center; max-width: 42rem; margin: 0 auto; }
+
+  /* GUIDE TARIFAIRE v2 */
+  .cl-tarifs {
+    padding: 3rem 0;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 60%, var(--paper) 100%);
+    margin: 2rem 0;
+  }
+  .cl-tarifs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 1.8rem;
+  }
+  .tarif-v2 {
+    padding: 1.3rem 1.3rem 1.5rem;
+    display: grid;
+    gap: 0.4rem;
+    background: var(--paper);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: all 280ms var(--ease-out-quart);
+  }
+  .tarif-v2::before {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--or), var(--or-deep) 70%, transparent);
+    transform: scaleX(0.4);
+    transform-origin: left;
+    transition: transform 320ms var(--ease-out-quart);
+  }
+  .tarif-v2:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px -16px rgba(26, 22, 20, 0.2);
+  }
+  .tarif-v2:hover::before { transform: scaleX(1); }
+  .tarif-v2-meta { margin: 0 0 0.2rem; }
+  .tarif-v2-prestation {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+    line-height: 1.25;
+    letter-spacing: -0.012em;
+  }
+  .tarif-v2-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin: 0.2rem 0 0.5rem;
+  }
+  .tarif-v2-range {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--or-deep);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .tarif-v2-unit {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+  }
+  .tarif-v2-bar {
+    height: 3px;
+    background: rgba(26, 22, 20, 0.07);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 0.3rem;
+  }
+  .tarif-v2-bar-fill {
+    display: block;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--or) 0%, var(--or-deep) 100%);
+    transition: width 800ms var(--ease-out-expo);
+  }
+  .tarif-v2:hover .tarif-v2-bar-fill { width: 100%; }
+
+  .cl-tarifs-warning {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    padding: 1rem 1.2rem;
+    margin-top: 1.5rem;
+    background: rgba(30, 58, 82, 0.04);
+    border-left: 3px solid var(--observatoire);
+    border-radius: 0 6px 6px 0;
+    color: var(--ink-soft);
+    max-width: 56rem;
+  }
+  .cl-tarifs-warning svg { flex-shrink: 0; margin-top: 2px; color: var(--observatoire); }
+  .cl-tarifs-warning p { margin: 0; font-size: 0.93rem; line-height: 1.55; }
+  .cl-tarifs-warning strong { color: var(--ink); }
+
+  /* FAQ */
+  .cl-faq { padding: 3rem 0; max-width: 42rem; margin: 0 auto; }
   .faq-list { display: grid; gap: 0.4rem; margin-top: 1.6rem; }
-  .faq-item { background: var(--paper); border: 1px solid rgba(26, 22, 20, 0.08); border-radius: 2px; }
+  .faq-item { background: var(--paper); border: 1px solid rgba(26, 22, 20, 0.08); border-radius: 8px; }
   .faq-item[open] { border-color: rgba(184, 134, 61, 0.4); }
   .faq-item summary {
     display: grid; grid-template-columns: auto 1fr auto;
@@ -302,7 +548,7 @@ const anciennete = (p: any) => {
   .faq-item summary::-webkit-details-marker { display: none; }
   .faq-num { color: var(--or-deep); }
   .faq-question {
-    font-family: var(--font-display); font-size: 1.1rem; font-weight: 500;
+    font-family: var(--font-display); font-size: 1.1rem; font-weight: 400;
     color: var(--ink); letter-spacing: -0.012em;
   }
   .faq-toggle { font-size: 1.5rem; color: var(--or-deep); transition: transform 240ms var(--ease-out-quart); }
@@ -310,6 +556,29 @@ const anciennete = (p: any) => {
   .faq-answer { padding: 0 1.4rem 1.3rem 3.4rem; color: var(--ink-soft); font-size: 0.96rem; }
   .faq-answer p { margin: 0; }
 
-  .section-cta-page { padding: 4rem 0; background: var(--paper-warm); text-align: center; margin-top: 3rem; }
-  .cta-page-inner { display: grid; gap: 0.8rem; place-items: center; }
+  /* CTA */
+  .cl-cta-pro {
+    padding: 4rem 0;
+    background: linear-gradient(135deg, var(--paper-warm) 0%, var(--paper) 70%);
+    text-align: center;
+    margin-top: 3rem;
+    position: relative;
+  }
+  .cl-cta-pro::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 80px; height: 2px;
+    background: var(--or);
+  }
+  .cl-cta-inner { display: grid; gap: 0.8rem; place-items: center; }
+  .cl-cta-title {
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    margin: 0.4rem 0 0.8rem;
+  }
+
+  @media (max-width: 640px) {
+    .cl-sticky-rank { top: 4.5rem; }
+  }
 </style>
