@@ -684,6 +684,80 @@ code, pre, .mono {
 }
 
 /* ------------------------------------------------------------------
+   Scroll progress bar , haut de page (signature editoriale)
+   ------------------------------------------------------------------ */
+#scroll-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0;
+  background: linear-gradient(90deg, var(--or), var(--or-deep) 80%);
+  z-index: 9999;
+  pointer-events: none;
+  transform-origin: left;
+  transition: width 60ms linear;
+  box-shadow: 0 0 12px rgba(184, 134, 61, 0.5);
+}
+
+/* ------------------------------------------------------------------
+   Ink bleed divider , separation signature entre sections
+   SVG mask anime au scroll pour effet tache d'encre qui se propage
+   ------------------------------------------------------------------ */
+.divider-bleed {
+  height: 80px;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+}
+.divider-bleed svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--or);
+  opacity: 0.55;
+}
+.divider-bleed.visible svg {
+  animation: bleed-in 1600ms var(--ease-out-expo) both;
+}
+@keyframes bleed-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* ------------------------------------------------------------------
+   Card tilt subtil (only pointer:fine, prefers-reduced-motion off)
+   ------------------------------------------------------------------ */
+@media (hover: hover) and (pointer: fine) {
+  .card-editorial, .pro-card {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  .card-editorial:hover {
+    transform: translateY(-3px) perspective(1000px) rotateX(0.5deg) rotateY(-0.5deg);
+  }
+}
+
+/* ------------------------------------------------------------------
+   Link hover underline , signature editoriale
+   ------------------------------------------------------------------ */
+a.link-fancy {
+  position: relative;
+  display: inline-block;
+}
+a.link-fancy::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 100%;
+  bottom: -2px;
+  height: 1px;
+  background: var(--or);
+  transition: right 420ms var(--ease-out-expo);
+}
+a.link-fancy:hover::after { right: 0; }
+
+/* ------------------------------------------------------------------
    Prefers reduced motion , contenu immediatement visible
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
