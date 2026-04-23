@@ -1,0 +1,164 @@
+---
+/**
+ * EditorialVerdict , verdict rédaction en 1 phrase punchline.
+ *
+ * Juste sous H1 fiche pro, avant les stats.
+ * Pour les Portraits Recommandés (gratuit) : verdict généré dynamiquement.
+ * Pour les Portraits Vérifié/Lauréat : verdict manuel stocké en DB (v2).
+ *
+ * Style : card avec guillemets français ornementaux + signature rédaction
+ * Typo : Instrument Serif italique 1.15-1.3rem
+ */
+interface Props {
+  verdict?: string; // si stocké en DB (Lauréat)
+  /** Data pour generation auto */
+  anciennete?: number;
+  rge?: boolean;
+  qualibat?: boolean;
+  score?: number;
+  nom?: string;
+  ville?: string;
+  siret?: string;
+  tier?: "or" | "argent" | "gratuit";
+}
+
+const { verdict, anciennete, rge, qualibat, score = 0, nom = "", ville = "", siret, tier = "gratuit" } = Astro.props;
+
+// Generation du verdict editorial pour les Portraits Recommandés
+function generateVerdict(): string {
+  const parts: string[] = [];
+
+  // Ancrage local / ancienneté
+  if (anciennete !== undefined && anciennete >= 25) {
+    parts.push(`Ancrage local solide (${anciennete} ans au registre)`);
+  } else if (anciennete !== undefined && anciennete >= 10) {
+    parts.push(`Entreprise artisanale établie (${anciennete} ans)`);
+  } else if (anciennete !== undefined && anciennete >= 3) {
+    parts.push(`Entreprise jeune mais confirmée (${anciennete} ans)`);
+  } else if (anciennete !== undefined) {
+    parts.push("Entreprise récemment immatriculée");
+  }
+
+  // Certifications
+  if (rge && qualibat) {
+    parts.push("doublement certifiée RGE et Qualibat");
+  } else if (rge) {
+    parts.push("certifiée RGE");
+  } else if (qualibat) {
+    parts.push("qualifiée Qualibat");
+  } else {
+    parts.push("non certifiée publiquement à ce jour");
+  }
+
+  // SIRET
+  const siretNote = siret ? "SIRET actif confirmé" : "SIRET à confirmer";
+  parts.push(siretNote);
+
+  // Score final
+  const scoreVerdict =
+    score >= 8 ? "Score élevé, portrait à enrichir pour la médaille d'Or"
+    : score >= 6 ? "Score correct, examen approfondi possible"
+    : score >= 4.5 ? "Score contenu par absence d'enrichissement volontaire"
+    : "Score bas à ce stade, candidature à soumettre pour enrichissement";
+
+  return `${parts[0]}, ${parts.slice(1).join(", ")}. ${scoreVerdict}.`;
+}
+
+const finalVerdict = verdict || generateVerdict();
+const author = tier === "or" ? "Portrait rédigé par la rédaction" : "Verdict éditorial de la rédaction";
+---
+
+<aside class="editorial-verdict blur-reveal" aria-labelledby="verdict-title">
+  <div class="ev-inner">
+    <span class="ev-quote-open" aria-hidden="true">«</span>
+    <blockquote class="ev-body">
+      <p id="verdict-title">{finalVerdict}</p>
+    </blockquote>
+    <span class="ev-quote-close" aria-hidden="true">»</span>
+  </div>
+  <footer class="ev-foot">
+    <span class="ev-author italic-fraunces">, {author}</span>
+    <span class="ev-folio folio">Édition en cours</span>
+  </footer>
+</aside>
+
+<style>
+  .editorial-verdict {
+    background: linear-gradient(135deg, var(--paper-warm) 0%, var(--paper) 65%);
+    border: 1px solid rgba(184, 134, 61, 0.35);
+    border-left: 3px solid var(--or);
+    border-radius: 4px 22px 4px 4px;
+    padding: 1.4rem 1.6rem 1.2rem;
+    margin: 1.5rem 0 2rem;
+    position: relative;
+    overflow: hidden;
+    max-width: 46rem;
+  }
+  .editorial-verdict::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at 70% 30%, rgba(184, 134, 61, 0.22) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .ev-inner {
+    position: relative;
+    padding: 0 1.8rem;
+  }
+  .ev-quote-open, .ev-quote-close {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 2.6rem;
+    line-height: 0.5;
+    color: var(--or);
+    opacity: 0.65;
+    font-style: italic;
+  }
+  .ev-quote-open {
+    top: -0.1em;
+    left: -0.15rem;
+  }
+  .ev-quote-close {
+    bottom: -0.3em;
+    right: -0.1rem;
+  }
+  .ev-body {
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+  .ev-body p {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.1rem, 1.6vw, 1.3rem);
+    line-height: 1.5;
+    color: var(--ink);
+    letter-spacing: -0.008em;
+    margin: 0;
+    font-weight: 400;
+  }
+  .ev-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.9rem;
+    padding-top: 0.8rem;
+    border-top: 1px dashed rgba(184, 134, 61, 0.3);
+  }
+  .ev-author {
+    font-size: 0.82rem;
+    color: var(--or-deep);
+  }
+  .ev-folio {
+    color: var(--ink-muted);
+    font-size: 0.68rem;
+  }
+  @media (max-width: 540px) {
+    .editorial-verdict { padding: 1.2rem 1.3rem 1rem; }
+    .ev-inner { padding: 0 1.2rem; }
+    .ev-body p { font-size: 1.02rem; }
+  }
+</style>

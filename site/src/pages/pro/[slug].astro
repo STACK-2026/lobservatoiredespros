@@ -8,6 +8,8 @@ import ScoreCircle from "../../components/ScoreCircle.astro";
 import InfoPill from "../../components/InfoPill.astro";
 import GlossaireTerm from "../../components/GlossaireTerm.astro";
 import SourceBadge from "../../components/SourceBadge.astro";
+import EditorialVerdict from "../../components/EditorialVerdict.astro";
+import UnknownsCard from "../../components/UnknownsCard.astro";
 import { siteConfig } from "../../utils/config";
 import { supabase } from "../../lib/supabase";
 import { jsonLdBreadcrumbs, jsonLdLocalBusiness } from "../../utils/seo";
@@ -109,6 +111,18 @@ const jsonLd = [
             {anciennete && anciennete > 0 ? <> · <span class="ph-since">Depuis {p.date_creation_entreprise?.slice(0, 4)}</span></> : null}
           </p>
           {p.tier !== "gratuit" && <div class="ph-medaille"><Medaille tier={p.tier as "or" | "argent"} /></div>}
+
+          <!-- Verdict editorial , voix redaction punchline -->
+          <EditorialVerdict
+            anciennete={anciennete ?? undefined}
+            rge={p.rge}
+            qualibat={p.qualibat}
+            score={p.score_confiance || 0}
+            nom={p.nom_entreprise}
+            ville={p.ville || ""}
+            siret={p.siret}
+            tier={p.tier as "or" | "argent" | "gratuit"}
+          />
 
           <!-- Pills d'identite , moderne, avec glossaire -->
           <div class="ph-pills stagger-children">
@@ -308,6 +322,20 @@ const jsonLd = [
         </div>
       </section>
     )}
+
+    <!-- "CE QUE NOUS NE SAVONS PAS ENCORE" , transparence éditoriale -->
+    <section class="container-wide portrait-unknowns">
+      <UnknownsCard
+        rge={p.rge}
+        qualibat={p.qualibat}
+        site_web={p.site_web}
+        telephone={p.telephone}
+        photos={[]}
+        avis_moyen={null}
+        adresse={p.adresse}
+        description={p.description}
+      />
+    </section>
 
     <!-- SOURCES , cards compactes avec icons et glossaire inline -->
     <section class="container-wide portrait-sources-v2">
@@ -736,9 +764,15 @@ const jsonLd = [
   @media (max-width: 680px) { .cta-card-actions { justify-content: center; } }
 
   /* ═══════ SOURCES ═══════ */
+  .portrait-unknowns {
+    max-width: 62rem;
+    margin: 1rem auto 0.5rem;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+
   .portrait-sources-v2 {
     max-width: 72rem;
-    margin: 3rem auto 2rem;
+    margin: 2rem auto 2rem;
     padding: 0 clamp(1.25rem, 5vw, 4rem);
   }
   .src-head { margin-bottom: 1.5rem; }

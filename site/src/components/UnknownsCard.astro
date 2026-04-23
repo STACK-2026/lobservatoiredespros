@@ -1,0 +1,222 @@
+---
+/**
+ * UnknownsCard , "Ce que nous ne savons pas encore" (transparence journalistique).
+ *
+ * Liste dynamique des trous de data pour un pro. Plutôt que de masquer
+ * les infos manquantes, on les assume publiquement.
+ *
+ * Principe : crée plus de confiance que de faire semblant d'avoir tout.
+ */
+interface Props {
+  rge?: boolean;
+  qualibat?: boolean;
+  site_web?: string | null;
+  telephone?: string | null;
+  photos?: string[];
+  avis_moyen?: number | null;
+  adresse?: string | null;
+  description?: string | null;
+}
+
+const {
+  rge = false,
+  qualibat = false,
+  site_web,
+  telephone,
+  photos = [],
+  avis_moyen,
+  adresse,
+  description,
+} = Astro.props;
+
+const unknowns: { label: string; note: string }[] = [];
+
+if (!rge) {
+  unknowns.push({
+    label: "Certification RGE",
+    note: "aucune certification détectée sur france-renov.gouv.fr",
+  });
+}
+if (!qualibat) {
+  unknowns.push({
+    label: "Qualification Qualibat",
+    note: "pas de qualification au registre Qualibat",
+  });
+}
+if (!avis_moyen) {
+  unknowns.push({
+    label: "Avis clients publics",
+    note: "pas de moyenne d'avis consolidée à ce jour",
+  });
+}
+if (!site_web) {
+  unknowns.push({
+    label: "Site web professionnel",
+    note: "pas de site web indépendant repéré",
+  });
+}
+if (!telephone) {
+  unknowns.push({
+    label: "Téléphone direct",
+    note: "à solliciter auprès du professionnel",
+  });
+}
+if (!photos || photos.length === 0) {
+  unknowns.push({
+    label: "Photos de réalisations",
+    note: "portfolio visuel non accessible publiquement",
+  });
+}
+unknowns.push({
+  label: "Attestation décennale en cours",
+  note: "à demander au professionnel avant tout chantier",
+});
+
+// Si aucune info manquante (cas exceptionnel), on ne rend rien
+const hasUnknowns = unknowns.length > 0;
+---
+
+{hasUnknowns && (
+  <aside class="unknowns-card fade-up" aria-labelledby="unknowns-title">
+    <header class="uc-head">
+      <span class="uc-icon" aria-hidden="true">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+          <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5 2" />
+          <circle cx="10" cy="14" r="0.8" fill="currentColor" />
+          <path d="M10 5 C 11.5 5 12.5 6 12.5 7.2 C 12.5 8.5 10 9 10 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none" />
+        </svg>
+      </span>
+      <div>
+        <span class="meta-label-or">Transparence éditoriale</span>
+        <h3 id="unknowns-title" class="uc-title italic-fraunces">Ce que nous ne savons pas encore</h3>
+      </div>
+    </header>
+    <p class="uc-intro">
+      Nous préférons lister nos angles morts plutôt que de prétendre à une connaissance complète. Ces informations, si elles sont publiques, seront intégrées lors des prochaines éditions.
+    </p>
+    <ul class="uc-list">
+      {unknowns.map((u) => (
+        <li class="uc-item">
+          <span class="uc-bullet" aria-hidden="true"></span>
+          <div class="uc-body">
+            <p class="uc-label">{u.label}</p>
+            <p class="uc-note">{u.note}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+    <footer class="uc-foot">
+      <p class="folio">
+        <a href="/candidater/" class="link-fancy">Le professionnel peut compléter ces informations via une candidature enrichie &rarr;</a>
+      </p>
+    </footer>
+  </aside>
+)}
+
+<style>
+  .unknowns-card {
+    background: var(--paper);
+    border: 1px dashed rgba(26, 22, 20, 0.18);
+    border-radius: 4px 22px 4px 4px;
+    padding: 1.4rem 1.5rem 1.3rem;
+    margin: 2rem 0;
+    max-width: 46rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .unknowns-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--observatoire) 0%, rgba(30, 58, 82, 0.15) 100%);
+  }
+
+  .uc-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+  .uc-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(30, 58, 82, 0.08);
+    color: var(--observatoire);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .uc-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0.2rem 0 0;
+    letter-spacing: -0.012em;
+  }
+  .uc-intro {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0 0 1rem;
+    padding-left: 0.1rem;
+  }
+  .uc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.4rem 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .uc-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.7rem;
+    align-items: baseline;
+    padding: 0.55rem 0.7rem;
+    background: rgba(30, 58, 82, 0.03);
+    border-left: 2px solid rgba(30, 58, 82, 0.25);
+    border-radius: 0 4px 4px 0;
+  }
+  .uc-bullet {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--observatoire);
+    opacity: 0.5;
+    margin-top: 0.45rem;
+    flex-shrink: 0;
+  }
+  .uc-label {
+    font-family: var(--font-display);
+    font-size: 0.96rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.008em;
+  }
+  .uc-note {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin: 0.15rem 0 0;
+    line-height: 1.4;
+    font-style: italic;
+  }
+  .uc-foot {
+    margin-top: 1rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.1);
+  }
+  .uc-foot p { margin: 0; }
+  .uc-foot a {
+    color: var(--or-deep);
+    text-decoration: none;
+    font-size: 0.8rem;
+  }
+</style>

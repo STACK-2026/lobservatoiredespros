@@ -119,14 +119,14 @@ h1 {
   font-weight: 400;
 }
 h2 {
-  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
-  letter-spacing: -0.018em;
-  line-height: 1.15;
+  font-size: clamp(1.85rem, 3.4vw, 2.7rem);
+  letter-spacing: -0.015em;
+  line-height: 1.13;
 }
 h3 {
-  font-size: clamp(1.35rem, 2.3vw, 1.75rem);
-  line-height: 1.2;
-  letter-spacing: -0.012em;
+  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
 }
 h4 {
   font-size: 1.125rem;
@@ -134,34 +134,34 @@ h4 {
   letter-spacing: -0.008em;
 }
 
-/* Hero , H1 ultra grand */
+/* Hero , H1 ultra grand , scale poussee P0.4 */
 .heading-hero {
   font-family: var(--font-display);
-  font-size: clamp(3.5rem, 8vw, 7rem);
-  line-height: 0.96;
-  letter-spacing: -0.03em;
+  font-size: clamp(4rem, 11vw, 9rem);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
   font-weight: 400;
   font-feature-settings: "liga", "calt";
 }
 
 .heading-display {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  line-height: 1.02;
-  letter-spacing: -0.025em;
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  line-height: 1.0;
+  letter-spacing: -0.028em;
   font-weight: 400;
 }
 
-/* Chapô éditorial , lead */
+/* Chapô éditorial , lead , taille augmentee (P0.4) */
 .lead, .chapo {
   font-family: var(--font-display);
   font-style: italic;
-  font-size: clamp(1.2rem, 1.8vw, 1.45rem);
-  line-height: 1.55;
+  font-size: clamp(1.3rem, 2vw, 1.55rem);
+  line-height: 1.52;
   color: var(--ink-soft);
   font-weight: 400;
   letter-spacing: -0.008em;
-  max-width: 40rem;
+  max-width: 42rem;
 }
 
 p {
@@ -207,33 +207,35 @@ code, pre, .mono {
   font-size: 0.86em;
 }
 
-/* Méta-label type magazine , CAPS spaced */
+/* Méta-label type magazine , CAPS spaced , tracking 0.24em (P0.4) */
 .meta-label {
   font-family: var(--font-body);
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--ink-muted);
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .meta-label-ink {
   font-family: var(--font-body);
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--ink);
   font-weight: 600;
+  line-height: 1.5;
 }
 
 .meta-label-or {
   font-family: var(--font-body);
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--or-deep);
   font-weight: 600;
+  line-height: 1.5;
 }
 
 /* Numéro d'édition folio mono */
