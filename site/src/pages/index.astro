@@ -213,31 +213,75 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- ═══════════════════ PORTRAIT DE LA SEMAINE ═══════════════════ -->
-  <section class="section-portrait">
-    <div class="container-wide portrait-inner">
-      <div class="portrait-meta slide-left">
-        <span class="meta-label-or">Portrait Lauréat &middot; Avril 2026</span>
-        <h2 class="heading-display portrait-title">
-          <span class="italic-fraunces">{portraitVedette.name}</span>
-        </h2>
-        <p class="lead portrait-lead">
-          Portrait long format de la seule entreprise de plomberie générale de l'Yonne distinguée d'une médaille d'Or cette année.
-        </p>
-        <ul class="portrait-stats">
-          <li><span class="stat-val">{portraitVedette.score}</span><span class="stat-lbl">/ 10 Score de Confiance</span></li>
-          <li><span class="stat-val">{new Date().getFullYear() - portraitVedette.fondation}</span><span class="stat-lbl">années d'activité</span></li>
-          <li><span class="stat-val">{portraitVedette.salaries}</span><span class="stat-lbl">salariés et apprentis</span></li>
-        </ul>
-        <a href={`/pro/${portraitVedette.slug}/`} class="btn btn-observatoire magnetic">Lire le portrait complet</a>
-      </div>
+  <!-- ═══════════════════ PORTRAIT LAURÉAT DU MOIS ═══════════════════ -->
+  <section class="section-portrait-v3">
+    <div class="container-wide">
+      <article class="portrait-card-v3 blur-reveal">
+        <!-- Ruban Lauréat -->
+        <div class="pcv3-ribbon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="10" r="5" stroke="currentColor" stroke-width="1.4" />
+            <path d="M5 2l1.5 4M11 2l-1.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+          </svg>
+          <span>Lauréat du mois</span>
+        </div>
 
-      <div class="portrait-citation slide-right">
-        <PullQuote cite={portraitVedette.citationAuteur} align="left">
-          {portraitVedette.citation}
-        </PullQuote>
-        <p class="portrait-resume prose">{portraitVedette.resume}</p>
-      </div>
+        <div class="pcv3-grid">
+          <!-- Left : identité + verdict + pills -->
+          <div class="pcv3-body">
+            <span class="meta-label-or pcv3-meta">Portrait Lauréat &middot; {siteConfig.editionMonth} {siteConfig.editionYear}</span>
+            <h2 class="heading-display pcv3-name italic-fraunces">{portraitVedette.name}</h2>
+            <p class="lead pcv3-lead">
+              La seule entreprise de plomberie générale de l'Yonne distinguée d'une médaille d'Or en {siteConfig.editionYear}.
+            </p>
+
+            <!-- Pills identite , style unifié -->
+            <div class="pcv3-pills">
+              <InfoPill variant="or" label="Médaille" value="Or" glossaireSlug="portrait-laureat" pulse={true} />
+              <InfoPill variant="verified" label="RGE" value="Certifié" glossaireSlug="rge" />
+              <InfoPill variant="verified" label="Qualibat" value="Actif" glossaireSlug="qualibat" />
+              <InfoPill variant="info" label="Fondé" value="1984" />
+              <InfoPill variant="neutral" label="Salariés" value={String(portraitVedette.salaries)} />
+            </div>
+
+            <!-- Citation pull quote compacte -->
+            <blockquote class="pcv3-quote">
+              <span class="pcv3-quote-open" aria-hidden="true">«</span>
+              <p>{portraitVedette.citation}</p>
+              <span class="pcv3-quote-close" aria-hidden="true">»</span>
+              <footer class="pcv3-quote-cite">
+                <span class="italic-fraunces">, {portraitVedette.citationAuteur}</span>
+              </footer>
+            </blockquote>
+
+            <a href={`/pro/${portraitVedette.slug}/`} class="btn btn-primary magnetic pcv3-cta">
+              <span>Lire le portrait complet</span>
+              <span class="arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+
+          <!-- Right : Score circle + stats en column -->
+          <aside class="pcv3-side">
+            <div class="pcv3-score-block">
+              <ScoreCircle score={portraitVedette.score} size={132} label="Score de Confiance" />
+            </div>
+            <div class="pcv3-stats-col">
+              <div class="pcv3-stat">
+                <p class="pcv3-stat-val">{new Date().getFullYear() - portraitVedette.fondation}</p>
+                <p class="pcv3-stat-lbl">années d'activité</p>
+              </div>
+              <div class="pcv3-stat">
+                <p class="pcv3-stat-val">4<span class="pcv3-stat-exp">e</span></p>
+                <p class="pcv3-stat-lbl">génération familiale</p>
+              </div>
+              <div class="pcv3-stat">
+                <p class="pcv3-stat-val">2<span class="pcv3-stat-exp-small">×</span></p>
+                <p class="pcv3-stat-lbl">compagnons du devoir</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </article>
     </div>
   </section>
 
@@ -606,29 +650,195 @@ const jsonLd = {
   .alaune-title a:hover { border-color: var(--or); }
   .alaune-excerpt { color: var(--ink-soft); font-size: 0.98rem; line-height: 1.55; margin-bottom: 0.7rem; }
 
-  /* ═══════ PORTRAIT VEDETTE ═══════ */
-  .section-portrait { padding: clamp(2rem, 5vw, 5rem) 0; background: var(--paper-warm); }
-  .portrait-inner {
+  /* ═══════ PORTRAIT VEDETTE V3 , dans la DA unifiée ═══════ */
+  .section-portrait-v3 {
+    padding: clamp(2.5rem, 5vw, 4.5rem) 0;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 60%, var(--paper) 100%);
+  }
+  .portrait-card-v3 {
+    background: var(--paper);
+    border: 1px solid rgba(184, 134, 61, 0.35);
+    border-radius: 4px 40px 4px 4px;
+    padding: 2.2rem 2.4rem 2.2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 0 rgba(184, 134, 61, 0.05), 0 22px 48px -28px rgba(26, 22, 20, 0.18);
+  }
+  .portrait-card-v3::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 4px;
+    background: linear-gradient(90deg, var(--or) 0%, var(--or-deep) 60%, var(--observatoire) 100%);
+  }
+  .portrait-card-v3::after {
+    content: "";
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle at 70% 30%, rgba(184, 134, 61, 0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Ruban Laureat en haut */
+  .pcv3-ribbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.8rem;
+    background: linear-gradient(135deg, var(--or) 0%, var(--or-deep) 100%);
+    color: var(--paper);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px -4px rgba(184, 134, 61, 0.5);
+    margin-bottom: 1.2rem;
+  }
+
+  /* Grid 2 cols */
+  .pcv3-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(2rem, 5vw, 4rem);
+    grid-template-columns: 1fr auto;
+    gap: 2.5rem;
     align-items: start;
   }
-  @media (max-width: 860px) { .portrait-inner { grid-template-columns: 1fr; } }
-  .portrait-title { margin: 0.5rem 0 1rem; }
-  .portrait-lead { margin-bottom: 1.4rem; }
-  .portrait-stats {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.8rem;
-    display: flex;
-    gap: 2.5rem;
-    flex-wrap: wrap;
+  @media (max-width: 880px) {
+    .pcv3-grid { grid-template-columns: 1fr; gap: 1.8rem; }
+    .pcv3-side { justify-self: flex-start; }
   }
-  .portrait-stats li { display: flex; flex-direction: column; gap: 0.1rem; }
-  .stat-val { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
-  .stat-lbl { font-size: 0.78rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.12em; }
-  .portrait-resume { font-size: 0.98rem; }
+
+  .pcv3-meta { display: block; margin-bottom: 0.5rem; }
+  .pcv3-name {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    margin: 0.3rem 0 0.8rem;
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  .pcv3-lead { margin: 0 0 1.2rem; max-width: 42rem; }
+
+  .pcv3-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .pcv3-quote {
+    margin: 1.1rem 0 1.4rem;
+    padding: 1rem 1.3rem 0.9rem;
+    background: var(--paper-warm);
+    border-left: 2px solid var(--or);
+    border-radius: 0 6px 6px 0;
+    position: relative;
+  }
+  .pcv3-quote p {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1rem, 1.4vw, 1.15rem);
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+    padding: 0 0.5rem;
+    letter-spacing: -0.005em;
+  }
+  .pcv3-quote-open, .pcv3-quote-close {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    line-height: 0.5;
+    color: var(--or);
+    opacity: 0.7;
+    font-style: italic;
+  }
+  .pcv3-quote-open { top: 0.2rem; left: -0.15rem; }
+  .pcv3-quote-close { bottom: 0.4rem; right: 0; }
+  .pcv3-quote-cite {
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(184, 134, 61, 0.3);
+  }
+  .pcv3-quote-cite span {
+    font-size: 0.8rem;
+    color: var(--or-deep);
+  }
+
+  .pcv3-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pcv3-cta .arrow {
+    transition: transform 300ms var(--ease-out-quart);
+  }
+  .pcv3-cta:hover .arrow {
+    transform: translateX(4px);
+  }
+
+  /* Side , Score circle + stats */
+  .pcv3-side {
+    display: grid;
+    gap: 1.5rem;
+    min-width: 240px;
+  }
+  .pcv3-score-block {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--paper-warm) 0%, var(--paper) 100%);
+    border: 1px solid rgba(184, 134, 61, 0.3);
+    border-radius: 4px 24px 4px 4px;
+  }
+  .pcv3-stats-col {
+    display: grid;
+    gap: 0.8rem;
+  }
+  .pcv3-stat {
+    padding: 0.75rem 0.9rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 4px 16px 4px 4px;
+    transition: border-color 280ms, transform 280ms;
+  }
+  .pcv3-stat:hover {
+    border-color: rgba(184, 134, 61, 0.4);
+    transform: translateX(3px);
+  }
+  .pcv3-stat-val {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.022em;
+    font-variant-numeric: tabular-nums;
+  }
+  .pcv3-stat-exp {
+    font-size: 0.55em;
+    vertical-align: super;
+    color: var(--or-deep);
+    margin-left: 0.05em;
+  }
+  .pcv3-stat-exp-small {
+    font-size: 0.5em;
+    color: var(--or-deep);
+    margin-left: 0.08em;
+  }
+  .pcv3-stat-lbl {
+    font-size: 0.74rem;
+    color: var(--ink-muted);
+    margin: 0.25rem 0 0;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+  }
+
+  @media (max-width: 540px) {
+    .portrait-card-v3 { padding: 1.6rem 1.5rem 1.8rem; border-radius: 4px 28px 4px 4px; }
+    .pcv3-side { min-width: 0; }
+  }
 
   /* ═══════ MÉTHODE 3 TEMPS ═══════ */
   .section-methode { padding: clamp(2rem, 3vw, 3rem) 0 clamp(1.5rem, 2.5vw, 2.5rem); }
