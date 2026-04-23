@@ -203,28 +203,46 @@ const jsonLd = [
               </div>
             </div>
             <div class="id-certifs">
-              <p class="id-certifs-title">Certifications observées</p>
+              <p class="id-certifs-title">Certifications actives</p>
               <ul class="id-certifs-list">
-                <li class={p.rge ? "is-true" : "is-false"}>
-                  <span class="c-mark">{p.rge ? "✓" : "—"}</span>
-                  <GlossaireTerm slug="rge">RGE</GlossaireTerm>
-                  <span class="c-source">France Rénov</span>
-                </li>
-                <li class={p.qualibat ? "is-true" : "is-false"}>
-                  <span class="c-mark">{p.qualibat ? "✓" : "—"}</span>
-                  <GlossaireTerm slug="qualibat">Qualibat</GlossaireTerm>
-                  <span class="c-source">qualibat.com</span>
-                </li>
-                <li class="is-false">
-                  <span class="c-mark">—</span>
-                  <GlossaireTerm slug="decennale">Assurance décennale</GlossaireTerm>
-                  <span class="c-source">à demander au pro</span>
-                </li>
+                {p.rge ? (
+                  <li class="certif-active certif-rge">
+                    <span class="certif-check" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8 L6.5 11.5 L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    </span>
+                    <div class="certif-body">
+                      <strong><GlossaireTerm slug="rge">RGE</GlossaireTerm></strong>
+                      <span class="certif-source">Certifié Reconnu Garant de l'Environnement</span>
+                    </div>
+                  </li>
+                ) : null}
+                {p.qualibat ? (
+                  <li class="certif-active certif-qualibat">
+                    <span class="certif-check" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8 L6.5 11.5 L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    </span>
+                    <div class="certif-body">
+                      <strong><GlossaireTerm slug="qualibat">Qualibat</GlossaireTerm></strong>
+                      <span class="certif-source">Qualification BTP vérifiée</span>
+                    </div>
+                  </li>
+                ) : null}
+                {!p.rge && !p.qualibat && (
+                  <li class="certif-empty">
+                    <span class="certif-empty-icon" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 2" /></svg>
+                    </span>
+                    <div class="certif-body">
+                      <span>Pas de certification publique recensée</span>
+                      <span class="certif-source">Demandez les attestations au professionnel</span>
+                    </div>
+                  </li>
+                )}
               </ul>
+              <p class="certif-more">
+                <a href="#antecedents">Voir les antécédents &rarr;</a>
+              </p>
             </div>
-            <p class="id-historique folio">
-              <a href="#antecedents" class="link-fancy">Voir les antécédents de qualification &rarr;</a>
-            </p>
           </div>
         </div>
       </div>
@@ -291,31 +309,32 @@ const jsonLd = [
       </section>
     )}
 
-    <!-- SOURCES VÉRIFIÉES , cards officielles avec icons -->
+    <!-- SOURCES , cards compactes avec icons et glossaire inline -->
     <section class="container-wide portrait-sources-v2">
       <header class="src-head fade-up">
-        <span class="meta-label-or">Sources éditoriales</span>
-        <h2 class="src-title">Ce qui fonde cette fiche</h2>
-        <p class="src-lead italic-fraunces">
-          Toutes les données publiées ont été vérifiées auprès de sources officielles ouvertes.
-        </p>
+        <span class="meta-label-or">Sources officielles</span>
+        <h2 class="src-title italic-fraunces">Où vérifier, point par point</h2>
       </header>
       <div class="src-grid stagger-children">
         <SourceBadge
           source="insee"
-          info={`SIRET ${p.siret || "—"} · NAF ${metierNaf}${p.date_creation_entreprise ? ` · Créée ${p.date_creation_entreprise.slice(0, 4)}` : ""}`}
+          info={p.siret ? `${p.siret}${p.date_creation_entreprise ? ` · ${p.date_creation_entreprise.slice(0, 4)}` : ""}` : "SIRET à confirmer"}
           verified={!!p.siret}
         />
-        <SourceBadge
-          source="ademe"
-          info={p.rge ? "Certification RGE confirmée" : "Aucune certification RGE déclarée à ce jour"}
-          verified={p.rge}
-        />
-        <SourceBadge
-          source="qualibat"
-          info={p.qualibat ? "Qualification Qualibat confirmée" : "Aucune qualification Qualibat"}
-          verified={p.qualibat}
-        />
+        {p.rge && (
+          <SourceBadge
+            source="ademe"
+            info="Certification RGE confirmée"
+            verified={true}
+          />
+        )}
+        {p.qualibat && (
+          <SourceBadge
+            source="qualibat"
+            info="Qualification Qualibat confirmée"
+            verified={true}
+          />
+        )}
         {p.site_web && (
           <SourceBadge
             source="google"
@@ -506,40 +525,97 @@ const jsonLd = [
   .id-status-sub { font-size: 0.76rem; color: var(--ink-muted); margin: 0.15rem 0 0; }
 
   .id-certifs {
-    padding: 1rem 1.1rem;
-    background: var(--paper-warm);
+    padding: 1.1rem 1.2rem;
+    background: var(--paper);
     border: 1px solid rgba(26, 22, 20, 0.08);
-    border-radius: 8px;
+    border-radius: 10px;
   }
-  .id-certifs-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); font-weight: 600; margin: 0 0 0.65rem; }
-  .id-certifs-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
-  .id-certifs-list li {
+  .id-certifs-title {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--ink-muted); font-weight: 600; margin: 0 0 0.8rem;
+  }
+  .id-certifs-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.6rem; }
+
+  .id-certifs-list .certif-active {
     display: grid;
-    grid-template-columns: 22px 1fr auto;
-    gap: 0.6rem;
-    align-items: baseline;
-    font-size: 0.88rem;
+    grid-template-columns: auto 1fr;
+    gap: 0.7rem;
+    padding: 0.7rem 0.85rem;
+    background: rgba(74, 145, 58, 0.08);
+    border: 1px solid rgba(74, 145, 58, 0.32);
+    border-radius: 8px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    transition: background 280ms, transform 280ms;
   }
-  .id-certifs-list .c-mark {
+  .id-certifs-list .certif-active::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: #4A913A;
+  }
+  .id-certifs-list .certif-active:hover {
+    transform: translateX(2px);
+    background: rgba(74, 145, 58, 0.12);
+  }
+  .certif-check {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    font-weight: 700;
-    font-size: 0.72rem;
+    background: #4A913A;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(74, 145, 58, 0.12);
   }
-  .id-certifs-list .is-true .c-mark { background: #4A913A; color: white; }
-  .id-certifs-list .is-false .c-mark { background: rgba(26, 22, 20, 0.08); color: var(--ink-muted); }
-  .id-certifs-list .c-source {
-    font-size: 0.72rem;
-    color: var(--ink-muted);
-    font-style: italic;
+  .certif-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
   }
+  .certif-body strong { color: #2d5424; font-weight: 600; font-size: 0.9rem; }
+  .certif-source { font-size: 0.76rem; color: var(--ink-muted); font-style: italic; line-height: 1.3; }
 
-  .id-historique { margin: 0; padding-top: 0.5rem; }
-  .id-historique a { color: var(--or-deep); text-decoration: none; }
+  .id-certifs-list .certif-empty {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.7rem;
+    padding: 0.7rem 0.85rem;
+    background: rgba(26, 22, 20, 0.03);
+    border: 1px dashed rgba(26, 22, 20, 0.18);
+    border-radius: 8px;
+    align-items: center;
+  }
+  .certif-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    color: var(--ink-muted);
+    flex-shrink: 0;
+  }
+  .certif-empty .certif-body span:first-child { color: var(--ink-soft); font-weight: 500; font-size: 0.88rem; }
+
+  .certif-more {
+    margin: 0.8rem 0 0;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.1);
+    text-align: right;
+  }
+  .certif-more a {
+    font-size: 0.78rem;
+    color: var(--or-deep);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .certif-more a:hover { color: var(--ink); }
 
   /* ═══════ ANTÉCÉDENTS ═══════ */
   .portrait-antecedents {

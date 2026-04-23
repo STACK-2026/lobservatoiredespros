@@ -133,8 +133,21 @@ const jsonLd = {
           <span class="meta-label-ink">Édition N°{siteConfig.editionNumber} &middot; {siteConfig.editionMonth} {siteConfig.editionYear}</span>
         </div>
 
-        <h1 class="heading-hero hero-title" data-split-words>
-          {siteConfig.baseline}
+        <h1 class="heading-hero hero-title">
+          <span data-split-words>{siteConfig.baseline}</span>
+          <span class="hero-verified" aria-label="Média éditorial vérifié" title="Média éditorial vérifié , INSEE, ADEME, Qualibat">
+            <svg viewBox="0 0 28 28" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="verif-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#1E3A52" />
+                  <stop offset="100%" stop-color="#0F2335" />
+                </linearGradient>
+              </defs>
+              <path d="M14 1.5 L16.5 3.2 L19.6 2.7 L20.7 5.6 L23.3 7 L22.7 10 L24 12.8 L22 15 L22 18 L19.4 19.2 L18 22 L15 22 L13 24 L11 22 L8 22 L6.6 19.2 L4 18 L4 15 L2 12.8 L3.3 10 L2.7 7 L5.3 5.6 L6.4 2.7 L9.5 3.2 L12 1.5 Z" fill="url(#verif-grad)" />
+              <path d="M9 13.5 L12.5 17 L19 10" stroke="#F7F3EC" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="sr-only">Média éditorial vérifié</span>
+          </span>
         </h1>
 
         <p class="lead hero-lead fade-up">
@@ -415,6 +428,41 @@ const jsonLd = {
   .hero-title {
     margin: 0.4rem 0 1.5rem;
     max-width: 16ch;
+    position: relative;
+  }
+  .hero-verified {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-left: 0.35em;
+    position: relative;
+    top: -0.1em;
+    cursor: help;
+    animation: verif-pop 900ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms both;
+  }
+  .hero-verified svg {
+    display: block;
+    width: clamp(28px, 3.2vw, 42px);
+    height: auto;
+    filter: drop-shadow(0 3px 8px rgba(15, 35, 53, 0.3));
+    transition: transform 300ms var(--ease-out-quart);
+  }
+  .hero-verified:hover svg {
+    transform: rotate(8deg) scale(1.08);
+  }
+  @keyframes verif-pop {
+    0%   { opacity: 0; transform: scale(0.4) rotate(-18deg); }
+    60%  { opacity: 1; transform: scale(1.15) rotate(6deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0); }
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-verified { animation: none; }
+    .hero-verified:hover svg { transform: none; }
   }
   .hero-lead {
     max-width: 36rem;
@@ -466,10 +514,32 @@ const jsonLd = {
     .alaune-grid { grid-template-columns: 1fr; }
     .alaune-card-hero { grid-column: 1; }
   }
-  .alaune-card { padding: 0; overflow: hidden; }
+  .alaune-card {
+    padding: 0; overflow: hidden;
+    border-radius: 4px 28px 4px 4px;
+    transition: transform 420ms var(--ease-out-expo), box-shadow 420ms var(--ease-out-expo), border-color 420ms var(--ease-out-expo);
+    position: relative;
+  }
+  .alaune-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 44px -20px rgba(26, 22, 20, 0.22);
+    border-color: rgba(184, 134, 61, 0.5);
+  }
+  .alaune-card::after {
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at 100% 0%, rgba(184, 134, 61, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 420ms var(--ease-out-expo);
+  }
+  .alaune-card:hover::after { opacity: 1; }
   .alaune-visual { position: relative; aspect-ratio: 4 / 3; background: var(--paper-warm); overflow: hidden; }
   .alaune-visual-initial { display: none; }
   .alaune-card-hero .alaune-visual { aspect-ratio: 16 / 9; }
+  .alaune-card-hero { border-radius: 4px 36px 4px 4px; }
   .alaune-body { padding: 1.4rem 1.6rem 1.7rem; }
   .alaune-title {
     font-family: var(--font-display);
@@ -524,7 +594,27 @@ const jsonLd = {
     display: grid;
     gap: 0.5rem;
     background: var(--paper);
+    border-radius: 4px 26px 4px 4px;
+    transition: transform 400ms var(--ease-out-expo), box-shadow 400ms var(--ease-out-expo), border-color 400ms;
+    position: relative;
+    overflow: hidden;
   }
+  .methode-temps::before {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--or) 0%, var(--or-deep) 80%, transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 500ms var(--ease-out-expo);
+  }
+  .methode-temps:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px -22px rgba(26, 22, 20, 0.22);
+    border-color: rgba(184, 134, 61, 0.5);
+  }
+  .methode-temps:hover::before { transform: scaleX(1); }
   .methode-temps .rank-num { font-size: 3.5rem; line-height: 1; }
   .methode-temps h3 { font-size: 1.5rem; margin: 0; font-weight: 500; }
   .methode-temps p { font-size: 0.96rem; color: var(--ink-soft); margin: 0; }
@@ -547,8 +637,21 @@ const jsonLd = {
     position: relative;
     display: grid;
     gap: 0.4rem;
-    border-radius: 2px;
+    border-radius: 4px 22px 4px 4px;
+    transition: all 380ms var(--ease-out-expo);
+    overflow: hidden;
   }
+  .classement-card::before {
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: 44px; height: 44px;
+    background: radial-gradient(circle at 100% 0%, rgba(184, 134, 61, 0.18) 0%, transparent 60%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out-expo);
+  }
+  .classement-card:hover::before { opacity: 1; }
   .classement-card .classement-title {
     font-family: var(--font-display);
     font-size: 1.45rem;
