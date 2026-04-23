@@ -44,7 +44,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
               <p class="author-role meta-label-or">{a.role}</p>
               <p class="author-bio">{a.bio}</p>
               <p class="author-link">
-                <a class="btn-ghost" href="/observations/">Articles signés {a.name.split(" ")[0]} <span class="arrow">&rarr;</span></a>
+                <a class="btn-ghost" href={`/redaction/${a.slug}/`}>Profil complet de {a.name.split(" ")[0]} <span class="arrow">&rarr;</span></a>
               </p>
             </div>
           </article>

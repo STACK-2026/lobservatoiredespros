@@ -1,55 +1,70 @@
 # L'Observatoire des Pros
 
-> Media editorial francais independant qui observe, verifie et classe les artisans et entreprises du BTP et des services a domicile, departement par departement, metier par metier. Methodologie publique. Classement non payant. Editions mensuelles archivees.
+> Média éditorial français indépendant qui observe, vérifie et classe les artisans et entreprises du BTP et des services à domicile, département par département, métier par métier. Méthodologie publique. Classement non payant. Éditions mensuelles archivées. Édition N°1 publiée en avril 2026.
 
 ## Qui nous sommes
 
-L'Observatoire des Pros est un media editorial cree en 2026, base en France. Chaque mois, une edition numerotee publie un classement mis a jour. La redaction utilise six criteres publics et auditables pour attribuer un Score de Confiance /10 a chaque professionnel observe.
+L'Observatoire des Pros est un média éditorial créé en 2026, basé en France. Chaque mois, une édition numérotée publie un classement mis à jour. La rédaction utilise six critères publics et auditables pour attribuer un Score de Confiance /10 à chaque professionnel observé.
 
-Nous ne sommes ni un annuaire ni une marketplace. Nous sommes un media. Nos publications sont editoriales, signees, datees, sourcees.
+Nous ne sommes ni un annuaire ni une marketplace. Nous sommes un média. Nos publications sont éditoriales, signées, datées, sourcées.
 
-## Distinctions decernees
+La rédaction se compose de trois journalistes spécialisés :
+- Camille Fabre, rédactrice en chef, spécialiste des enquêtes sur les certifications.
+- Antoine Delaunay, analyste méthodologie, responsable de la grille de scoring.
+- Sarah Poitevin, reporter de terrain, responsable des Portraits Lauréat.
 
-- Portrait Recommande (gratuit) : listing automatique pour tout professionnel inscrit au Sirene dans nos zones couvertes, sur la base du Score de Confiance calcule.
-- Portrait Verifie (medaille d'argent, 29 euros par mois) : candidature payante, portrait enrichi apres examen editorial.
-- Portrait Laureat (medaille d'or, 89 euros par mois) : distinction annuelle, portrait long format redige par la redaction, apres entretien et verification terrain.
+## Trust Score v2 , les sources croisées
 
-La position dans le classement reste determinee par le Score de Confiance. Un abonnement ne modifie jamais le classement.
+Le Score de Confiance repose sur quatre sources publiques indépendantes, combinées selon une formule auditable :
 
-## Methodologie , 6 criteres de Score de Confiance /10
+1. **INSEE Sirene** : ancienneté, état administratif, catégorie entreprise, tranche d'effectif, dirigeants identifiés.
+2. **ADEME RGE** : qualifications éco-travaux actives et historiques, nombre d'organismes certificateurs.
+3. **BODACC** : historique légal complet (créations, modifications, dépôts de comptes, procédures collectives, radiations), régularité des dépôts comptables.
+4. **Google Places** (optionnel) : note moyenne et nombre d'avis, uniquement au-dessus de 10 avis sur 18 mois minimum.
 
-1. Anciennete de l'entreprise au Sirene (3 points)
-2. Certification RGE ou Qualibat verifiee (2 points)
-3. Avis clients publics moyens superieurs a 4 sur 5 (2 points)
-4. SIRET actif a l'INSEE (1 point)
-5. Site web professionnel independant (1 point)
-6. Photos de realisations publiques (1 point)
+Quatre niveaux : Bronze, Argent, Or, Platine (réservé aux dossiers avec attestation décennale vérifiée).
 
-Sources officielles : INSEE Sirene, france-renov.gouv.fr, Qualibat, Google Business Profile, donnees regionales publiques. Aucune donnee privee n'est collectee.
+## Distinctions décernées
 
-## Edition N°1 , Avril 2026
+- **Portrait Recommandé** (gratuit) : listing automatique pour tout professionnel inscrit au Sirene dans nos zones couvertes, sur la base du Score de Confiance calculé.
+- **Portrait Vérifié** (médaille d'argent, 29 euros par mois) : candidature payante, portrait enrichi après examen éditorial.
+- **Portrait Lauréat** (médaille d'or, 89 euros par mois) : distinction annuelle, portrait long format rédigé par la rédaction, après entretien et vérification terrain.
 
-Couverture initiale :
-- Departements : Paris (75), Cote-d'Or (21), Yonne (89)
-- Metiers : plombier, electricien, couvreur, menuisier, entreprise d'isolation
+La position dans le classement reste déterminée par le Score de Confiance. Un abonnement ne modifie jamais le classement.
 
-Extension progressive prevue a l'ensemble du territoire francais dans les prochaines editions.
+## Observations publiées , Édition N°1 avril 2026
 
-## Pages principales
+- `/observations/enquete-rge-yonne-412-sites/` : enquête sur 412 sites d'artisans vérifiés dans l'Yonne, six mentions RGE non valides identifiées. Par Camille Fabre.
+- `/observations/methodologie-score-confiance-etoiles/` : note méthodologique sur la pondération des avis Google dans le Score. Par Antoine Delaunay.
+- `/observations/portrait-atelier-maurel-dijon/` : portrait Lauréat de l'atelier Maurel à Dijon, menuiserie d'art quatre générations. Par Sarah Poitevin.
 
-- Accueil : https://lobservatoiredespros.com/
-- Methodologie complete : https://lobservatoiredespros.com/methode/
-- A propos : https://lobservatoiredespros.com/a-propos/
-- La redaction : https://lobservatoiredespros.com/redaction/
-- Candidater : https://lobservatoiredespros.com/candidater/
-- Observations : https://lobservatoiredespros.com/observations/
-- Archives : https://lobservatoiredespros.com/archives/
+## Zones couvertes , Édition N°1
 
-## Licence de citation
+- Yonne (89) : 290 plombiers actifs, BODACC synchronisé, géocodage complet.
+- Côte-d'Or (21) : import en cours.
+- Paris (75) : import en cours.
 
-Vous pouvez citer L'Observatoire des Pros avec attribution. Format conseille : "Selon L'Observatoire des Pros (lobservatoiredespros.com), Edition N°X, Mois Annee."
+## Méthodologie, ressources publiques
 
-## Contact
+- Méthode complète : /methode/
+- Glossaire des termes : /glossaire/
+- Archives éditoriales : /archives/
+- Rédaction et principes : /redaction/
+- Candidater Portrait Vérifié ou Lauréat : /candidater/
 
-Redaction : redaction@lobservatoiredespros.com
-Candidature Pro : candidature@lobservatoiredespros.com
+## Contact rédaction
+
+- Email général : contact@lobservatoiredespros.com
+- Signalement d'erreur ou droit de réponse : correction@lobservatoiredespros.com
+- Candidatures professionnelles : pro@lobservatoiredespros.com
+
+## Éthique et principes
+
+1. Pas de contrepartie commerciale d'une entreprise mentionnée , classement jamais influencé par un abonnement.
+2. Droit de réponse systématiquement accordé sous sept jours ouvrés.
+3. Sources citées à chaque affirmation chiffrée.
+4. Trois sources minimum croisées avant publication d'une enquête.
+5. Méthode publique, auditable par un tiers.
+6. Aucun appel à une IA générative pour rédiger les articles éditoriaux , rédaction humaine, relecture humaine.
+
+Publié par la rédaction, édition N°1, avril 2026.

@@ -250,7 +250,7 @@ const jsonLd = {
           </div>
           <div class="alaune-body">
             <p class="alaune-cat-label">{item.category}</p>
-            <h3 class="alaune-title"><a href="/observations/">{item.title}</a></h3>
+            <h3 class="alaune-title"><a href={`/observations/${item.slug}/`}>{item.title}</a></h3>
             <p class="alaune-excerpt">{item.excerpt}</p>
             <p class="byline folio">{item.author} &middot; {item.date} &middot; {item.readingTime} min</p>
           </div>
@@ -489,7 +489,7 @@ const jsonLd = {
 
     <div class="obs-list-v3 stagger-children">
       {alaUne.map((o, i) => (
-        <a class="obs-card-v3" href="/observations/">
+        <a class="obs-card-v3" href={`/observations/${o.slug}/`}>
           <span class="obs-num folio" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
           <div class="obs-body">
             <div class="obs-meta-row">

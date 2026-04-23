@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import { siteConfig } from "../utils/config";
 import { supabase } from "../lib/supabase";
+import { observations } from "../data/observations";
+import { redaction } from "../data/redaction";
 
 interface SitemapEntry {
   loc: string;
@@ -44,6 +46,25 @@ export const GET: APIRoute = async () => {
     for (const d of siteConfig.departementsPilote) {
       urls.push({ loc: `/${m.slug}/${d.slug}/`, priority: 0.85, changefreq: "weekly", lastmod: now });
     }
+  }
+
+  // URLs observations , articles editoriaux
+  for (const o of observations) {
+    urls.push({
+      loc: `/observations/${o.slug}/`,
+      priority: 0.85,
+      changefreq: "monthly",
+      lastmod: (o.dateRevision || o.datePublication || now).split("T")[0],
+    });
+  }
+  // URLs auteurs , pages redaction individuelles (E-E-A-T)
+  for (const a of redaction) {
+    urls.push({
+      loc: `/redaction/${a.slug}/`,
+      priority: 0.7,
+      changefreq: "monthly",
+      lastmod: now,
+    });
   }
 
   // URLs pros , fetch depuis Supabase au build time

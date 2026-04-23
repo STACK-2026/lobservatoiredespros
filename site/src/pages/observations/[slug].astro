@@ -1,0 +1,430 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Masthead from "../../components/Masthead.astro";
+import ByLine from "../../components/ByLine.astro";
+import SpeakableTLDR from "../../components/SpeakableTLDR.astro";
+import EditorialCartouche from "../../components/EditorialCartouche.astro";
+import DropCap from "../../components/DropCap.astro";
+import { observations, type Observation } from "../../data/observations";
+import { auteurBySlug } from "../../data/redaction";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+export async function getStaticPaths() {
+  return observations.map((o) => ({
+    params: { slug: o.slug },
+    props: { obs: o },
+  }));
+}
+
+const { obs } = Astro.props as { obs: Observation };
+const auteur = auteurBySlug(obs.authorSlug);
+const url = `${siteConfig.url}/observations/${obs.slug}/`;
+
+const dateFR = new Date(obs.datePublication).toLocaleDateString("fr-FR", {
+  day: "numeric", month: "long", year: "numeric",
+});
+const revisionFR = obs.dateRevision
+  ? new Date(obs.dateRevision).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+  : undefined;
+
+const catLabels: Record<string, string> = {
+  enquete: "ENQUÊTE",
+  methodologie: "MÉTHODOLOGIE",
+  portrait: "PORTRAIT",
+  dossier: "DOSSIER",
+  "guide-pratique": "GUIDE PRATIQUE",
+  entretien: "ENTRETIEN",
+};
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Observations", url: `${siteConfig.url}/observations/` },
+    { name: obs.titre, url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": obs.categorie === "enquete" ? "ReportageNewsArticle" : "NewsArticle",
+    "@id": `${url}#article`,
+    headline: obs.titre,
+    alternativeHeadline: obs.sousTitre,
+    url,
+    datePublished: obs.datePublication,
+    dateModified: obs.dateRevision || obs.datePublication,
+    wordCount: obs.sections.reduce((n, s) => n + (s.content?.split(/\s+/).length || 0), 0),
+    inLanguage: "fr-FR",
+    isAccessibleForFree: true,
+    author: auteur ? {
+      "@type": "Person",
+      "@id": `${siteConfig.url}/redaction/${auteur.slug}/#person`,
+      name: auteur.nom,
+      url: `${siteConfig.url}/redaction/${auteur.slug}/`,
+      jobTitle: auteur.role,
+    } : { "@type": "Organization", name: siteConfig.name },
+    publisher: {
+      "@type": "NewsMediaOrganization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    description: obs.tldr,
+    keywords: obs.tags.join(", "),
+    citation: obs.sources.map((s) => ({
+      "@type": "CreativeWork",
+      name: s.label,
+      url: s.url,
+    })),
+  },
+];
+---
+
+<BaseLayout title={`${obs.titre} , L'Observatoire des Pros`} description={obs.sousTitre} jsonLd={jsonLd} ogType="article" publishedTime={obs.datePublication}>
+  <article class="obs-article" itemscope itemtype="https://schema.org/NewsArticle">
+    <header class="container-editorial obs-head">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Observations", href: "/observations/" },
+          { label: obs.titre },
+        ]}
+      />
+
+      <Masthead category={catLabels[obs.categorie] || obs.categorie.toUpperCase()} signature={dateFR} />
+
+      <h1 class="obs-title" itemprop="headline">{obs.titre}</h1>
+      <p class="obs-soustitre" itemprop="alternativeHeadline">{obs.sousTitre}</p>
+
+      {auteur && (
+        <ByLine
+          authors={[{ name: auteur.nom, role: auteur.role, slug: auteur.slug }]}
+          date={dateFR}
+          updated={revisionFR}
+          readingTime={obs.readingTime}
+        />
+      )}
+
+      <EditorialCartouche
+        author={auteur?.nom || "La rédaction"}
+        authorHref={auteur ? `/redaction/${auteur.slug}/` : "/redaction/"}
+        verifiedOn={revisionFR || dateFR}
+        edition={`N°${siteConfig.editionNumber}`}
+      />
+
+      <SpeakableTLDR label="En résumé">
+        <p data-speakable>{obs.tldr}</p>
+      </SpeakableTLDR>
+    </header>
+
+    <div class="container-editorial obs-body" itemprop="articleBody">
+      {obs.sections.map((sec, i) => {
+        if (sec.type === "h2") return <h2 class="obs-h2">{sec.content}</h2>;
+        if (sec.type === "h3") return <h3 class="obs-h3">{sec.content}</h3>;
+        if (sec.type === "p") {
+          if (i === 0) return <DropCap>{sec.content}</DropCap>;
+          return <p class="obs-p">{sec.content}</p>;
+        }
+        if (sec.type === "quote") return (
+          <blockquote class="obs-quote">
+            <p>{sec.content}</p>
+            {sec.cite && <footer class="obs-quote-cite">{sec.cite}</footer>}
+          </blockquote>
+        );
+        if (sec.type === "pull") return (
+          <aside class="obs-pull">
+            <svg class="obs-pull-mark" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M7 7 C 5 7, 3 9, 3 12 C 3 14, 4 15, 6 15 M 14 7 C 12 7, 10 9, 10 12 C 10 14, 11 15, 13 15" />
+            </svg>
+            <p>{sec.content}</p>
+            {sec.cite && <footer class="obs-pull-cite">, {sec.cite}</footer>}
+          </aside>
+        );
+        if (sec.type === "list") return (
+          <ul class="obs-list">
+            {sec.items?.map((it) => <li>{it}</li>)}
+          </ul>
+        );
+        if (sec.type === "callout") return (
+          <aside class="obs-callout">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.5" />
+              <path d="M8 5.5 V 8.5 M 8 10.5 V 10.7" stroke-linecap="round" />
+            </svg>
+            <p>{sec.content}</p>
+          </aside>
+        );
+        return null;
+      })}
+    </div>
+
+    <footer class="container-editorial obs-foot">
+      {obs.sources.length > 0 && (
+        <section class="obs-sources">
+          <h2 class="obs-sources-title">Sources citées</h2>
+          <ol class="obs-sources-list">
+            {obs.sources.map((s) => (
+              <li>
+                <a href={s.url} target="_blank" rel="noopener nofollow">{s.label}</a>
+                {s.description && <span class="obs-source-desc">, {s.description}</span>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {obs.tags.length > 0 && (
+        <p class="obs-tags">
+          <span class="meta-label-or">Mots-clés</span>
+          {obs.tags.map((t) => <span class="obs-tag">{t}</span>)}
+        </p>
+      )}
+
+      <aside class="obs-cta">
+        <p class="obs-cta-lead">
+          Cet article fait partie de l'édition N°{siteConfig.editionNumber} de L'Observatoire.
+          La méthode, les sources et les principes éditoriaux sont publics.
+        </p>
+        <div class="obs-cta-actions">
+          <a class="btn btn-outline" href="/methode/">Consulter la méthode &rarr;</a>
+          <a class="btn btn-ghost" href="/observations/">Autres observations &rarr;</a>
+        </div>
+      </aside>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .obs-article { padding: 2rem 0 5rem; }
+
+  .obs-head {
+    max-width: 48rem;
+    margin: 0 auto 1rem;
+    padding: 0 clamp(1.25rem, 5vw, 3rem);
+  }
+  .obs-title {
+    font-family: var(--font-body);
+    font-size: clamp(2rem, 4.2vw, 3.3rem);
+    font-weight: 600;
+    letter-spacing: -0.038em;
+    line-height: 1.06;
+    color: var(--ink);
+    margin: 0.5rem 0 0.8rem;
+  }
+  .obs-soustitre {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 1.8vw, 1.3rem);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0 0 1.5rem;
+    letter-spacing: -0.015em;
+    font-weight: 400;
+    max-width: 40rem;
+  }
+
+  /* Body editorial */
+  .obs-body {
+    max-width: 42rem;
+    margin: 2rem auto;
+    padding: 0 clamp(1.25rem, 5vw, 3rem);
+    font-family: var(--font-body);
+    font-size: 1.04rem;
+    line-height: 1.68;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .obs-body :global(.obs-p),
+  .obs-body p {
+    margin: 0 0 1.15rem;
+  }
+  .obs-h2 {
+    font-family: var(--font-body);
+    font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+    font-weight: 600;
+    color: var(--ink);
+    margin: 2.5rem 0 0.9rem;
+    letter-spacing: -0.028em;
+    line-height: 1.15;
+  }
+  .obs-h3 {
+    font-family: var(--font-body);
+    font-size: 1.12rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 1.8rem 0 0.6rem;
+    letter-spacing: -0.018em;
+  }
+
+  .obs-quote {
+    margin: 1.8rem 0;
+    padding: 0.9rem 1.3rem 1rem;
+    background: linear-gradient(135deg, rgba(184, 134, 61, 0.06) 0%, transparent 100%);
+    border-left: 2px solid var(--or);
+    border-radius: 0 10px 10px 0;
+  }
+  .obs-quote p {
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-size: 1.08rem;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+    font-variation-settings: "SOFT" 50, "opsz" 96;
+    letter-spacing: -0.012em;
+  }
+  .obs-quote-cite {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    letter-spacing: -0.005em;
+  }
+
+  .obs-pull {
+    margin: 2.5rem -1rem;
+    padding: 1.5rem 2rem;
+    background: var(--paper);
+    border-top: 1px solid rgba(26, 22, 20, 0.1);
+    border-bottom: 1px solid rgba(26, 22, 20, 0.1);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  .obs-pull-mark { color: var(--or-deep); margin-top: 0.4rem; flex-shrink: 0; }
+  .obs-pull p {
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+    line-height: 1.35;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+    letter-spacing: -0.018em;
+    font-variation-settings: "SOFT" 40, "opsz" 144, "wght" 450;
+  }
+  .obs-pull-cite {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+  }
+
+  .obs-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.3rem 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .obs-list li {
+    position: relative;
+    padding: 0.55rem 0 0.55rem 1.7rem;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    border-bottom: 1px dashed rgba(26, 22, 20, 0.07);
+  }
+  .obs-list li::before {
+    content: "›";
+    position: absolute;
+    left: 0.5rem;
+    top: 0.55rem;
+    color: var(--or-deep);
+    font-weight: 600;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  .obs-callout {
+    margin: 1.8rem 0;
+    padding: 0.9rem 1rem;
+    background: rgba(30, 58, 82, 0.04);
+    border-left: 2px solid var(--observatoire);
+    border-radius: 0 8px 8px 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.7rem;
+    align-items: start;
+  }
+  .obs-callout svg { color: var(--observatoire); margin-top: 0.3rem; flex-shrink: 0; }
+  .obs-callout p {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* Footer */
+  .obs-foot {
+    max-width: 48rem;
+    margin: 4rem auto 0;
+    padding: 0 clamp(1.25rem, 5vw, 3rem);
+  }
+  .obs-sources {
+    margin: 3rem 0 2rem;
+    padding: 1.4rem 1.6rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 14px;
+  }
+  .obs-sources-title {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.018em;
+    color: var(--ink);
+    margin: 0 0 0.9rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid rgba(26, 22, 20, 0.08);
+  }
+  .obs-sources-list {
+    list-style: decimal;
+    padding-left: 1.2rem;
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .obs-sources-list li { margin-bottom: 0.5rem; }
+  .obs-sources-list a {
+    color: var(--observatoire);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--observatoire);
+    padding-bottom: 1px;
+  }
+  .obs-sources-list a:hover { color: var(--observatoire-deep); border-bottom-color: var(--observatoire-deep); }
+  .obs-source-desc { color: var(--ink-muted); font-size: 0.88em; }
+
+  .obs-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    margin: 1.5rem 0 2rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+  }
+  .obs-tags .meta-label-or { margin-right: 0.3rem; }
+  .obs-tag {
+    display: inline-flex;
+    padding: 0.22rem 0.6rem;
+    background: rgba(26, 22, 20, 0.04);
+    color: var(--ink-muted);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+  }
+
+  .obs-cta {
+    margin: 2.5rem 0 0;
+    padding: 1.5rem 1.7rem;
+    background: linear-gradient(135deg, var(--paper-warm) 0%, var(--paper) 70%);
+    border: 1px solid rgba(184, 134, 61, 0.3);
+    border-radius: 16px;
+  }
+  .obs-cta-lead {
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin: 0 0 1rem;
+    line-height: 1.55;
+  }
+  .obs-cta-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+</style>

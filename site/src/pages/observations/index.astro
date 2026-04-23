@@ -3,21 +3,38 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Masthead from "../../components/Masthead.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import EditorialHeader from "../../components/EditorialHeader.astro";
+import SpeakableTLDR from "../../components/SpeakableTLDR.astro";
+import { observations } from "../../data/observations";
+import { auteurBySlug } from "../../data/redaction";
 import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "Observations , L'Observatoire des Pros";
-const description = "Toutes les observations publiees par la rédaction : enquêtes, portraits, dossiers, guides pratiques. Archivees par edition.";
+const description =
+  "Toutes les observations publiées par la rédaction : enquêtes, méthodologie, portraits Lauréat. Chaque article est signé, daté, vérifiable.";
 const url = `${siteConfig.url}/observations/`;
 
 const categories = [
-  { slug: "portraits", nom: "Portraits", desc: "Long format sur les Laureats." },
-  { slug: "enquetes", nom: "Enquêtes", desc: "Investigations sur le secteur." },
-  { slug: "dossiers", nom: "Dossiers", desc: "Analyses thematiques approfondies." },
-  { slug: "guide-pratique", nom: "Guide pratique", desc: "Methodes pour les particuliers." },
-  { slug: "entretiens", nom: "Entretiens", desc: "Conversations avec des artisans et experts." },
+  { slug: "enquete", nom: "Enquêtes", desc: "Investigations documentées sur le secteur." },
   { slug: "methodologie", nom: "Méthodologie", desc: "Explications et ajustements de la grille." },
+  { slug: "portrait", nom: "Portraits", desc: "Long format sur les Lauréats, après visite terrain." },
+  { slug: "dossier", nom: "Dossiers", desc: "Analyses thématiques approfondies." },
+  { slug: "guide-pratique", nom: "Guides pratiques", desc: "Méthodes pour les particuliers." },
+  { slug: "entretien", nom: "Entretiens", desc: "Conversations avec artisans et experts." },
 ];
+
+const articlesTries = [...observations].sort((a, b) =>
+  (b.datePublication || "").localeCompare(a.datePublication || "")
+);
+
+const catLabels: Record<string, string> = {
+  enquete: "ENQUÊTE",
+  methodologie: "MÉTHODOLOGIE",
+  portrait: "PORTRAIT",
+  dossier: "DOSSIER",
+  "guide-pratique": "GUIDE PRATIQUE",
+  entretien: "ENTRETIEN",
+};
 
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Observations", url }])];
 ---
@@ -26,36 +43,72 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
   <article class="observations-page">
     <div class="container-editorial obs-head">
       <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Observations" }]} />
-      <Masthead category="OBSERVATIONS" signature="Toutes les categories" />
+      <Masthead category="OBSERVATIONS" signature={`${articlesTries.length} articles publiés`} />
       <h1 class="heading-display">Nos observations.</h1>
       <p class="lead">
-        La rédaction publié chaque semaine. Enquêtes longues, portraits soignes, dossiers documentes, guides pratiques pour les particuliers.
+        La rédaction publie chaque mois. Enquêtes longues, portraits signés, méthodologie auditable.
+        Chaque article cite ses sources, croise ses données, reste corrigible.
       </p>
+
+      <SpeakableTLDR label="En résumé">
+        <p>
+          L'Observatoire publie des <strong>{articlesTries.length} articles</strong> dans l'édition courante :
+          enquêtes sur les dérives du secteur, portraits Lauréat après visite terrain, notes méthodologiques
+          sur la grille de scoring. Tous signés, tous datés, tous sourcés.
+        </p>
+      </SpeakableTLDR>
     </div>
 
-    <section class="container-wide obs-categories">
-      <EditorialHeader category="PAR CATEGORIE" title="Six angles éditoriaux" />
-      <div class="cats-grid stagger-children">
-        {categories.map((c) => (
-          <div class="cat-card card-editorial curl">
-            <span class="meta-label-or">{c.slug.toUpperCase()}</span>
-            <h3 class="italic-fraunces">{c.nom}</h3>
-            <p class="cat-desc">{c.desc}</p>
-            <p class="folio">À paraître prochainement</p>
-          </div>
-        ))}
-      </div>
+    <section class="container-wide obs-articles">
+      <EditorialHeader category="ÉDITION EN COURS" title="Articles publiés" />
+      <ol class="obs-list">
+        {articlesTries.map((o, i) => {
+          const auteur = auteurBySlug(o.authorSlug);
+          const dateFR = new Date(o.datePublication).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+          return (
+            <li class="obs-item">
+              <a class="obs-card" href={`/observations/${o.slug}/`}>
+                <span class="obs-num folio">{String(i + 1).padStart(2, "0")}</span>
+                <div class="obs-body">
+                  <div class="obs-meta-row">
+                    <span class="obs-cat">
+                      <span class="obs-cat-dot" aria-hidden="true"></span>
+                      {catLabels[o.categorie]}
+                    </span>
+                    <span class="obs-date folio">{dateFR}</span>
+                    <span class="obs-reading folio">· {o.readingTime} min de lecture</span>
+                  </div>
+                  <h2 class="obs-title">{o.titre}</h2>
+                  <p class="obs-soustitre">{o.sousTitre}</p>
+                  <div class="obs-footer">
+                    {auteur && <span class="obs-author">Par <strong>{auteur.nom}</strong>, {auteur.role}</span>}
+                    <span class="obs-cta">Lire l'article <span class="obs-arrow" aria-hidden="true">&rarr;</span></span>
+                  </div>
+                </div>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
     </section>
 
-    <section class="container-editorial" style="margin-top: 4rem; padding-bottom: 2rem;">
-      <div class="obs-placeholder">
-        <p class="italic-fraunces">Notre première série d'observations arrive dans les prochains jours.</p>
-        <p class="folio">En attendant, consultez la méthodologie, candidater a un portrait, ou nous contacter.</p>
-        <p>
-          <a class="btn btn-outline" href="/methode/">La méthode</a>
-          &nbsp;
-          <a class="btn btn-outline" href="/candidater/">Candidater</a>
-        </p>
+    <section class="container-wide obs-categories">
+      <EditorialHeader category="PAR ANGLE ÉDITORIAL" title="Six catégories de publications" subtitle="Les angles couverts par la rédaction. De nouveaux articles par catégorie paraissent au fil des éditions." />
+      <div class="cats-grid stagger-children">
+        {categories.map((c) => {
+          const count = observations.filter((o) => o.categorie === c.slug).length;
+          return (
+            <div class={`cat-card card-editorial ${count > 0 ? "cat-active" : ""}`}>
+              <div class="cat-badge">
+                <span class="meta-label-or">{catLabels[c.slug] || c.slug.toUpperCase()}</span>
+                {count > 0 && <span class="cat-count">{count} publié{count > 1 ? "s" : ""}</span>}
+              </div>
+              <h3 class="cat-nom">{c.nom}</h3>
+              <p class="cat-desc">{c.desc}</p>
+              {count === 0 && <p class="cat-note folio">À paraître prochainement.</p>}
+            </div>
+          );
+        })}
       </div>
     </section>
   </article>
@@ -63,19 +116,158 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
 
 <style>
   .observations-page { padding: 2rem 0 4rem; }
+  .obs-head { max-width: 48rem; margin: 0 auto; padding: 0 clamp(1.25rem, 5vw, 3rem); }
   .obs-head .heading-display { margin: 0.4rem 0 1rem; }
-  .obs-categories { padding: 2rem 0; max-width: 62rem; margin: 0 auto; }
-  .cats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.6rem; }
+
+  .obs-articles {
+    max-width: 62rem;
+    margin: 3rem auto;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+  .obs-list { list-style: none; padding: 0; margin: 1.8rem 0 0; display: grid; gap: 0.8rem; }
+
+  .obs-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.4rem;
+    padding: 1.4rem 1.6rem 1.5rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 4px 24px 4px 4px;
+    text-decoration: none;
+    color: inherit;
+    transition:
+      transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 320ms,
+      border-color 320ms,
+      background 320ms;
+    position: relative;
+    overflow: hidden;
+  }
+  .obs-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--or);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .obs-card:hover {
+    transform: translateX(4px) translateY(-2px);
+    box-shadow: 0 16px 34px -20px rgba(26, 22, 20, 0.2);
+    border-color: rgba(184, 134, 61, 0.5);
+  }
+  .obs-card:hover::before { transform: scaleY(1); }
+
+  .obs-num {
+    font-family: var(--font-body);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--or);
+    opacity: 0.35;
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.2rem;
+    letter-spacing: -0.03em;
+    transition: opacity 300ms, transform 300ms;
+  }
+  .obs-card:hover .obs-num { opacity: 0.7; transform: scale(1.05); }
+
+  .obs-body { min-width: 0; }
+  .obs-meta-row { display: flex; gap: 0.8rem; align-items: baseline; margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .obs-cat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-body);
+    font-size: 0.64rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--or-deep);
+    font-weight: 600;
+  }
+  .obs-cat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--or); }
+  .obs-date, .obs-reading { color: var(--ink-muted); font-size: 0.72rem; }
+
+  .obs-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.3rem, 2vw, 1.7rem);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+    margin: 0 0 0.45rem;
+    color: var(--ink);
+    line-height: 1.2;
+    transition: color 200ms;
+  }
+  .obs-card:hover .obs-title { color: var(--or-deep); }
+  .obs-soustitre {
+    color: var(--ink-soft);
+    font-size: 0.94rem;
+    line-height: 1.55;
+    margin: 0 0 0.8rem;
+    max-width: 54rem;
+  }
+
+  .obs-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.6rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.1);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+  }
+  .obs-author { color: var(--ink-muted); }
+  .obs-author strong { color: var(--ink); font-weight: 600; }
+  .obs-cta { font-weight: 600; color: var(--ink); letter-spacing: 0.02em; font-size: 0.82rem; }
+  .obs-arrow { display: inline-block; transition: transform 280ms; color: var(--or-deep); }
+  .obs-card:hover .obs-arrow { transform: translateX(4px); }
+
+  /* Categories */
+  .obs-categories { max-width: 62rem; margin: 3rem auto; padding: 0 clamp(1.25rem, 5vw, 4rem); }
+  .cats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.8rem; }
   @media (max-width: 860px) { .cats-grid { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 540px) { .cats-grid { grid-template-columns: 1fr; } }
-  .cat-card { padding: 1.3rem 1.4rem 1.5rem; display: grid; gap: 0.4rem; text-decoration: none; color: var(--ink); }
-  .cat-card h3 { font-size: 1.4rem; margin: 0.2rem 0 0.3rem; font-weight: 500; color: var(--ink); }
-  .cat-desc { color: var(--ink-soft); font-size: 0.92rem; margin: 0 0 0.5rem; }
-  .obs-placeholder {
-    text-align: center; padding: 2rem 1rem;
-    background: var(--paper-warm);
-    border-radius: 2px;
+  .cat-card {
+    padding: 1.2rem 1.3rem 1.4rem;
+    display: grid;
+    gap: 0.5rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 4px 18px 4px 4px;
+    transition: border-color 240ms, background 240ms;
   }
-  .obs-placeholder p { margin: 0.3rem 0; }
-  .obs-placeholder .italic-fraunces { font-size: 1.2rem; color: var(--ink-soft); }
+  .cat-card.cat-active {
+    background: linear-gradient(135deg, rgba(184, 134, 61, 0.04) 0%, var(--paper) 60%);
+    border-color: rgba(184, 134, 61, 0.3);
+  }
+  .cat-badge {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cat-count {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    background: rgba(74, 145, 58, 0.12);
+    color: #3a6e30;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .cat-nom {
+    font-family: var(--font-body);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0;
+  }
+  .cat-desc { color: var(--ink-soft); font-size: 0.88rem; margin: 0; line-height: 1.45; }
+  .cat-note { color: var(--ink-muted); font-size: 0.75rem; margin: 0.3rem 0 0; font-style: italic; }
 </style>

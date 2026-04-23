@@ -1,0 +1,440 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Masthead from "../../components/Masthead.astro";
+import SpeakableTLDR from "../../components/SpeakableTLDR.astro";
+import EditorialCartouche from "../../components/EditorialCartouche.astro";
+import { redaction, type Auteur } from "../../data/redaction";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+export async function getStaticPaths() {
+  return redaction.map((a) => ({
+    params: { slug: a.slug },
+    props: { auteur: a },
+  }));
+}
+
+const { auteur } = Astro.props as { auteur: Auteur };
+const url = `${siteConfig.url}/redaction/${auteur.slug}/`;
+const title = `${auteur.nom} , ${auteur.role} , L'Observatoire des Pros`;
+const description = `${auteur.intro} Parcours, spécialités et principes éditoriaux.`;
+
+const accentColors: Record<string, string> = {
+  or: "var(--or)",
+  observatoire: "var(--observatoire)",
+  cachet: "var(--cachet)",
+};
+const accent = accentColors[auteur.couleur_accent] || "var(--or)";
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "La rédaction", url: `${siteConfig.url}/redaction/` },
+    { name: auteur.nom, url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${url}#person`,
+    name: auteur.nom,
+    jobTitle: auteur.role,
+    description: auteur.intro,
+    url,
+    email: auteur.contact_email,
+    knowsAbout: auteur.specialites,
+    worksFor: {
+      "@type": "NewsMediaOrganization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="author-page">
+    <header class="container-wide author-head">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "La rédaction", href: "/redaction/" },
+          { label: auteur.nom },
+        ]}
+      />
+      <Masthead category="LA RÉDACTION" signature={auteur.role} />
+
+      <div class="author-hero">
+        <div class="author-avatar" style={`--accent: ${accent};`}>
+          <span class="author-initials">{auteur.photo_initials}</span>
+          <svg class="author-avatar-ring" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+            <circle cx="60" cy="60" r="56" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.3" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="0.6" opacity="0.5" stroke-dasharray="2 3" />
+          </svg>
+        </div>
+        <div class="author-identity">
+          <h1 class="author-name">{auteur.nom}</h1>
+          <p class="author-role">{auteur.role}</p>
+          <p class="author-titre">{auteur.titre}</p>
+        </div>
+      </div>
+
+      <EditorialCartouche
+        author="La rédaction"
+        authorHref="/redaction/"
+        verifiedOn={new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+        edition={`N°${siteConfig.editionNumber}`}
+      />
+
+      <SpeakableTLDR label="En résumé">
+        <p>
+          <strong>{auteur.nom}</strong> est <strong>{auteur.role.toLowerCase()}</strong> à
+          L'Observatoire des Pros. {auteur.intro} Spécialités : {auteur.specialites.slice(0, 3).join(", ").toLowerCase()}.
+        </p>
+      </SpeakableTLDR>
+    </header>
+
+    <section class="container-wide author-bio-section">
+      <header class="section-head">
+        <span class="meta-label-or">Biographie</span>
+        <h2 class="section-title">Parcours éditorial</h2>
+      </header>
+      <p class="author-bio">{auteur.bio}</p>
+    </section>
+
+    <section class="container-wide author-parcours-section">
+      <header class="section-head">
+        <span class="meta-label-or">Jalons</span>
+        <h2 class="section-title">Étapes professionnelles</h2>
+      </header>
+      <ol class="author-timeline">
+        {auteur.parcours.map((p) => (
+          <li class="author-timeline-item" style={`--accent: ${accent};`}>
+            <span class="author-timeline-year folio">{p.annee}</span>
+            <span class="author-timeline-detail">{p.detail}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="container-wide author-grid-section">
+      <div class="author-grid">
+        <div class="author-col">
+          <header class="section-head">
+            <span class="meta-label-or">Spécialités</span>
+            <h2 class="section-title">Sujets couverts</h2>
+          </header>
+          <ul class="author-list">
+            {auteur.specialites.map((s) => (
+              <li>
+                <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7 L 6 10 L 11 4.5" />
+                </svg>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="author-col">
+          <header class="section-head">
+            <span class="meta-label-or">Déontologie</span>
+            <h2 class="section-title">Principes éditoriaux</h2>
+          </header>
+          <ul class="author-list author-list-principes">
+            {auteur.principes.map((p) => (
+              <li>
+                <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="7" cy="7" r="5.6" />
+                  <path d="M7 4 V 7.5 M 7 9.5 V 9.7" />
+                </svg>
+                <span>{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {auteur.articles_slugs.length > 0 && (
+      <section class="container-wide author-signed-section">
+        <header class="section-head">
+          <span class="meta-label-or">Signatures publiées</span>
+          <h2 class="section-title">Articles de {auteur.nom.split(" ")[0]}</h2>
+        </header>
+        <ul class="author-signed-list">
+          {auteur.articles_slugs.map((slug) => (
+            <li>
+              <a class="author-signed-item" href={`/observations/${slug}/`}>
+                <span class="author-signed-arrow">→</span>
+                <span class="author-signed-slug">/observations/{slug}/</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <footer class="container-wide author-foot">
+      <p class="folio">
+        Écrire à la rédaction : <a href="/contact/">contact@lobservatoiredespros.com</a>
+        {auteur.contact_email && <> · Direct {auteur.nom.split(" ")[0]} : <a href={`mailto:${auteur.contact_email}`}>{auteur.contact_email}</a></>}
+      </p>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .author-page { padding: 2rem 0 4rem; }
+
+  .author-head {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+
+  .author-hero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: center;
+    margin: 1.5rem 0 1rem;
+  }
+  @media (max-width: 640px) {
+    .author-hero { grid-template-columns: 1fr; gap: 1rem; text-align: center; }
+  }
+
+  .author-avatar {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .author-initials {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-body);
+    font-size: 2.4rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .author-avatar-ring {
+    position: absolute;
+    inset: 0;
+    animation: author-ring-rotate 42s linear infinite;
+  }
+  @keyframes author-ring-rotate {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .author-avatar-ring { animation: none; }
+  }
+
+  .author-identity { min-width: 0; }
+  .author-name {
+    font-family: var(--font-body);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    color: var(--ink);
+    margin: 0 0 0.3rem;
+  }
+  .author-role {
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--or-deep);
+    margin: 0 0 0.3rem;
+    font-variation-settings: "SOFT" 50, "opsz" 48;
+  }
+  .author-titre {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 36rem;
+    line-height: 1.45;
+  }
+
+  /* Sections */
+  .author-bio-section,
+  .author-parcours-section,
+  .author-grid-section,
+  .author-signed-section {
+    max-width: 64rem;
+    margin: 3rem auto 0;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+  .section-head { margin-bottom: 1rem; }
+  .section-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 0.3rem 0 0;
+  }
+
+  .author-bio {
+    font-family: var(--font-body);
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    max-width: 44rem;
+    letter-spacing: -0.005em;
+  }
+
+  /* Timeline */
+  .author-timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    padding-left: 1.7rem;
+  }
+  .author-timeline::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 14px;
+    bottom: 14px;
+    width: 1px;
+    background: linear-gradient(180deg, var(--accent) 0%, rgba(26, 22, 20, 0.1) 100%);
+    opacity: 0.55;
+  }
+  .author-timeline-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1.1rem;
+    padding: 0.65rem 0;
+  }
+  .author-timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -1.65rem;
+    top: 0.9rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 3px var(--paper);
+  }
+  .author-timeline-year {
+    color: var(--accent);
+    padding-top: 0.15rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+  }
+  .author-timeline-detail {
+    font-family: var(--font-body);
+    font-size: 0.94rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  /* Grid principes */
+  .author-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+  @media (max-width: 720px) {
+    .author-grid { grid-template-columns: 1fr; gap: 1.6rem; }
+  }
+  .author-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .author-list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.6rem;
+    align-items: baseline;
+    padding: 0.55rem 0.7rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.06);
+    border-left: 2px solid rgba(184, 134, 61, 0.4);
+    border-radius: 2px 10px 10px 2px;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .author-list svg {
+    color: #3a6e30;
+    margin-top: 0.3rem;
+    flex-shrink: 0;
+  }
+  .author-list-principes li { border-left-color: rgba(30, 58, 82, 0.35); }
+  .author-list-principes svg { color: var(--observatoire); }
+
+  /* Articles signés */
+  .author-signed-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .author-signed-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.7rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 2px 14px 14px 2px;
+    text-decoration: none;
+    color: var(--ink);
+    transition:
+      transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      border-color 240ms,
+      box-shadow 240ms;
+  }
+  .author-signed-item:hover {
+    transform: translateX(3px);
+    border-color: rgba(184, 134, 61, 0.45);
+    box-shadow: 0 10px 22px -14px rgba(26, 22, 20, 0.18);
+  }
+  .author-signed-arrow {
+    font-size: 1.1rem;
+    color: var(--or-deep);
+    font-weight: 500;
+  }
+  .author-signed-slug {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+
+  .author-foot {
+    max-width: 64rem;
+    margin: 4rem auto 0;
+    padding: 2rem clamp(1.25rem, 5vw, 4rem) 0;
+    border-top: 1px dashed rgba(26, 22, 20, 0.1);
+  }
+  .author-foot a {
+    color: var(--or-deep);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--or);
+  }
+  .author-foot a:hover {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+</style>

@@ -16,7 +16,7 @@ const { authors = [{ name: "La rédaction" }], date, readingTime, updated } = As
   <span class="byline-label">Par</span>{" "}
   {authors.map((a, i) => (
     <span>
-      {a.slug ? <a href="/redaction/">{a.name}</a> : <span class="byline-name">{a.name}</span>}
+      {a.slug ? <a href={`/redaction/${a.slug}/`}>{a.name}</a> : <span class="byline-name">{a.name}</span>}
       {a.role && <span class="byline-role">, {a.role}</span>}
       {i < authors.length - 1 && <span>, </span>}
     </span>

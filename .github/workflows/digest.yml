@@ -1,0 +1,133 @@
+name: Daily digest
+
+on:
+  schedule:
+    # 06:45 UTC (07:45 Paris hiver / 08:45 ete)
+    - cron: "45 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    name: Daily summary , cron + trust sync + BODACC
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build digest payload
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, urllib.request, time
+
+          sb = os.environ.get("SUPABASE_URL")
+          key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+          if not sb or not key:
+              print("No Supabase credentials, skipping")
+              raise SystemExit(0)
+
+          headers = {"apikey": key, "Authorization": f"Bearer {key}"}
+
+          def count(query):
+              req = urllib.request.Request(f"{sb}/rest/v1/{query}",
+                  headers={**headers, "Prefer": "count=exact", "Range": "0-0"})
+              try:
+                  with urllib.request.urlopen(req, timeout=15) as r:
+                      cr = r.headers.get("content-range", "0-0/0")
+                      return int(cr.split("/")[-1])
+              except Exception as e:
+                  print(f"[warn] {query}: {e}")
+                  return 0
+
+          metrics = {
+              "pros_total": count("pros?select=count&active=eq.true"),
+              "niveau_or": count("pros?select=count&niveau_confiance=eq.or"),
+              "niveau_argent": count("pros?select=count&niveau_confiance=eq.argent"),
+              "niveau_bronze": count("pros?select=count&niveau_confiance=eq.bronze"),
+              "bodacc_events": count("pro_evenements_legaux?select=count"),
+              "geocoded": count("pros?select=count&lat=not.is.null"),
+              "enriched": count("pros?select=count&enriched_at=not.is.null"),
+          }
+
+          print("=== DAILY DIGEST LObservatoire ===")
+          print(f"Date : {time.strftime('%Y-%m-%d')}")
+          for k, v in metrics.items():
+              print(f"  {k}: {v}")
+
+          with open("digest.json", "w") as f:
+              json.dump({"date": time.strftime('%Y-%m-%d'), "metrics": metrics}, f, indent=2)
+          PYEOF
+
+      - name: Send digest email via Resend
+        if: ${{ env.RESEND_API_KEY != '' }}
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, urllib.request, time
+
+          try:
+              data = json.load(open("digest.json"))
+          except Exception:
+              raise SystemExit(0)
+
+          key = os.environ.get("RESEND_API_KEY")
+          if not key:
+              print("No RESEND_API_KEY, skipping email")
+              raise SystemExit(0)
+
+          m = data["metrics"]
+          html = f"""
+          <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#F7F3EC">
+            <div style="border-left:2px solid #B8863D;padding-left:16px;margin-bottom:20px">
+              <p style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#8E6828;margin:0;font-weight:600">
+                L'Observatoire des Pros , digest {data['date']}
+              </p>
+              <h1 style="font-size:22px;color:#1A1614;margin:8px 0 0;font-weight:600;letter-spacing:-0.02em">
+                État de la base
+              </h1>
+            </div>
+            <table style="width:100%;border-collapse:collapse">
+              <tr><td style="padding:8px 0;color:#3D342E">Pros actifs</td><td style="padding:8px 0;text-align:right;font-weight:600;color:#1A1614">{m['pros_total']}</td></tr>
+              <tr><td style="padding:8px 0;color:#3D342E">, Niveau Or</td><td style="padding:8px 0;text-align:right;font-weight:600;color:#B8863D">{m['niveau_or']}</td></tr>
+              <tr><td style="padding:8px 0;color:#3D342E">, Niveau Argent</td><td style="padding:8px 0;text-align:right;color:#7A6E63">{m['niveau_argent']}</td></tr>
+              <tr><td style="padding:8px 0;color:#3D342E">, Niveau Bronze</td><td style="padding:8px 0;text-align:right;color:#7A6E63">{m['niveau_bronze']}</td></tr>
+              <tr><td style="padding:8px 0;color:#3D342E;border-top:1px dashed rgba(26,22,20,0.1)">Événements BODACC</td><td style="padding:8px 0;text-align:right;color:#1A1614;border-top:1px dashed rgba(26,22,20,0.1)">{m['bodacc_events']}</td></tr>
+              <tr><td style="padding:8px 0;color:#3D342E">Géocodés</td><td style="padding:8px 0;text-align:right;color:#1A1614">{m['geocoded']}</td></tr>
+              <tr><td style="padding:8px 0;color:#3D342E">Enrichis API</td><td style="padding:8px 0;text-align:right;color:#1A1614">{m['enriched']}</td></tr>
+            </table>
+            <p style="font-size:11px;color:#7A6E63;margin-top:24px;text-align:center">
+              Digest automatique , L'Observatoire des Pros
+            </p>
+          </div>
+          """
+
+          body = json.dumps({
+              "from": "digest@send.lobservatoiredespros.com",
+              "to": ["augustin.foucheres@gmail.com"],
+              "subject": f"[LObs] Digest {data['date']} , {m['pros_total']} pros",
+              "html": html,
+          }).encode("utf-8")
+
+          req = urllib.request.Request(
+              "https://api.resend.com/emails",
+              data=body,
+              headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  print(f"Digest sent, status {r.status}")
+          except Exception as e:
+              print(f"[warn] digest send failed: {e}")
+          PYEOF

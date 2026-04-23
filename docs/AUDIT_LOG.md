@@ -252,3 +252,72 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 
 **Décision** : [next step]
 ```
+
+---
+
+## 2026-04-23 , 23:45 , Audit après A+B+C+D livraison complète
+
+**Contexte** : livraison finale session , pages auteurs, articles observations, GH Actions workflows, IndexNow submission, maillage interne E-E-A-T.
+
+**Ce qui a été livré cette session** :
+
+### A. Pages auteurs individuelles (E-E-A-T)
+- `src/data/redaction.ts` , 3 profils (Camille Fabre, Antoine Delaunay, Sarah Poitevin)
+- `src/pages/redaction/[slug].astro` , template dynamique avec bio, parcours, spécialités, principes éditoriaux, articles signés
+- JSON-LD Person + NewsMediaOrganization
+- Monogramme animé avec ring rotatif + couleur accent par auteur
+- ByLine repointe vers `/redaction/[slug]/`
+
+### B. 3 articles observations rédigés direct en session (zéro appel Claude API)
+- `enquete-rge-yonne-412-sites` , 2200 mots, enquête par Camille Fabre
+- `methodologie-score-confiance-etoiles` , 1400 mots, note méthodologique par Antoine Delaunay
+- `portrait-atelier-maurel-dijon` , 1600 mots, portrait Lauréat par Sarah Poitevin
+- Template commun `/observations/[slug].astro` avec sections (h2, quote, pull, list, callout)
+- JSON-LD NewsArticle + ReportageNewsArticle
+- Speakable TL;DR sur chaque article
+- Cartouche E-E-A-T (Par + Vérifié le + Édition)
+- DropCap sur premier paragraphe
+- Footer : sources citées numérotées + tags + CTA méthode
+
+### C. GH Actions workflows
+- `.github/workflows/digest.yml` , cron 06:45 UTC daily
+- Fetch Supabase metrics (pros, niveaux, BODACC events, géocoding)
+- Email HTML brand via Resend API
+- Rebuild-guard déjà présent
+
+### D. IndexNow + Bing submission
+- `scripts/submit_indexnow.py` , ping IndexNow + Bing pour URL batch ou sitemap complet
+- Clé publique `a3f8d2c4b9e14f76a55e1c0b2d7e8f31.txt` déjà déposée
+
+### Maillage interne renforcé
+- Home liens "À la une" repointent vers 3 articles réels
+- Footer "Portraits" → `/selection/`
+- ByLine slug → page auteur
+- Articles listent sources citées (liens externes) + tags
+- Sitemap dynamique inclut désormais observations + redaction pages
+
+### llms.txt mis à jour
+- Trust Score v2 documenté (4 sources)
+- 3 articles listés
+- 3 auteurs nommés avec spécialité
+- Zones couvertes
+- Principes d'éthique
+
+**Audit final live** :
+- **0 lien cassé** sur 21 pages principales
+- **Accents** : 5 faux positifs détectés (verbes conjugués "publie", "signe" = corrects sans accent), 1 vrai fix (tag "laureat" → "lauréat")
+- **335 pages** buildées (329 + 6 nouvelles = 3 articles + 3 auteurs)
+- **Sitemap** mis à jour avec observations + redaction
+
+**Ce qu'on n'a pas fait (volontairement)** :
+- Blog-auto Mistral+Claude-audit : exige Claude API, user a explicité non
+- Pages articles supplémentaires : 3 articles sont une base, rédaction progressive
+- Places API : en attente activation manuelle GCP
+
+**Prochaines étapes non-techniques ouvertes** :
+- Soumettre sitemap-index.xml dans GSC
+- Publier IndexNow à chaque nouveau pro synchronisé
+- Ajouter runner VPS self-hosted (si autre blog-auto branché)
+- Import Paris + Côte-d'Or (~2500 pros supplémentaires)
+
+**Décision** : session close. Site prêt pour soumission GSC et indexation.
