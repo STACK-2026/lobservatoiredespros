@@ -1,7 +1,266 @@
-# ROADMAP , L'Observatoire des Pros
+# Roadmap , L'Observatoire des Pros
 
-16 recommandations priorisées issues de l'audit frontend-design (2026-04-23).
-À faire dans l'ordre. Audit obligatoire à la fin de chaque étape.
+**État au 2026-04-24** : Édition N°1 LIVE · Yonne · 290 pros · prêt pour indexation GSC.
+
+**Objectif final** : **déploiement national complet** , 96 départements × 15+ métiers BTP/services à domicile, ~100 000 pros, monétisation Vérifié/Lauréat, reconnaissance média de référence.
+
+**Principe** : **zéro appel Claude API** côté génération. Rédaction humaine en session, data via APIs publiques gratuites.
+
+---
+
+## ✅ Phase 1 , Édition N°1 Yonne , LIVRÉE
+
+- [x] Infra (DNS, GitHub, Supabase, CF Pages, Resend)
+- [x] Design system éditorial moderne (Fraunces + Geist, palette paper/ink/or)
+- [x] 18 composants signature
+- [x] Import Sirene 290 plombiers Yonne via DuckDB parquet
+- [x] Enrichissement ADEME RGE (actuel + historique)
+- [x] Enrichissement Recherche Entreprises (dirigeants, catégorie, effectif)
+- [x] Sync BODACC 290/290 pros (310+ événements)
+- [x] Géocoding 290/290 via API Adresse data.gouv.fr
+- [x] Trust Score v2 calculé (253 bronze · 32 argent · 5 or)
+- [x] Carte Leaflet mini fiche pro + ClassementMap multi-markers
+- [x] 3 articles observations rédigés direct (enquête + méthodologie + portrait)
+- [x] 3 pages auteurs E-E-A-T (JSON-LD Person)
+- [x] JSON-LD complet (NewsArticle + LocalBusiness + FAQPage + Speakable)
+- [x] Sitemap + ai-sitemap strict sitemaps.org
+- [x] llms.txt v2 (Trust Score + articles + auteurs)
+- [x] Robots.txt 34 user-agents (14 AI + 7 search + blacklist SEO)
+- [x] IndexNow + clé déposée
+- [x] GH Actions deploy + rebuild-guard + digest daily
+- [x] Portfolio augustinfoucheres ajouté catégorie Media
+
+---
+
+## 🔴 Phase 2 , Extension nationale géographique (priorité haute)
+
+**Objectif** : 96 départements × 5 métiers = ~480 classements nationaux, ~50 000 pros.
+
+### 2.1 Import massif Sirene
+- [ ] Adapter `scripts/import_sirene.py` pour itérer tous les départements FR
+- [ ] Batch département par département (timeout safe)
+- [ ] Cible ~50 000 pros importés
+
+### 2.2 Sync national
+- [ ] `geocode_pros.py --only-missing` sur nouveaux pros
+- [ ] `enrich_entreprise.py --only-missing`
+- [ ] `sync_bodacc.py --only-missing`
+- [ ] `sync_rge_qualifications.py` pour RGE
+- [ ] Budget ~15h de sync
+
+### 2.3 Zones + métiers en DB
+- [ ] Ajouter 96 départements FR dans `zones`
+- [ ] Ajouter 10 métiers complémentaires (chauffagiste, plaquiste, carreleur, peintre, serrurier, maçon, jardinier, climaticien, cuisiniste, parqueteur)
+- [ ] **Cible : 1440 classements**
+
+### 2.4 Guides tarifaires par métier
+- [ ] Data `tarifsMetier` : 4 prestations × 15 métiers = 60 entrées
+- [ ] Sources : France Rénov', ADEME, études sectorielles publiques
+
+---
+
+## 🟡 Phase 3 , Contenu éditorial national
+
+### 3.1 Articles département
+- [ ] 1 article "État du marché BTP [dept]" par département (500-800 mots)
+- [ ] Template standardisé, data auto Supabase
+- [ ] Cible 20 articles en 3 mois
+
+### 3.2 Articles transversaux
+- [ ] "5 départements qui certifient le plus RGE"
+- [ ] "Procédures collectives BTP , où se concentrent-elles ?"
+- [ ] "Le secteur BTP en France , radiographie data publique"
+- [ ] "Pourquoi Qualibat compte plus que Pages Jaunes"
+
+### 3.3 Extension catégories observations
+- [ ] Dossiers, Guide pratique, Entretiens (1 article min par cat)
+
+### 3.4 Pages auteurs enrichies
+- [ ] Photo ou illustration signature
+- [ ] Articles signés auto-générés depuis `observations.ts`
+
+---
+
+## 🟢 Phase 4 , Monétisation
+
+### 4.1 Formules abonnement
+- [ ] Portrait Recommandé : gratuit (actuel)
+- [ ] Portrait Vérifié 29€/mois : photos, description longue, site web
+- [ ] Portrait Lauréat 89€/mois : médaille or, portrait long format, entretien
+
+### 4.2 Stripe
+- [ ] Stripe Connect créé
+- [ ] Products : Vérifié + Lauréat (mensuel + annuel)
+- [ ] Checkout + webhook upgrade DB
+- [ ] Portail client
+
+### 4.3 Dashboard pro
+- [ ] Auth magic link Resend sur `/pro/dashboard/`
+- [ ] Upload décennale + RC pro + Kbis
+- [ ] Photos réalisations (6 Vérifié / 15 Lauréat)
+- [ ] Descriptif soumis validation rédaction
+- [ ] Stats visites + CTR contact
+- [ ] Statut abonnement Stripe
+
+### 4.4 Admin interne rédaction
+- [ ] Auth `/admin/` magic link + whitelist
+- [ ] File candidatures en attente
+- [ ] Workflow : examen → entretien → vérif terrain → publication
+- [ ] Éditeur portrait Lauréat
+- [ ] Override manuel Trust Score (audit trail log)
+
+### 4.5 Signalements
+- [ ] Formulaire `/signaler/` public
+- [ ] Table `pro_signalements` + statut
+- [ ] SLA 7j + email Resend auto
+
+---
+
+## 🔵 Phase 5 , Prospection B2B acquisition
+
+**Cible** : 1-4% des 50 000 pros → 500-2000 abonnés.
+
+### 5.1 Enrichissement contacts (bloqué Places)
+- [ ] **Google Places API activation** (action user GCP)
+- [ ] Sync rating + reviews + tel + site web pour 50 000 pros
+- [ ] Script `sync_places.py`
+
+### 5.2 Pipeline prospection Resend
+- [ ] 4 touches (T1/T2+7j/T3+14j/T4+21j) signature "Léa"
+- [ ] Cible pros argent/or (meilleure conversion)
+- [ ] Dedup + unsubscribed.json
+
+### 5.3 Emails transactionnels
+- [ ] Candidature reçue / validée / refusée
+- [ ] Renouvellement J-15, J-5
+- [ ] Fiche mise à jour (changement RGE, BODACC)
+
+### 5.4 Newsletter particuliers
+- [ ] Signup `/newsletter/` → Resend Audience (CF Pages Function)
+- [ ] Envoi mensuel : article + Top 3 Lauréats + chiffre du mois
+- [ ] Template HTML brand
+
+---
+
+## 🟣 Phase 6 , SEO avancé + GEO domination
+
+### 6.1 Rich snippets avancés
+- [ ] Schema `AggregateRating` sur classements
+- [ ] `ItemList` enrichi (ranked + count + reviewedBy)
+- [ ] `Review` quand avis Places sync
+- [ ] `Event` pour éditions
+- [ ] `Claim` pour vérifications fraude RGE
+
+### 6.2 OG images dynamiques (satori+resvg)
+- [ ] 1 PNG 1200×630 par fiche pro (nom + score + niveau)
+- [ ] 1 PNG par article (titre + auteur + tag)
+- [ ] 1 PNG par classement (Top 3 + département)
+- [ ] Build-time
+
+### 6.3 Core Web Vitals
+- [ ] Audit Lighthouse régulier
+- [ ] Target LCP <2.5s, INP <200ms, CLS <0.1
+- [ ] Critical CSS inline, lazy images, preload fonts
+
+### 6.4 Related content + next/prev
+- [ ] Pros similaires sur fiche pro (3, même métier/département/score)
+- [ ] Articles liés sur observations (3, même cat/auteur)
+- [ ] Précédent/Suivant chronologique
+- [ ] Table of contents pour articles > 1500 mots
+
+### 6.5 Indexation agressive
+- [ ] Auto-trigger IndexNow après sync BODACC mensuel
+- [ ] Ping Bing Webmaster URLs modifiées
+- [ ] Ping Google via GSC API (OAuth)
+- [ ] RSS complet avec `<content:encoded>`
+
+### 6.6 GEO AI visibility
+- [ ] Monitoring mentions ChatGPT/Claude/Perplexity
+- [ ] Page `/citations/` mentions externes
+- [ ] Optimiser speakable avec faits vérifiables
+
+---
+
+## 🟠 Phase 7 , Marque et presse
+
+### 7.1 Communication lancement national
+- [ ] Press kit `/presse/` (logo, photos équipe, chiffres)
+- [ ] Communiqués par lancement départemental groupé
+- [ ] Cible : journalistes économie locale
+- [ ] Positionnement "Michelin du BTP"
+
+### 7.2 Partenariats
+- [ ] CAPEB (Confédération Artisanat PME BTP)
+- [ ] FFB (Fédération Française du Bâtiment)
+- [ ] Qualibat endorsement
+
+### 7.3 SEO brand
+- [ ] "l'observatoire des pros" position 1 Google
+- [ ] Knowledge panel Google
+- [ ] Wikipedia quand notoriété critique
+
+---
+
+## 🔘 Phase 8 , Scale extensions verticales
+
+**Une fois national BTP couvert**.
+
+### 8.1 Services à domicile
+- [ ] Jardinage, paysagisme
+- [ ] Ménage, repassage
+- [ ] Aide à la personne (RGPD renforcé)
+- [ ] Informatique dépannage
+
+### 8.2 Autres secteurs
+- [ ] Auto/moto (mécaniciens, carrossiers)
+
+### 8.3 International
+- [ ] Belgique FR + Luxembourg
+- [ ] Québec (partenariat)
+- [ ] Suisse romande
+
+---
+
+## ✅ Checklist technique globale à vérifier régulièrement
+
+- [ ] Build vert (`npm run build`)
+- [ ] Sitemap à jour avec lastmod dynamique
+- [ ] Accents 100% corrects (**⚠️ script `fix_accents.py` DANGEREUX , ne pas rejouer aveuglément, casse JS identifiers**)
+- [ ] 0 lien cassé (audit curl grep)
+- [ ] JSON-LD validé (Rich Results Test Google)
+- [ ] robots.txt à jour nouveaux user-agents IA
+- [ ] llms.txt aligné contenu actuel
+- [ ] Security headers Cloudflare (HSTS, CSP)
+- [ ] Sync BODACC mensuel après ajout pros
+
+---
+
+## 📞 Interventions user requises
+
+- [ ] **Activer Google Places API** sur console.cloud.google.com (GCP project `3729498435`)
+- [ ] **Re-soumettre sitemap-index.xml dans GSC** (après correction ai-sitemap)
+- [ ] **Créer compte Stripe** + Products quand Phase 4
+- [ ] **Valider positioning** Vérifié/Lauréat (prix, limites)
+- [ ] **Fournir logo haute def** pour press kit Phase 7
+
+---
+
+## 📚 Docs `/docs/`
+
+- `SESSION_STATE.md` , état actuel au millimètre
+- `ROADMAP.md` , ce fichier
+- `AUDIT_LOG.md` , historique audits
+- `BRAND.md` , charte éditoriale
+- `DATA.md` , schéma Supabase + pipelines
+- `DESIGN.md` , DA + tokens + composants
+
+---
+
+<details>
+<summary>📜 Historique , recommandations audit frontend P0/P1/P2 (2026-04-23)</summary>
+
+16 recommandations priorisées issues de l'audit frontend-design.
+**Tous livrés.** Détail historique :
 
 ---
 
@@ -185,3 +444,6 @@ Après chaque étape P0/P1/P2 :
 2. Test SEO via `seo-technical` agent
 3. Noter dans `docs/AUDIT_LOG.md` : date, étape, trouvailles, fix faits
 4. Commit avec message `feat(p0.X): ...` ou `fix(p0.X): ...`
+
+</details>
+

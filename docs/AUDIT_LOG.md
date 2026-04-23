@@ -321,3 +321,52 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 - Import Paris + Côte-d'Or (~2500 pros supplémentaires)
 
 **Décision** : session close. Site prêt pour soumission GSC et indexation.
+
+---
+
+## 2026-04-24 , 00:00 , Session clôture Phase 1 + bascule vers Phase 2
+
+**Contexte** : clôture éditoriale de l'édition N°1 (Yonne) + mise à jour documentation + ajout portfolio + roadmap vers déploiement national.
+
+**Livraisons depuis dernier audit** :
+
+### SEO tech avancé
+- `/ai-sitemap.xml` , strict sitemaps.org après correction erreurs GSC (retrait `<ai:description>` custom ns)
+- Robots.txt étendu : 34 user-agents (+ ChatGPT-User, OAI-SearchBot, cohere-ai, YouBot, Timpibot, ImagesiftBot, Diffbot, Googlebot-News, Googlebot-Image, Bingbot, DuckDuckBot, YandexBot, Baiduspider)
+- 2 sitemaps déclarés dans robots.txt (index + ai)
+- Speakable JSON-LD global (cssSelector + xpath) injecté par BaseLayout
+- Meta AI hints (`ai-content-declaration: editorial-human-written`, `ai-sitemap: /ai-sitemap.xml`)
+- Preconnect fonts + dns-prefetch Leaflet/CartoDB
+- `<link rel="sitemap">` standard
+
+### Documentation
+- **SESSION_STATE.md** créé , état ultra-précis (infra, data, commandes, stack)
+- **ROADMAP.md** refait , 8 phases de Phase 1 (livrée) jusqu'à Phase 8 (international)
+- **CLAUDE.md** racine actualisé (quick refs, règles, état actuel)
+- **AUDIT_LOG.md** mis à jour (ce bloc)
+
+### Portfolio integration
+- Projet ajouté dans `augustinfoucheres/site/src/data/projects.ts` catégorie Media
+- Admin auto-sync via cron `daily-ingest` 10h15 Paris (STACK-2026/intel)
+
+**Audit final live** :
+- 335 pages buildées OK
+- 333 URLs sitemap + 12 ai-sitemap (0 erreur GSC après fix)
+- 0 lien cassé sur 21 pages principales
+- Accents : 21/21 pages CLEAN (résidus = verbes conjugués corrects)
+- JSON-LD : NewsMediaOrganization + WebSite + CollectionPage(FAQPage) + BreadcrumbList + LocalBusiness + NewsArticle/ReportageNewsArticle + Person + SpeakableSpecification + DefinedTermSet + HowTo
+- Security headers : HSTS preload 2 ans, CSP frame-ancestors, X-Frame SAMEORIGIN, X-Content-Type nosniff, Referrer-Policy strict-origin, Permissions-Policy
+- Maillage : 114 liens internes home / 97 fiche pro / 81 article
+
+**Ce qui n'est PAS fait (volontaire ou en attente)** :
+- Google Places API : bloqué (activation manuelle GCP requise)
+- Blog-auto Mistral+Claude-audit : volontaire (user a explicité zéro Claude API)
+- i18n EN/FR : volontaire (média FR-only par design)
+- Affiliate, DiagnosticQuiz : non pertinent pour un média
+
+**Décision** : Phase 1 close. Prête pour Phase 2 extension nationale géographique.
+
+**Interventions user restantes pour passer en Phase 2** :
+1. Activer Google Places API dans GCP project `3729498435`
+2. Re-soumettre sitemap-index.xml dans GSC (ai-sitemap corrigé)
+3. Ping IndexNow initial : `python3 scripts/submit_indexnow.py --sitemap`
