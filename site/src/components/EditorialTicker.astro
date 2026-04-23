@@ -17,12 +17,13 @@ interface TickerEvent {
   type: "observation" | "score" | "certification" | "dossier";
   label: string;
   detail: string;
+  slug?: string; // lien vers la fiche pro
 }
 
 // Fetch top pros (par score) pour generer des events credibles
 const { data: pros } = await supabase
   .from("pros")
-  .select("nom_entreprise, ville, code_postal, score_confiance, siret, rge, date_creation_entreprise")
+  .select("nom_entreprise, ville, code_postal, score_confiance, siret, rge, date_creation_entreprise, slug")
   .eq("active", true)
   .order("score_confiance", { ascending: false })
   .limit(18);
@@ -44,12 +45,14 @@ if (pros && pros.length > 0) {
 
     // Alterner les types d'events
     const kind = i % 4;
+    const slug = p.slug || undefined;
     if (kind === 0) {
       events.push({
         time: `${hh}:${mm}`,
         type: "observation",
         label: `Observation n°${(i + 1) * 1372 + 47382}`,
         detail: `${p.nom_entreprise} · ${ville} (${cp}) · Score ${nxt}/10`,
+        slug,
       });
     } else if (kind === 1) {
       events.push({
@@ -57,6 +60,7 @@ if (pros && pros.length > 0) {
         type: "score",
         label: `Score recalculé`,
         detail: `${p.nom_entreprise} · ${prev} → ${nxt}`,
+        slug,
       });
     } else if (kind === 2 && p.rge) {
       events.push({
@@ -64,6 +68,7 @@ if (pros && pros.length > 0) {
         type: "certification",
         label: `Certification RGE confirmée`,
         detail: `${p.nom_entreprise} · ${ville}`,
+        slug,
       });
     } else if (kind === 2) {
       events.push({
@@ -71,6 +76,7 @@ if (pros && pros.length > 0) {
         type: "dossier",
         label: `Dossier ouvert`,
         detail: `${p.nom_entreprise} · examen en cours`,
+        slug,
       });
     } else {
       events.push({
@@ -78,18 +84,19 @@ if (pros && pros.length > 0) {
         type: "observation",
         label: `SIRET vérifié`,
         detail: `${p.nom_entreprise} · ${ville} · actif INSEE`,
+        slug,
       });
     }
   });
 }
 
-// Fallback si aucun pros en DB
+// Fallback si aucun pros en DB , avec liens vers pages de classement
 if (events.length === 0) {
-  const seed = [
-    { type: "observation" as const, label: "Édition N°1 publiée", detail: "290 plombiers · Yonne (89)" },
-    { type: "observation" as const, label: "Nouvelle observation", detail: "SARL DUBOIS & Fils · Auxerre · Score 4.5/10" },
-    { type: "certification" as const, label: "RGE confirmé", detail: "Plomberie HE · Auxerre" },
-    { type: "dossier" as const, label: "Dossier ouvert", detail: "Certification RGE perdue à Sens" },
+  const seed: Array<Omit<TickerEvent, "time"> & { href?: string }> = [
+    { type: "observation", label: "Édition N°1 publiée", detail: "290 plombiers · Yonne (89)" },
+    { type: "observation", label: "Nouvelle observation", detail: "SARL DUBOIS & Fils · Auxerre · Score 4.5/10" },
+    { type: "certification", label: "RGE confirmé", detail: "Plomberie HE · Auxerre" },
+    { type: "dossier", label: "Dossier ouvert", detail: "Certification RGE perdue à Sens" },
   ];
   seed.forEach((s, i) => {
     const d = new Date(now.getTime() - i * 13 * 60_000);
@@ -113,15 +120,20 @@ const loop = [...events, ...events];
   </div>
   <div class="et-track-wrapper">
     <div class="et-track">
-      {loop.map((e) => (
-        <span class={`et-item et-item-${e.type}`}>
-          <span class="et-time">{e.time}</span>
-          <span class="et-type-dot" aria-hidden="true"></span>
-          <span class="et-item-label">{e.label}</span>
-          <span class="et-item-sep" aria-hidden="true">·</span>
-          <span class="et-item-detail">{e.detail}</span>
-        </span>
-      ))}
+      {loop.map((e) => {
+        const href = e.slug ? `/pro/${e.slug}/` : "/selection/";
+        const ariaLabel = `${e.label} , ${e.detail}`;
+        return (
+          <a class={`et-item et-item-${e.type}`} href={href} aria-label={ariaLabel}>
+            <span class="et-time">{e.time}</span>
+            <span class="et-type-dot" aria-hidden="true"></span>
+            <span class="et-item-label">{e.label}</span>
+            <span class="et-item-sep" aria-hidden="true">·</span>
+            <span class="et-item-detail">{e.detail}</span>
+            <span class="et-item-arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        );
+      })}
     </div>
   </div>
 </div>
@@ -210,6 +222,33 @@ const loop = [...events, ...events];
     font-size: 0.76rem;
     letter-spacing: 0.008em;
     flex-shrink: 0;
+    text-decoration: none;
+    color: inherit;
+    padding: 0.25rem 0.55rem;
+    border-radius: 4px;
+    transition: background 220ms, transform 220ms;
+    cursor: pointer;
+  }
+  .et-item:hover {
+    background: rgba(184, 134, 61, 0.14);
+    transform: translateY(-1px);
+  }
+  .et-item:focus-visible {
+    outline: 2px solid var(--or);
+    outline-offset: 2px;
+  }
+  .et-item-arrow {
+    display: inline-block;
+    color: var(--or-soft);
+    opacity: 0;
+    margin-left: -0.4rem;
+    transform: translateX(-3px);
+    transition: opacity 220ms, transform 220ms, margin-left 220ms;
+  }
+  .et-item:hover .et-item-arrow {
+    opacity: 1;
+    margin-left: 0.1rem;
+    transform: translateX(0);
   }
   .et-time {
     font-family: var(--font-mono);
