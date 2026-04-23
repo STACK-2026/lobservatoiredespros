@@ -1,12 +1,21 @@
 import type { APIRoute } from "astro";
 import { siteConfig } from "../utils/config";
+import { supabase } from "../lib/supabase";
 
-const STATIC_URLS = [
+interface SitemapEntry {
+  loc: string;
+  priority: number;
+  changefreq: "daily" | "weekly" | "monthly" | "yearly";
+  lastmod?: string;
+}
+
+const STATIC_URLS: SitemapEntry[] = [
   { loc: "/", priority: 1.0, changefreq: "daily" },
   { loc: "/metiers/", priority: 0.7, changefreq: "monthly" },
   { loc: "/departements/", priority: 0.7, changefreq: "monthly" },
   { loc: "/glossaire/", priority: 0.7, changefreq: "monthly" },
   { loc: "/outils/", priority: 0.7, changefreq: "monthly" },
+  { loc: "/outils/grille-devis/", priority: 0.7, changefreq: "monthly" },
   { loc: "/methode/", priority: 0.9, changefreq: "monthly" },
   { loc: "/a-propos/", priority: 0.7, changefreq: "monthly" },
   { loc: "/redaction/", priority: 0.6, changefreq: "monthly" },
@@ -24,11 +33,40 @@ export const GET: APIRoute = async () => {
   const now = new Date().toISOString().split("T")[0];
   const base = siteConfig.url.replace(/\/$/, "");
 
-  // URLs statiques
-  const urls = [...STATIC_URLS];
+  const urls: SitemapEntry[] = [...STATIC_URLS];
 
-  // NOTE : pages pSEO [metier]/[dept]/ sont noindex tant que les donnees ne sont pas scrapees reellement.
-  // Elles seront reintegrees au sitemap une fois le pipeline Sirene en place.
+  // URLs pSEO , pages metier nationales
+  for (const m of siteConfig.metiersPilote) {
+    urls.push({ loc: `/${m.slug}/`, priority: 0.8, changefreq: "weekly", lastmod: now });
+  }
+  // URLs pSEO , classement metier/departement
+  for (const m of siteConfig.metiersPilote) {
+    for (const d of siteConfig.departementsPilote) {
+      urls.push({ loc: `/${m.slug}/${d.slug}/`, priority: 0.85, changefreq: "weekly", lastmod: now });
+    }
+  }
+
+  // URLs pros , fetch depuis Supabase au build time
+  try {
+    const { data: pros } = await supabase
+      .from("pros")
+      .select("slug, updated_at")
+      .eq("active", true)
+      .not("slug", "is", null)
+      .limit(5000);
+    if (pros) {
+      for (const p of pros) {
+        urls.push({
+          loc: `/pro/${p.slug}/`,
+          priority: 0.6,
+          changefreq: "monthly",
+          lastmod: p.updated_at ? p.updated_at.split("T")[0] : now,
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("Sitemap: failed to fetch pros, skipping", e);
+  }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -36,7 +74,7 @@ ${urls
   .map(
     (u) => `  <url>
     <loc>${base}${u.loc}</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${u.lastmod || now}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority.toFixed(2)}</priority>
   </url>`

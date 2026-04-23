@@ -4,6 +4,72 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 
 ---
 
+## 2026-04-23 , 16:55 , Audit après P0.1 à P0.4 complet
+
+**Contexte** : 4 nouveautés P0 déployées (Ticker live, Verdict éditorial, UnknownsCard, Typo scale)
+
+**Pages auditées** :
+- `/` (home)
+- `/plombier/yonne-89/` (classement 290 pros)
+- `/pro/robert-tetard-auxerre/` (fiche pro)
+
+### Visual audit (seo-visual agent) , Note : 8.2/10
+
+**✅ Fonctionne** :
+- **EditorialTicker** : barre noire top, "EN DIRECT" + dot rouge pulsant, fil défilant avec 4 types d'events colorés (or/rouge/bleu/vert), mask fade edges, mobile responsive
+- **EditorialVerdict** : card paper-warm + guillemets dorés ornementaux + Instrument Serif italique, signature rédaction, border-radius asymétrique
+- **UnknownsCard** : card avec bord pointillé, icon "?" bleu observatoire, liste bullets, H3 italique "Ce que nous ne savons pas encore", link CTA candidater
+- **SummaryHero classement** : centré, constellation + grand chiffre
+- **Cookie banner CNIL** : 3 boutons équilibrés, sobre
+
+**⚠️ À ajuster** :
+- H1 hero coupé par cookie banner au premier load (pas de padding-bottom anticipé)
+- Ticker mobile : "Édition N°1" absent (attendu mais signalé)
+- ScoreCircle bord gauche dégradé non visible au pixel
+
+**❌ Bugs identifiés et fix immédiat** :
+- **"Mise a jour Mise à jour mensuelle"** doublon texte sur classement
+  → fixé : `updated="mensuelle"` (ByLine préfixe automatiquement)
+- **"Portrait portrait recommande"** doublon dans meta description fiche pro
+  → fixé : suppression du préfixe `Portrait` qui doublonnait avec `tierLabel.toLowerCase()`
+
+### SEO/GEO audit (seo-technical agent) , Score : 74/100
+
+**🚨 BLOQUEURS résolus** :
+1. **Sitemap dynamique manquant** : /pro/ et /[metier]/[dept]/ absents du sitemap
+   → fixé : sitemap.xml.ts fetch Supabase au build time + inclut les 290 pros + 15 combinaisons
+2. **Meta desc doublon "Portrait portrait"** → fixé (cf ci-dessus)
+
+**❗ ERREURS High résolues** :
+- **Google Fonts font-display=swap** : déjà présent dans URL mais agent a cru le contraire (false positive cache CF)
+- **LocalBusiness.description générique** : enrichie avec verdict éditorial généré dynamiquement
+  → fix : `generateVerdictText()` dans fiche pro injecte une phrase riche dans le schema
+
+**Reportés P1/P2** :
+- HTML classement trop lourd (276 KB pour 60 pros) : probable doublon du rendu, à investiguer plus tard
+- `twitter:site` handle absent : à définir quand handle X créé
+- ItemList limité à 50 items sur 290 : OK pour V1, pagine sitemaps si scaling
+- OG images dynamiques par métier/dept : P2 (generate via @vercel/og ou CF Worker)
+- CSP minimaliste : OK pour V1
+
+**✅ CE QUI EST BIEN** (agent) :
+- 0 noindex sur dynamiques (indexables)
+- Titles/descriptions tous en plage optimale (30-65 / 120-160)
+- BreadcrumbList 3 niveaux propre
+- robots.txt exemplaire GEO (10 AI bots whitelist)
+- llms.txt de qualité
+- Schema.org riche (Org + WebSite + BreadcrumbList + FAQPage + ItemList + LocalBusiness + AggregateRating)
+- HTTPS + HSTS + SAMEORIGIN + nosniff + Permissions-Policy
+- Skip link a11y présent
+- H1 unique par page
+- EditorialTicker SSR indexé (noms pros dans HTML rendu, signal fraîcheur)
+- UnknownsCard contenu unique par fiche (anti-duplicate)
+- Maillage interne fort (74 home, 91 classement, 28 fiche)
+
+**Décision** : P0 totalement bouclé, on passe P1 dans l'ordre ROADMAP.md.
+
+---
+
 ## 2026-04-23 , 16:30 , Audit après refactor ProCard v3 + home refresh + badge verified
 
 **Contexte** : Post v3 refactor (fiche pro, classement, home)

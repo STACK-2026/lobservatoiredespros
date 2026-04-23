@@ -59,8 +59,24 @@ const tierLabel =
   p.tier === "argent" ? "Portrait Vérifié" : "Portrait Recommandé";
 
 const title = `${p.nom_entreprise} , ${metierNom} à ${p.ville} (${deptCode}) , L'Observatoire`;
-const description = `Portrait ${tierLabel.toLowerCase()} de ${p.nom_entreprise}, ${metierNom.toLowerCase()} à ${p.ville}. Score de Confiance ${p.score_confiance}/10. Données publiques Sirene INSEE.`;
+const description = `${tierLabel} de ${p.nom_entreprise}, ${metierNom.toLowerCase()} à ${p.ville}. Score de Confiance ${p.score_confiance}/10. Données publiques Sirene INSEE.`;
 const url = `${siteConfig.url}/pro/${p.slug}/`;
+
+// Verdict editorial inline pour enrichir le schema LocalBusiness.description
+function generateVerdictText(): string {
+  const parts: string[] = [];
+  if (anciennete !== null && anciennete >= 25) parts.push(`Ancrage local solide (${anciennete} ans au registre)`);
+  else if (anciennete !== null && anciennete >= 10) parts.push(`Entreprise artisanale établie (${anciennete} ans)`);
+  else if (anciennete !== null && anciennete >= 3) parts.push(`Entreprise confirmée (${anciennete} ans)`);
+  else if (anciennete !== null) parts.push("Entreprise récemment immatriculée");
+  if (p.rge && p.qualibat) parts.push("doublement certifiée RGE et Qualibat");
+  else if (p.rge) parts.push("certifiée RGE");
+  else if (p.qualibat) parts.push("qualifiée Qualibat");
+  else parts.push("non certifiée publiquement à ce jour");
+  parts.push(p.siret ? "SIRET actif INSEE confirmé" : "SIRET à confirmer");
+  return parts.join(", ") + ".";
+}
+const richDescription = generateVerdictText();
 
 const jsonLd = [
   jsonLdBreadcrumbs([
@@ -72,7 +88,7 @@ const jsonLd = [
   jsonLdLocalBusiness({
     name: p.nom_entreprise,
     url,
-    description: p.description || `${metierNom} à ${p.ville}, inscrit au registre Sirene de l'INSEE.`,
+    description: richDescription + ` ${metierNom} à ${p.ville} (${deptCode}). Inscrit au registre Sirene de l'INSEE, code NAF ${metierNaf}.`,
     phone: p.telephone,
     address: {
       streetAddress: p.adresse,

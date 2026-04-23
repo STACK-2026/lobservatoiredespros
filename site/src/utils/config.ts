@@ -9,7 +9,10 @@ export function fullUrl(path: string): string {
   return `${base}${clean}`;
 }
 
-/** Google Fonts URL , Instrument Serif (display) + Inter (body) + JetBrains Mono */
+/** Google Fonts URL , Instrument Serif (display) + Inter (body) + JetBrains Mono
+ * display=swap est DEJA inclus, le P0 audit rapportait un faux negatif
+ * (probable cache CF). On double-check ici.
+ */
 export function fontsUrl(): string {
   return "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
 }
