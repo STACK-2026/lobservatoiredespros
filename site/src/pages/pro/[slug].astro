@@ -267,7 +267,7 @@ const jsonLd = [
               />
               <p class="ph-score-help">
                 <GlossaireTerm slug="score-de-confiance">Le Score</GlossaireTerm>
-                <span class="ph-score-help-sub">n'est publié qu'au-dessus de 5 critères verifies</span>
+                <span class="ph-score-help-sub">n'est publié qu'au-dessus de 5 critères vérifiés</span>
               </p>
             </>
           ) : (
@@ -289,7 +289,7 @@ const jsonLd = [
         <p>
           <strong>{p.nom_entreprise}</strong>, {metierNom.toLowerCase()} à {p.ville || "—"}{deptCode && ` (${deptCode})`},
           {anciennete ? ` inscrit au Sirene depuis ${anciennete} ans` : " récemment inscrit au Sirene"}.
-          Fiche éditoriale fondée sur <strong>{critVerifies} critères publics verifies</strong> à ce jour,
+          Fiche éditoriale fondée sur <strong>{critVerifies} critères publics vérifiés</strong> à ce jour,
           {p.rge ? " dont une certification RGE active" : " sans certification RGE affichée"}
           {p.qualibat ? " et une qualification Qualibat" : ""}. Dossier recalculé mensuellement.
         </p>
@@ -487,7 +487,7 @@ const jsonLd = [
             <p class="ant-action-label">Première observation éditoriale</p>
             <p class="ant-action">
               Entreprise référencée dans l'édition N°{siteConfig.editionNumber} de L'Observatoire,
-              dossier <GlossaireTerm slug="score-de-confiance">scoré</GlossaireTerm> sur {critVerifies} critères publics verifies.
+              dossier <GlossaireTerm slug="score-de-confiance">scoré</GlossaireTerm> sur {critVerifies} critères publics vérifiés.
             </p>
             <p class="ant-source folio">La rédaction</p>
           </div>

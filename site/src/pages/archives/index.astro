@@ -8,7 +8,7 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "Archives , L'Observatoire des Pros";
-const description = "Les editions passees de L'Observatoire : classements, portraits et observations de chaque numéro sont archives et consultables indefiniment.";
+const description = "Les éditions passées de L'Observatoire : classements, portraits et observations de chaque numéro sont archivés et consultables indéfiniment.";
 const url = `${siteConfig.url}/archives/`;
 
 const editions = [
@@ -27,7 +27,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
     <div class="container-editorial arch-head">
       <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Archives" }]} />
       <Masthead category="ARCHIVES" />
-      <h1 class="heading-display">Toutes les editions.</h1>
+      <h1 class="heading-display">Toutes les éditions.</h1>
       <p class="lead">
         Chaque édition de L'Observatoire est archivee dans son etat de publication. Les versions anterieures des classements, portraits et observations restent consultables.
       </p>

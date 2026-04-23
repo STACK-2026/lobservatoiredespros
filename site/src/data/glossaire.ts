@@ -145,13 +145,13 @@ export const glossaire: TermeGlossaire[] = [
     slug: "score-de-confiance",
     definition: "Indicateur /10 calcule par L'Observatoire pour classer les professionnels, base sur six criteres publics.",
     developpement:
-      "Anciennete Sirene (3 pts) + certification RGE ou Qualibat (2 pts) + avis publics superieurs a 4 sur 5 (2 pts) + SIRET actif (1 pt) + site web professionnel (1 pt) + photos realisations (1 pt). Recalcule tous les 30 jours. Methode complete sur /methode/.",
+      "Ancienneté Sirene (3 pts) + certification RGE ou Qualibat (2 pts) + avis publics supérieurs à 4 sur 5 (2 pts) + SIRET actif (1 pt) + site web professionnel (1 pt) + photos réalisations (1 pt). Recalculé tous les 30 jours. Méthode détaillée accessible depuis la barre de navigation.",
     categorie: "reglementation",
     voirAussi: ["rge", "qualibat", "sirene"],
   },
   {
     terme: "Portrait Lauréat",
-    slug: "portrait-lauréat",
+    slug: "portrait-laureat",
     definition: "Distinction annuelle decernee par L'Observatoire a un nombre limite de professionnels après examen éditorial complet.",
     developpement:
       "Inclut un entretien avec le dirigeant, une verification terrain d'au moins une realisation recente, trois entretiens avec des clients finaux références. Medaille d'Or. Portrait long format redige par la rédaction. Ne peut etre obtenu par abonnement seul , la selection est éditoriale.",

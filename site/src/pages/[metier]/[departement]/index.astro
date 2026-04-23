@@ -86,7 +86,7 @@ const tarifs = tarifsMetier[metier] || [];
 const faq = [
   {
     question: `Comment trouver un bon ${metierObj.nom.toLowerCase()} ${dg.in} ?`,
-    answer: `Le plus simple est de consulter notre classement sur cette page. Les ${pros.length} professionnels listés sont actifs au registre Sirene de l'INSEE dans le département ${deptObj.nom}. Leur position dans le classement est calculée selon notre grille de six critères publics : anciennete, certifications RGE/Qualibat, avis clients, SIRET actif, site web, photos de réalisations. Vous pouvez consulter notre méthode complète sur /methode/.`,
+    answer: `Le plus simple est de consulter notre classement sur cette page. Les ${pros.length} professionnels listés sont actifs au registre Sirene de l'INSEE dans le département ${deptObj.nom}. Leur position dans le classement est calculée selon notre grille de six critères publics : ancienneté, certifications RGE/Qualibat, avis clients, SIRET actif, site web, photos de réalisations. Vous pouvez consulter la méthode complète en lien direct depuis le menu.`,
   },
   {
     question: `Combien coûte un ${metierObj.nom.toLowerCase()} ${dg.in} ?`,
@@ -388,7 +388,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
 
         {pros.length > 60 && (
           <p class="cl-more folio container-wide">
-            + {pros.length - 60} autres professionnels actifs {dg.in}, en cours d'examen éditorial pour les prochaines editions.
+            + {pros.length - 60} autres professionnels actifs {dg.in}, en cours d'examen éditorial pour les prochaines éditions.
           </p>
         )}
 

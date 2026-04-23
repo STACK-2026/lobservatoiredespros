@@ -12,27 +12,27 @@ const url = `${siteConfig.url}/outils/grille-devis/`;
 const mentions = [
   { nom: "Identite complete du prestataire", details: "Raison sociale, adresse, SIRET, numero de TVA intra-communautaire.", critique: true },
   { nom: "Identite du client", details: "Nom, prenom, adresse de facturation et adresse de chantier si differente." },
-  { nom: "Date d'emission du devis", details: "Doit etre visible et non raturee.", critique: true },
-  { nom: "Duree de validite de l'offre", details: "Generalement entre 1 et 3 mois, a confirmer par le prestataire." },
-  { nom: "Description detaillee des prestations", details: "Chaque poste, materiaux, main d'oeuvre, avec quantites et unites. Pas de formulations floues type 'divers travaux'.", critique: true },
-  { nom: "Prix unitaire HT pour chaque poste", details: "Obligatoire pour les travaux superieurs a 150€ TTC.", critique: true },
-  { nom: "Taux de TVA applicable", details: "5.5% pour la renovation energetique par un pro RGE, 10% pour l'amelioration de l'habitat, 20% sinon. A justifier." },
-  { nom: "Total HT, TVA, Total TTC", details: "Trois lignes distinctes. Toute difference avec la somme des postes doit etre expliquee.", critique: true },
-  { nom: "Conditions de paiement", details: "Acompte demande (le legal maximum est 30%), echelonnement, mode (virement, cheque, CB)." },
-  { nom: "Numero d'assurance decennale", details: "Obligatoire pour les travaux de batiment. Verifiable sur simple demande d'attestation.", critique: true },
-  { nom: "Date de debut et duree estimee des travaux", details: "Engage le prestataire. Retard non justifie ouvre droit a penalites." },
+  { nom: "Date d'emission du devis", details: "Doit être visible et non raturée.", critique: true },
+  { nom: "Durée de validité de l'offre", details: "Généralement entre 1 et 3 mois, à confirmer par le prestataire." },
+  { nom: "Description détaillée des prestations", details: "Chaque poste, materiaux, main d'œuvre, avec quantités et unités. Pas de formulations floues type 'divers travaux'.", critique: true },
+  { nom: "Prix unitaire HT pour chaque poste", details: "Obligatoire pour les travaux supérieurs à 150€ TTC.", critique: true },
+  { nom: "Taux de TVA applicable", details: "5.5% pour la rénovation énergétique par un pro RGE, 10% pour l'amélioration de l'habitat, 20% sinon. A justifier." },
+  { nom: "Total HT, TVA, Total TTC", details: "Trois lignes distinctes. Toute différence avec la somme des postes doit être expliquée.", critique: true },
+  { nom: "Conditions de paiement", details: "Acompte demandé (le légal maximum est 30%), échelonnement, mode (virement, chèque, CB)." },
+  { nom: "Numéro d'assurance décennale", details: "Obligatoire pour les travaux de bâtiment. Vérifiable sur simple demande d'attestation.", critique: true },
+  { nom: "Date de début et durée estimée des travaux", details: "Engage le prestataire. Retard non justifié ouvre droit à pénalités." },
   { nom: "Mention 'bon pour accord'", details: "Signature du client sous cette mention manuscrite = engagement contractuel." },
 ];
 
 const drapeauxRouges = [
-  "Devis emis verbalement ou non ecrit pour des travaux superieurs a 150€ TTC",
-  "Absence de SIRET ou SIRET dont la date de creation est recente (moins de 6 mois) sans experience attestee",
-  "Formulations vagues : 'divers travaux', 'fournitures', 'forfait' sans detail",
-  "Acompte demande superieur a 30% avant debut des travaux",
-  "TVA a 5.5% sans certification RGE de l'entreprise , la TVA applicable est alors 20% et l'economie est un mirage",
-  "Absence d'attestation d'assurance decennale , ou refus de la fournir",
-  "Duree de validite tres courte (moins de 15 jours) qui incite a la precipitation",
-  "Demarchage a domicile non sollicite + signature immediate demandee (droit de retractation 14 jours : non respecte)",
+  "Devis émis verbalement ou non écrit pour des travaux supérieurs à 150€ TTC",
+  "Absence de SIRET ou SIRET dont la date de création est récente (moins de 6 mois) sans expérience attestée",
+  "Formulations vagues : 'divers travaux', 'fournitures', 'forfait' sans détail",
+  "Acompte demandé supérieur à 30% avant début des travaux",
+  "TVA à 5.5% sans certification RGE de l'entreprise , la TVA applicable est alors 20% et l'économie est un mirage",
+  "Absence d'attestation d'assurance décennale , ou refus de la fournir",
+  "Durée de validité très courte (moins de 15 jours) qui incite à la précipitation",
+  "Démarchage à domicile non sollicité + signature immédiate demandée (droit de rétractation 14 jours : non respecté)",
 ];
 
 const jsonLd = [
@@ -67,7 +67,7 @@ const jsonLd = [
       </p>
 
       <aside class="encart-methodologie" data-speakable>
-        <strong>En résumé.</strong> Un devis de plus de <strong>150 euros TTC</strong> est obligatoirement écrit et doit comporter douze mentions légales. Son absence ou son inexactitude est une infraction. Un devis honnete est <strong>détaillé, signé, date</strong>. Un acompte superieur a <strong>30 %</strong> avant début de travaux est illicite.
+        <strong>En résumé.</strong> Un devis de plus de <strong>150 euros TTC</strong> est obligatoirement écrit et doit comporter douze mentions légales. Son absence ou son inexactitude est une infraction. Un devis honnête est <strong>détaillé, signé, daté</strong>. Un acompte supérieur à <strong>30 %</strong> avant début de travaux est illicite.
       </aside>
 
       <section class="mentions-section">
