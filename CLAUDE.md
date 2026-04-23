@@ -1,80 +1,150 @@
 # L'Observatoire des Pros , notes Claude Code
 
-## Contexte
+## Context ultra-court
 
-Media editorial francais qui classe les artisans et entreprises du BTP et des services a domicile. Pattern STACK-2026, lance 2026-04-23.
+Média éditorial français qui classe les artisans et entreprises du BTP et services à domicile. Pattern STACK-2026, lancé 2026-04-23. Domaine : **lobservatoiredespros.com** (LIVE).
 
-## Quick refs
+## 📚 Documentation projet
 
-- **Domaine** : lobservatoiredespros.com (Cloudflare zone `06f85688f28bfa18e8b643ac3c4122e3`, registrar Cloudflare)
+Toutes les règles, décisions, et roadmap sont dans `docs/` :
+
+- **[DESIGN.md](docs/DESIGN.md)** , DA complète : tokens, typo, composants, layout, animations, anti-patterns
+- **[BRAND.md](docs/BRAND.md)** , voix éditoriale, vocabulaire, ton, positionnement, signature conceptuelle
+- **[ROADMAP.md](docs/ROADMAP.md)** , 16 recommandations priorisées P0/P1/P2 issues de l'audit frontend-design, + data pipelines D1-D5
+- **[DATA.md](docs/DATA.md)** , schéma Supabase 12 tables, méthode Score de Confiance, pipeline Sirene, enrichissements
+- **[AUDIT_LOG.md](docs/AUDIT_LOG.md)** , historique des audits après chaque étape
+
+**Règle** : à la fin de chaque grosse étape, auditer (seo-visual + seo-technical) et logger dans AUDIT_LOG.md.
+
+---
+
+## Quick refs infra
+
+- **Domaine** : `lobservatoiredespros.com` (Cloudflare zone `06f85688f28bfa18e8b643ac3c4122e3`)
+- **Preview** : `lobservatoiredespros.pages.dev`
 - **Repo** : `STACK-2026/lobservatoiredespros`
-- **Preview** : `https://lobservatoiredespros.pages.dev`
-- **Supabase** : `apuyeakgxjgdcfssrtek` (KARMASTRO org, region eu-west-3 Paris)
-- **Resend domaine** : `send.lobservatoiredespros.com` (id `00a3fe8d-80cd-45d6-be82-02b59d987a3b`)
+- **Supabase** : `apuyeakgxjgdcfssrtek` (eu-west-3 Paris, KARMASTRO org)
+- **Resend domain** : `send.lobservatoiredespros.com` (id `00a3fe8d-80cd-45d6-be82-02b59d987a3b`)
 - **IndexNow key** : `a3f8d2c4b9e14f76a55e1c0b2d7e8f31`
 
-## DA (direction artistique)
+---
 
-- **Palette papier/encre/or** : paper `#F7F3EC`, ink `#1A1614`, observatoire `#1E3A52`, or `#B8863D`, cachet `#8B2E2A`, archive `#4A5D3A`
-- **Typo** : Fraunces (display) + Instrument Sans (body) + JetBrains Mono (folio/meta) , Google Fonts v1
-- **Palette gestuelle** : Sceau rotation lente 26s, compteur live avec pulse or, ink bleed transitions, drop caps animees, numeros de classement sticky, corner curl cards, cursor glow, magnetic buttons, split words reveal
-- **Ton** : media editorial institutionnel (Michelin/Que Choisir/Mediapart). « Notre redaction », « nos inspecteurs », numero d'edition sur chaque page, guillemets francais « », jamais d'emoji, jamais de tiret cadratin
+## Deploy
 
-## Distinctions monetisees
+```bash
+# Automatique via GH Actions (push main)
+git push origin main
 
-1. **Portrait Recommande** , gratuit, automatique pour les actifs Sirene retenus (Score de Confiance)
-2. **Portrait Verifie** , 29€/mo, medaille Argent, dossier enrichi
-3. **Portrait Laureat** , 89€/mo, medaille Or, portrait long format + entretien + verification terrain
+# Manuel via wrangler
+cd site
+npm run build
+npx wrangler pages deploy dist --project-name=lobservatoiredespros --branch=main
+```
 
-## Methodologie Score /10
+---
 
-1. Anciennete Sirene (3 pts)
-2. RGE / Qualibat (2 pts)
-3. Avis publics > 4/5 (2 pts)
-4. SIRET actif (1 pt)
-5. Site web pro (1 pt)
-6. Photos realisations (1 pt)
+## Commandes courantes
 
-## Etat au 2026-04-23 , session 1
+```bash
+# Import Sirene (1 combinaison)
+python3 scripts/import_sirene.py --metier plombier --dept 89 --insert
 
-- Phase 0 complete (domaine + repo + supabase + CF Pages + resend + DNS)
-- 53 pages Astro buildees (Homepage riche 11 sections, Methode long format, A propos, Candidater avec 3 offres, Redaction, Observations, Archives, Contact, Newsletter, Glossaire 15 termes, Outils 1 live, Selection, Metiers, Departements, 3 legal pages, 15 classement NOINDEX, 15 fiches pro NOINDEX, 5 metier national NOINDEX)
-- Migration Supabase appliquee (12 tables + RLS + seed metiers + zones pilotes)
-- Seed data mock en `site/src/data/seed-pros.ts` (15 pros illustratifs) , REMPLACER par scrape Sirene reel avant de retirer les NOINDEX
+# Import Sirene (15 combinaisons pilote)
+python3 scripts/import_sirene.py --all-pilots --insert
 
-## PROCHAINES ETAPES CRITIQUES
+# Cleanup slugs (retire digits suffix)
+python3 scripts/cleanup_slugs.py --commit
 
-### Avant tout push en prod reel des classements
+# Build local
+cd site && npm run build
 
-1. **Pipeline Sirene** , API `recherche-entreprises.api.gouv.fr` validee (252 plombiers NAF 43.22A / CP 89*). Aucune cle requise.
-2. **Enrichissement Places API Google** , budget ~$17 pour ~500 pros avec 2 calls chacun
-3. **Import RGE** , annuaire telechargeable sur data.gouv.fr
-4. **Scraping Qualibat** , site qualibat.com par SIRET (pas d'API publique)
-5. **Calcul score reel** dans scripts/compute_score.py puis INSERT Supabase
-6. **Read Supabase depuis Astro** , remplacer `seed-pros.ts` par lecture build-time via `@supabase/supabase-js`
-7. **Retirer NOINDEX** sur pages dynamiques une fois les donnees reelles en place
+# Dev local
+cd site && npm run dev
+```
 
-### Pipelines operationnels a construire
+---
 
-- Blog-auto Mistral+Claude-audit dans `blog-auto/`
-- Cron GitHub Actions runner VPS
-- Rebuild-guard daily workflow
-- Cold mailing Lea via Resend (apres premiers rankings GSC)
+## Règles critiques (héritées STACK-2026)
 
-## Regles heritees
+- **Tutoiement** lecteur, "nous" éditorial
+- **Accents UTF-8** direct, jamais `\uXXXX`
+- **Jamais de tiret cadratin** (em — ou en –). Remplacer par virgule ou tiret simple
+- **Univers brand partout** (404, cookie banner, emails, OG)
+- **JSON-LD UNE FOIS** par page (niveau BaseLayout)
+- **Homepage riche >= 10 sections** (11 actuellement)
+- **Favicon SVG brandé** (OdP monogramme animé)
+- **Robots whitelist AI bots** (GPTBot, ClaudeBot, PerplexityBot, Google-Extended)
+- **Analytics tracker custom Supabase** (pas GA/Plausible)
+- **Rebuild-guard daily** (workflow)
+- **Heures publication random 7h-9h FR** (à implémenter sur blog-auto)
+- **Repo nom = domain sans TLD** → `lobservatoiredespros`
 
-- TOUJOURS `git push origin main` , le repo est public STACK-2026 (pas de second remote)
-- Accents UTF-8 direct
-- Jamais de tiret cadratin
-- Univers brand partout (sceau, papier, or, folio)
-- JSON-LD UNE FOIS par page (dans BaseLayout)
-- Homepage riche >=10 sections
-- Tutoiement partout sauf legal
-- Pattern STACK-2026 : cookie banner CNIL, analytics Supabase, favicon SVG anime, 404 branche, robots AI-friendly, llms.txt, sitemap
+---
 
-## Actions manuelles residuelles
+## État actuel (2026-04-23 16:30)
 
-- Configurer CF Pages pour builder depuis `site/` (ou laisser le workflow GH Actions deployer)
-- Ajouter GitHub Actions secrets si pipeline CI pousse vers CF
-- Resend : creer la redirection `redaction@lobservatoiredespros.com` vers gmail augustin.foucheres@
-- Le bloc GH Pages / workflows de deploy peut etre genere depuis template-blog-auto pattern
+### ✅ Fait
+- Phase 0 complète (infra, repo, DNS, Supabase, Resend, CF Pages)
+- Site Astro SSG , 329 pages buildées (home + legal + piliers + 290 fiches pros Yonne + 15 classements dynamiques)
+- Design system complet (palette, typo Instrument Serif, 18 composants signature)
+- 290 plombiers Yonne scrapés INSEE et insérés Supabase avec vrais noms
+- Slugs propres (`robert-tetard-auxerre`, plus de digits)
+- Fiche pro v3 (ScoreCircle, pills, certifs actives, timeline, CTA doré)
+- Classement v3 (SummaryHero centré, Top 15 avant intro, guide tarifaire cards)
+- Homepage v2 (badge vérifié Meta/TikTok, hero pills, stats v2, pro CTA v2)
+- Cleanup slugs (290 mis à jour via 2-pass PATCH)
+
+### 🔴 En cours (P0 de la ROADMAP)
+1. **P0.1 Ticker éditorial live** (signature salle de rédaction)
+2. **P0.2 Verdict éditorial 1 phrase** sur fiche pro
+3. **P0.3 "Ce que nous ne savons pas encore"** transparence
+4. **P0.4 Typo scale poussée** (H1 +25%, tracking meta +25%)
+
+### ⏸ Backlog important
+- **D1** Pipeline enrichissement (Pages Jaunes, OSM, site web , sans Google Places)
+- **D2** Import massive 14 combinaisons restantes (Paris, Côte-d'Or + Yonne reste)
+- **P1/P2** 12 recommandations polish (cf ROADMAP.md)
+- **L1-L4** Livraison STACK-2026 (28 points checklist, portfolio, vault memory)
+
+---
+
+## Scripts disponibles
+
+| Script | Usage |
+|---|---|
+| `scripts/import_sirene.py` | Import pros INSEE via DuckDB + parquet |
+| `scripts/enrich_rge.py` | Enrichissement RGE via API ADEME |
+| `scripts/cleanup_slugs.py` | Retire suffixe digits des slugs |
+| `scripts/test_recherche_entreprises.py` | Test API recherche-entreprises (rate limited) |
+
+---
+
+## Pages live
+
+### Publiques (INDEXÉES)
+- `/` (home éditoriale)
+- `/methode/` (méthodologie)
+- `/a-propos/`, `/redaction/`, `/archives/`
+- `/candidater/`, `/newsletter/`, `/contact/`
+- `/glossaire/` (15 termes), `/outils/`, `/outils/grille-devis/`
+- `/metiers/`, `/departements/`, `/observations/`
+- `/mentions-legales/`, `/politique-confidentialite/`, `/cgu/`
+
+### Dynamiques Supabase
+- `/plombier/yonne-89/` (290 pros)
+- `/pro/[slug]/` (290 fiches pros)
+
+### NOINDEX (pour l'instant)
+- `/[metier]/[departement]/` (pas encore toutes les combinaisons remplies)
+- `/pro/[slug]/` (en attendant enrichissements complets)
+- `/selection/`, `/[metier]/` (pas assez de data)
+
+---
+
+## Actions manuelles restantes (backlog)
+
+1. Connecter CF Pages project à GH repo (OAuth dashboard) pour auto-deploy sans wrangler manual
+2. Zone-level redirect rule www → apex (nécessite token CF avec scope `rulesets`)
+3. Activer security headers sur custom domain (CF cache les strip sur apex, pas sur preview URL)
+4. Submit sitemap dans GSC
+5. IndexNow ping post-publication
