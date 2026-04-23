@@ -28,6 +28,9 @@ from pathlib import Path
 
 ADEME_DATASET = "liste-des-entreprises-rge-2"
 ADEME_BASE = f"https://data.ademe.fr/data-fair/api/v1/datasets/{ADEME_DATASET}/lines"
+# Historique : certaines qualifs (Qualit'EnR) ne sont QUE dans historique-rge
+ADEME_HIST_DATASET = "historique-rge"
+ADEME_HIST_BASE = f"https://data.ademe.fr/data-fair/api/v1/datasets/{ADEME_HIST_DATASET}/lines"
 SUPABASE_URL = "https://apuyeakgxjgdcfssrtek.supabase.co"
 USER_AGENT = "ObservatoireDesPros/1.0 (contact@lobservatoiredespros.com)"
 
@@ -55,31 +58,55 @@ def get_service_key():
 # ---------------------------------------------------------------------------
 # ADEME API
 # ---------------------------------------------------------------------------
+def _fetch_url(url):
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return json.loads(r.read()).get("results", [])
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                time.sleep(2 + attempt * 2)
+                continue
+            return []
+        except Exception:
+            return []
+    return []
+
+
 def fetch_rge_by_siret(siret):
-    """Fetch toutes les qualifications RGE pour un SIRET."""
+    """Fetch qualifs depuis liste-des-entreprises-rge-2 ET historique-rge.
+    Dedup par (organisme, code_qualification, date_debut, date_fin) car une qualif
+    peut apparaitre N fois dans l'historique avec des dates_fin differentes (renouvelements).
+    Pour chaque (organisme, code), on garde la version avec date_fin la plus tardive.
+    """
     clean = re.sub(r"\D", "", str(siret))
     if not re.fullmatch(r"\d{14}", clean):
         log(f"SIRET invalide : '{siret}'", "WARN")
         return []
 
-    url = f"{ADEME_BASE}?qs=siret:{clean}&size=100"
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
-    for attempt in range(4):
-        try:
-            with urllib.request.urlopen(req, timeout=20) as r:
-                d = json.loads(r.read())
-                return d.get("results", [])
-        except urllib.error.HTTPError as e:
-            if e.code == 429:
-                wait = 2 + attempt * 2
-                time.sleep(wait)
-                continue
-            log(f"HTTP {e.code} pour SIRET {clean}", "ERROR")
-            return []
-        except Exception as e:
-            log(f"Exception pour SIRET {clean} : {e}", "ERROR")
-            return []
-    return []
+    # Fetch en parallele : courant + historique
+    current = _fetch_url(f"{ADEME_BASE}?qs=siret:{clean}&size=100")
+    historique = _fetch_url(f"{ADEME_HIST_BASE}?qs=siret:{clean}&size=200")
+
+    # Combine en gardant la date_fin la plus tardive par (organisme, code_qualification)
+    combined = {}
+    for q in current + historique:
+        org = q.get("organisme") or ""
+        code = q.get("code_qualification") or ""
+        if not org or not code:
+            continue
+        key = f"{org}::{code}"
+        existing = combined.get(key)
+        if not existing:
+            combined[key] = q
+        else:
+            # Garde celui avec la date_fin la plus tardive (plus frais)
+            existing_fin = existing.get("lien_date_fin") or ""
+            new_fin = q.get("lien_date_fin") or ""
+            if new_fin > existing_fin:
+                combined[key] = q
+    return list(combined.values())
 
 
 # ---------------------------------------------------------------------------

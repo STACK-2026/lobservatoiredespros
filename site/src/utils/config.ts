@@ -9,12 +9,13 @@ export function fullUrl(path: string): string {
   return `${base}${clean}`;
 }
 
-/** Google Fonts URL , Instrument Serif (display) + Inter (body) + JetBrains Mono
- * display=swap est DEJA inclus, le P0 audit rapportait un faux negatif
- * (probable cache CF). On double-check ici.
+/** Google Fonts URL , typo moderne editoriale :
+ *   - Fraunces (display) : serif variable moderne, axe SOFT=100 pour un rendu fluide
+ *   - Geist (body) : sans-serif Vercel, tres lisible, feel Apple/Linear
+ *   - JetBrains Mono : metadata/folios
  */
 export function fontsUrl(): string {
-  return "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
+  return "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,100;1,9..144,300..700,100&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;600&display=swap";
 }
 
 /** Numéro d'édition formatté */

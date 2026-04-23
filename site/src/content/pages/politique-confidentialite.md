@@ -1,55 +1,55 @@
 ---
-title: "Politique de confidentialite"
-description: "Politique de confidentialite et protection des donnees personnelles (RGPD)."
+title: "Politique de confidentialité"
+description: "Politique de confidentialité et protection des données personnelles (RGPD)."
 lastUpdated: 2026-04-09
 ---
 
 ## Introduction
 
-{{COMPANY_NAME}} s'engage a proteger la vie privee des utilisateurs de son site et de son application. La presente politique decrit les donnees collectees et leur traitement.
+{{COMPANY_NAME}} s'engage à protéger la vie privée des utilisateurs de son site et de son application. La présente politique décrit les données collectées et leur traitement.
 
-## Donnees collectees
+## Données collectées
 
-- **Donnees de compte** : adresse email, nom (si fourni)
-- **Donnees d'utilisation** : pages visitees, actions effectuees dans l'application
-- **Donnees techniques** : adresse IP, type de navigateur, systeme d'exploitation
+- **Données de compte** : adresse email, nom (si fourni)
+- **Données d'utilisation** : pages visitées, actions effectuées dans l'application
+- **Données techniques** : adresse IP, type de navigateur, système d'exploitation
 
-## Finalites du traitement
+## Finalités du traitement
 
-- Fourniture et amelioration du service
+- Fourniture et amélioration du service
 - Communication relative au compte (emails transactionnels)
-- Analyse statistique anonymisee de l'utilisation
+- Analyse statistique anonymisée de l'utilisation
 
-## Base legale
+## Base légale
 
-Le traitement est fonde sur le consentement de l'utilisateur et l'execution du contrat de service.
+Le traitement est fondé sur le consentement de l'utilisateur et l'exécution du contrat de service.
 
-## Duree de conservation
+## Durée de conservation
 
-Les donnees personnelles sont conservees pendant la duree de votre compte, puis supprimees dans un delai de 30 jours apres la cloture.
+Les données personnelles sont conservées pendant la durée de votre compte, puis supprimées dans un délai de 30 jours après la clôture.
 
 ## Cookies
 
-Ce site utilise uniquement des cookies techniques necessaires au fonctionnement du service. Aucun cookie publicitaire ou de tracking n'est utilise.
+Ce site utilise uniquement des cookies techniques nécessaires au fonctionnement du service. Aucun cookie publicitaire ou de tracking n'est utilisé.
 
 ## Sous-traitants
 
-- **Cloudflare** (hebergement)
-- **Supabase** (base de donnees)
+- **Cloudflare** (hébergement)
+- **Supabase** (base de données)
 - **Stripe** (paiements)
 - **Resend** (emails)
 
 ## Vos droits
 
-Conformement au RGPD, vous disposez des droits suivants :
-- Droit d'acces a vos donnees
+Conformément au RGPD, vous disposez des droits suivants :
+- Droit d'accès à vos données
 - Droit de rectification
-- Droit a l'effacement
-- Droit a la portabilite
+- Droit à l'effacement
+- Droit à la portabilité
 - Droit d'opposition
 
 Pour exercer ces droits : **{{EMAIL}}**
 
 ## Contact DPO
 
-Pour toute question relative a la protection de vos donnees : **{{EMAIL}}**
+Pour toute question relative à la protection de vos données : **{{EMAIL}}**

@@ -1,0 +1,107 @@
+---
+/**
+ * SpeakableTLDR , aside editorial 60-80 mots en debut de page, balise
+ * data-speakable pour AI Overviews / ChatGPT / Perplexity. Sert aussi de
+ * hook visuel (bordure or 2px, italique serif) pour le lecteur humain.
+ *
+ * Place le TL;DR dans un <aside> semantique avec role="note".
+ *
+ * Usage :
+ *   <SpeakableTLDR label="En résumé">
+ *     Phrase 1. Phrase 2. Phrase 3.
+ *   </SpeakableTLDR>
+ */
+interface Props {
+  label?: string;
+  tone?: "or" | "observatoire";
+}
+
+const { label = "En résumé", tone = "or" } = Astro.props;
+---
+
+<aside class={`sp sp-${tone}`} role="note" aria-label={label}>
+  <span class="sp-kicker">
+    <svg class="sp-icon" viewBox="0 0 14 14" width="11" height="11" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="5.8" stroke="currentColor" stroke-width="1.2" />
+      <path d="M4.5 7.5 V 5 Q 7 3 9.5 5 V 7.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" />
+      <path d="M4.5 7.5 L 5.2 10 M 9.5 7.5 L 8.8 10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" />
+    </svg>
+    <span>{label}</span>
+  </span>
+  <div class="sp-body" data-speakable>
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .sp {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem 1.1rem;
+    align-items: start;
+    max-width: 48rem;
+    padding: 0.85rem 1.1rem 0.9rem;
+    margin: 1.5rem 0;
+    background: linear-gradient(90deg, rgba(184, 134, 61, 0.06) 0%, rgba(184, 134, 61, 0) 75%);
+    border-left: 2px solid var(--or);
+    border-radius: 0 10px 10px 0;
+    position: relative;
+  }
+  .sp::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: -3px;
+    width: 10px;
+    height: 10px;
+    background: var(--or);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--paper);
+  }
+  .sp-observatoire {
+    background: linear-gradient(90deg, rgba(30, 58, 82, 0.05) 0%, rgba(30, 58, 82, 0) 75%);
+    border-left-color: var(--observatoire);
+  }
+  .sp-observatoire::before { background: var(--observatoire); }
+
+  .sp-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--or-deep);
+    font-weight: 700;
+    padding-top: 0.18rem;
+    white-space: nowrap;
+  }
+  .sp-observatoire .sp-kicker { color: var(--observatoire); }
+  .sp-icon { color: currentColor; }
+
+  .sp-body {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.02rem;
+    line-height: 1.55;
+    color: var(--ink);
+    letter-spacing: -0.006em;
+  }
+  .sp-body :global(p) {
+    margin: 0 0 0.4rem;
+  }
+  .sp-body :global(p:last-child) { margin-bottom: 0; }
+  .sp-body :global(strong) {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--or-deep);
+  }
+  .sp-observatoire .sp-body :global(strong) { color: var(--observatoire); }
+
+  @media (max-width: 540px) {
+    .sp { grid-template-columns: 1fr; gap: 0.5rem; padding: 0.8rem 0.95rem; }
+    .sp-kicker { font-size: 0.6rem; }
+    .sp-body { font-size: 0.96rem; }
+  }
+</style>

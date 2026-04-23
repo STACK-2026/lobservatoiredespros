@@ -3,6 +3,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import Masthead from "../../../components/Masthead.astro";
 import ByLine from "../../../components/ByLine.astro";
 import ProCard from "../../../components/ProCard.astro";
+import ProCompactRow from "../../../components/ProCompactRow.astro";
 import MethodologyBlock from "../../../components/MethodologyBlock.astro";
 import EditorialHeader from "../../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
@@ -10,10 +11,12 @@ import InkBleedDivider from "../../../components/InkBleedDivider.astro";
 import SummaryHero from "../../../components/SummaryHero.astro";
 import GlossaireTerm from "../../../components/GlossaireTerm.astro";
 import InfoPill from "../../../components/InfoPill.astro";
+import SpeakableTLDR from "../../../components/SpeakableTLDR.astro";
 import DropCap from "../../../components/DropCap.astro";
 import { siteConfig } from "../../../utils/config";
 import { getMetiers, getZones, getProsByMetierDept } from "../../../lib/supabase";
 import { jsonLdBreadcrumbs, jsonLdRanking, jsonLdFAQ } from "../../../utils/seo";
+import { deptGrammar } from "../../../utils/grammar";
 
 export async function getStaticPaths() {
   const metiers = await getMetiers();
@@ -34,11 +37,15 @@ const { metier: metierObj, zone: deptObj } = Astro.props;
 const { metier, departement } = Astro.params as { metier: string; departement: string };
 
 const pros = await getProsByMetierDept(metier, departement);
-const topPros = pros.slice(0, 15);
+const podium = pros.slice(0, 3);
+const topPros = pros.slice(3, 15);
 const restPros = pros.slice(15, 60);
 
-const titre = `Les meilleurs ${metierObj.nom_pluriel.toLowerCase()} dans le ${deptObj.nom} (${deptObj.code}) , Classement ${siteConfig.editionYear}`;
-const description = `Classement éditorial des ${metierObj.nom_pluriel.toLowerCase()} du ${deptObj.nom} (${deptObj.code}). ${pros.length} professionnels classés selon notre grille de six critères objectifs. Édition N°${siteConfig.editionNumber} de L'Observatoire.`;
+// Grammaire du nom de departement (ex. Yonne → "de l'Yonne", "dans l'Yonne")
+const dg = deptGrammar(deptObj.nom);
+
+const titre = `Les meilleurs ${metierObj.nom_pluriel.toLowerCase()} ${dg.in} (${deptObj.code}) , Classement ${siteConfig.editionYear}`;
+const description = `Classement éditorial des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}). ${pros.length} professionnels classés selon notre grille de six critères objectifs. Édition N°${siteConfig.editionNumber} de L'Observatoire.`;
 const url = `${siteConfig.url}/${metier}/${departement}/`;
 
 const tarifsMetier: Record<string, { prestation: string; fourchette: string; unit?: string }[]> = {
@@ -77,11 +84,11 @@ const tarifs = tarifsMetier[metier] || [];
 
 const faq = [
   {
-    question: `Comment trouver un bon ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`,
+    question: `Comment trouver un bon ${metierObj.nom.toLowerCase()} ${dg.in} ?`,
     answer: `Le plus simple est de consulter notre classement sur cette page. Les ${pros.length} professionnels listés sont actifs au registre Sirene de l'INSEE dans le département ${deptObj.nom}. Leur position dans le classement est calculée selon notre grille de six critères publics : ancienneté, certifications RGE/Qualibat, avis clients, SIRET actif, site web, photos de réalisations. Vous pouvez consulter notre méthode complète sur /methode/.`,
   },
   {
-    question: `Combien coûte un ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`,
+    question: `Combien coûte un ${metierObj.nom.toLowerCase()} ${dg.in} ?`,
     answer: `Les tarifs dépendent de la prestation. Nous publions en bas de cette page des fourchettes indicatives pour les prestations courantes. Exiger un devis écrit, signé, détaillé est obligatoire au-dessus de 150€ TTC.`,
   },
   {
@@ -89,12 +96,12 @@ const faq = [
     answer: `Reconnu Garant de l'Environnement est une qualification attribuée par l'État via france-renov.gouv.fr. Elle est obligatoire pour bénéficier des aides publiques MaPrimeRénov', TVA réduite 5.5%, CEE. Nous vérifions cette mention sur la source officielle avant de l'afficher.`,
   },
   {
-    question: `Comment contester la position d'un ${metierObj.nom.toLowerCase()} dans le classement ?`,
+    question: `Comment contester la position d'un ${metierObj.nom.toLowerCase()} dans ce classement ?`,
     answer: `Vous pouvez écrire à ${siteConfig.legal.email} en précisant le professionnel concerné et les éléments de contestation. Notre rédaction réexamine les dossiers signalés sous 15 jours ouvrés.`,
   },
   {
     question: "La liste est-elle exhaustive ?",
-    answer: `Cette sélection regroupe tous les professionnels actifs au Sirene de l'INSEE dans le code NAF ${metierObj.code_naf || ""} du département ${deptObj.nom} à la date du dernier recalcul. Les Scores de Confiance sont recalculés à chaque synchronisation mensuelle.`,
+    answer: `Cette sélection regroupe tous les professionnels actifs au Sirene de l'INSEE dans le code NAF ${metierObj.code_naf || ""} du département ${deptObj.nom === "Paris" ? "de Paris" : deptObj.nom} à la date du dernier recalcul. Les Scores de Confiance sont recalculés à chaque synchronisation mensuelle.`,
   },
 ];
 
@@ -105,7 +112,7 @@ const jsonLd = [
     { name: deptObj.nom, url },
   ]),
   jsonLdRanking({
-    name: `Classement ${metierObj.nom_pluriel} ${deptObj.nom}`,
+    name: `Classement ${metierObj.nom_pluriel} ${dg.the}`,
     items: pros.slice(0, 50).map((p, i) => ({
       name: p.nom_entreprise,
       url: `${siteConfig.url}/pro/${p.slug}/`,
@@ -121,6 +128,55 @@ const anciennete = (p: any) => {
   return new Date().getFullYear() - y;
 };
 const hasPros = pros.length > 0;
+
+// Verdict editorial pour le Top 3 : une phrase qui differencie chaque pro
+// de ses concurrents. Signee "La redaction". Sert a eviter l'effet
+// "annuaire uniforme" quand 2 pros partagent le meme score.
+function generateTopVerdict(p: any, rank: number, all: any[], metierLower: string): string {
+  const age = anciennete(p) || 0;
+  const certifs = [p.rge ? "RGE" : null, p.qualibat ? "Qualibat" : null].filter(Boolean);
+  const topAge = Math.max(0, ...all.slice(0, 5).map((x) => anciennete(x) || 0));
+  const isOldest = age === topAge && age > 0;
+  const hasBothCertifs = p.rge && p.qualibat;
+
+  if (rank === 1) {
+    if (hasBothCertifs && age >= 20) {
+      return `Ouvre l'édition pour la densité rare de ses deux qualifications actives et ${age} ans d'ancrage Sirene continu.`;
+    }
+    if (hasBothCertifs) {
+      return `Ouvre l'édition pour sa double qualification ${certifs.join(" et ")}, vérifiées sur sources officielles.`;
+    }
+    if (age >= 25) {
+      return `Ouvre l'édition pour ${age} ans d'activité Sirene continue, la plus longue du département sur ce métier.`;
+    }
+    if (p.rge) {
+      return `Ouvre l'édition pour une certification RGE active et ${age || "plusieurs"} années d'activité vérifiable.`;
+    }
+    return `Ouvre l'édition pour la solidité de son dossier Sirene et son ancrage local.`;
+  }
+  if (rank === 2) {
+    if (hasBothCertifs) {
+      return `Tient tête au premier grâce à sa double certification ${certifs.join(" + ")} et une régularité sans faille au registre Sirene.`;
+    }
+    if (p.rge && age >= 15) {
+      return `Appuie sa deuxième place sur ${age} ans de continuité et une mention RGE à jour.`;
+    }
+    if (isOldest) {
+      return `Deuxième par le score, mais le plus ancien sur ce métier dans le département.`;
+    }
+    return `Tient la seconde place par la cohérence de son dossier public et de sa couverture éditoriale.`;
+  }
+  if (rank === 3) {
+    if (certifs.length) {
+      return `Ferme le podium pour son positionnement spécialisé et la mention ${certifs.join(", ")} que nous avons pu vérifier.`;
+    }
+    if (age >= 15) {
+      return `Ferme le podium pour ${age} ans d'ancrage territorial dans le ${metierLower}.`;
+    }
+    return `Ferme le podium pour la qualité de son assise Sirene et sa visibilité locale.`;
+  }
+  return "";
+}
 ---
 
 <BaseLayout title={titre} description={description} jsonLd={jsonLd}>
@@ -138,7 +194,7 @@ const hasPros = pros.length > 0;
       <Masthead category={`CLASSEMENT ${siteConfig.editionYear}`} signature={`${deptObj.nom} · ${deptObj.code}`} />
 
       <h1 class="heading-display cl-title blur-reveal">
-        Les meilleurs <span class="italic-fraunces">{metierObj.nom_pluriel.toLowerCase()}</span> du {deptObj.nom}
+        Les meilleurs <span class="italic-fraunces">{metierObj.nom_pluriel.toLowerCase()}</span> {dg.of}
       </h1>
 
       <ByLine
@@ -147,6 +203,18 @@ const hasPros = pros.length > 0;
         updated="mensuelle"
         readingTime={Math.max(3, Math.ceil(pros.length / 20))}
       />
+
+      {hasPros && (
+        <SpeakableTLDR label="En résumé">
+          <p>
+            <strong>{pros.length} {metierObj.nom_pluriel.toLowerCase()}</strong> actifs au registre
+            Sirene {dg.in} ({deptObj.code}), classés par Score de Confiance sur six
+            critères publics, dont {pros.filter((p: any) => p.rge).length} titulaires d'une certification
+            <GlossaireTerm slug="rge">RGE</GlossaireTerm>. Données vérifiées sur INSEE, ADEME et
+            Qualibat, recalcul mensuel.
+          </p>
+        </SpeakableTLDR>
+      )}
     </header>
 
     <!-- SUMMARY HERO (visual impactant) -->
@@ -177,67 +245,59 @@ const hasPros = pros.length > 0;
 
     {hasPros ? (
       <>
-        <!-- TOP CLASSEMENT , cards en premier, l'user scanne ca d'abord -->
-        <section class="container-wide cl-top-section">
-          <EditorialHeader
-            category="LA SÉLECTION"
-            title={`Top ${Math.min(15, topPros.length)} de l'édition ${siteConfig.editionMonth} ${siteConfig.editionYear}`}
-            subtitle={`${pros.length} professionnels classés par Score de Confiance décroissant.`}
-          />
-
-          <div class="cl-sticky-rank folio">
-            <span>Position visible :</span>
-            <span class="cl-current-rank" data-rank-current>01</span>
-          </div>
-
-          <div class="cl-pros-list">
-            {topPros.map((p, i) => (
-              <div data-rank-item={i + 1} class="cl-pros-item">
-                <ProCard
-                  rank={i + 1}
-                  name={p.nom_entreprise}
-                  slug={p.slug}
-                  score={p.score_confiance || 0}
-                  tier={p.tier as "or" | "argent" | "gratuit"}
-                  ville={p.ville || ""}
-                  zoneIntervention={p.code_postal || ""}
-                  ancienneteAnnees={anciennete(p) || undefined}
-                  rge={p.rge}
-                  qualibat={p.qualibat}
-                  specialites={[]}
-                  resumeCourt={p.description || `Entreprise active au Sirene, NAF ${metierObj.code_naf}.`}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <InkBleedDivider variant="ornament" />
-
-        <!-- INTRO ÉDITORIALE (deplacée apres le top , l'user l'a vu) -->
-        <section class="container-wide cl-intro">
-          <div class="cl-intro-inner prose">
-            <DropCap>
-              Cartographier les {metierObj.nom_pluriel.toLowerCase()} du {deptObj.nom} est un exercice d'observation autant qu'une question de méthode. Nous croisons les données <GlossaireTerm slug="sirene">Sirene</GlossaireTerm> avec l'annuaire <GlossaireTerm slug="rge">RGE</GlossaireTerm> de l'État, les fiches <GlossaireTerm slug="qualibat">Qualibat</GlossaireTerm>, les profils Google Business, puis vérifions manuellement les sites web et portfolios.
-            </DropCap>
-            <p>
-              Le <GlossaireTerm slug="score-de-confiance">Score de Confiance /10</GlossaireTerm> visible sur chaque portrait ci-dessus additionne six critères publics et auditables. La mention <strong>Lauréat</strong> distingue les entreprises ayant fait l'objet d'un entretien approfondi. La mention <strong>Vérifié</strong> signale un dossier complété et validé par notre rédaction.
-            </p>
-          </div>
-        </section>
-
-        {restPros.length > 0 && (
-          <section class="container-wide cl-rest">
+        <!-- PODIUM , 3 cards pleine largeur avec traitement editorial renforce -->
+        {podium.length > 0 && (
+          <section class="container-wide cl-podium-section">
             <EditorialHeader
-              category={`POSITIONS 16 À ${15 + restPros.length}`}
-              title="La suite du classement"
-              subtitle="Les autres professionnels retenus à ce jour."
+              category="LE PODIUM ÉDITORIAL"
+              title={`Les trois entreprises que nous retenons en tête`}
+              subtitle={`Parmi ${pros.length} ${metierObj.nom_pluriel.toLowerCase()} actifs au Sirene ${dg.in}, trois dossiers dominent l'édition ${siteConfig.editionMonth} ${siteConfig.editionYear}.`}
+              align="center"
             />
-            <div class="cl-pros-list">
-              {restPros.map((p, i) => (
-                <div data-rank-item={i + 16} class="cl-pros-item">
+
+            <div class="cl-podium-list stagger-children">
+              {podium.map((p, i) => (
+                <div data-rank-item={i + 1} class="cl-podium-item cl-podium-rank-{i + 1}">
                   <ProCard
-                    rank={i + 16}
+                    rank={i + 1}
+                    name={p.nom_entreprise}
+                    slug={p.slug}
+                    score={p.score_confiance || 0}
+                    tier={p.tier as "or" | "argent" | "gratuit"}
+                    ville={p.ville || ""}
+                    zoneIntervention={p.code_postal || ""}
+                    ancienneteAnnees={anciennete(p) || undefined}
+                    rge={p.rge}
+                    qualibat={p.qualibat}
+                    specialites={[]}
+                    resumeCourt={p.description || `Entreprise active au Sirene, NAF ${metierObj.code_naf}.`}
+                    verdictEditorial={generateTopVerdict(p, i + 1, pros.slice(0, 5), metierObj.nom.toLowerCase())}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <!-- TOP 4-15 , cards standards en grille serree -->
+        {topPros.length > 0 && (
+          <section class="container-wide cl-top-section">
+            <EditorialHeader
+              category={`POSITIONS 04 À ${3 + topPros.length}`}
+              title="La suite du classement"
+              subtitle="Douze dossiers qui forment le second rang de l'édition."
+            />
+
+            <div class="cl-sticky-rank folio">
+              <span>Position visible :</span>
+              <span class="cl-current-rank" data-rank-current>04</span>
+            </div>
+
+            <div class="cl-pros-list">
+              {topPros.map((p, i) => (
+                <div data-rank-item={i + 4} class="cl-pros-item">
+                  <ProCard
+                    rank={i + 4}
                     name={p.nom_entreprise}
                     slug={p.slug}
                     score={p.score_confiance || 0}
@@ -256,9 +316,55 @@ const hasPros = pros.length > 0;
           </section>
         )}
 
+        <InkBleedDivider variant="ornament" />
+
+        <!-- INTRO ÉDITORIALE (deplacée apres le top , l'user l'a vu) -->
+        <section class="container-wide cl-intro">
+          <div class="cl-intro-inner prose">
+            <DropCap>
+              Cartographier les {metierObj.nom_pluriel.toLowerCase()} {dg.of} est un exercice d'observation autant qu'une question de méthode. Nous croisons les données <GlossaireTerm slug="sirene">Sirene</GlossaireTerm> avec l'annuaire <GlossaireTerm slug="rge">RGE</GlossaireTerm> de l'État, les fiches <GlossaireTerm slug="qualibat">Qualibat</GlossaireTerm>, les profils Google Business, puis vérifions manuellement les sites web et portfolios.
+            </DropCap>
+            <p>
+              Le <GlossaireTerm slug="score-de-confiance">Score de Confiance /10</GlossaireTerm> visible sur chaque portrait ci-dessus additionne six critères publics et auditables. La mention <strong>Lauréat</strong> distingue les entreprises ayant fait l'objet d'un entretien approfondi. La mention <strong>Vérifié</strong> signalé un dossier complété et validé par notre rédaction.
+            </p>
+          </div>
+        </section>
+
+        {restPros.length > 0 && (
+          <section class="container-wide cl-rest">
+            <EditorialHeader
+              category={`POSITIONS 16 À ${15 + restPros.length}`}
+              title="Palmarès étendu"
+              subtitle="Dossiers retenus à ce jour, format palmarès dense. Chaque nom ouvre le portrait complet."
+            />
+            <div class="cl-palmares-head folio">
+              <span>Rang</span>
+              <span>Entreprise</span>
+              <span>Certifs</span>
+              <span>Score</span>
+              <span aria-hidden="true"></span>
+            </div>
+            <div class="cl-palmares-list stagger-children">
+              {restPros.map((p, i) => (
+                <ProCompactRow
+                  rank={i + 16}
+                  name={p.nom_entreprise}
+                  slug={p.slug}
+                  score={p.score_confiance || 0}
+                  tier={p.tier as "or" | "argent" | "gratuit"}
+                  ville={p.ville || ""}
+                  ancienneteAnnees={anciennete(p) || undefined}
+                  rge={p.rge}
+                  qualibat={p.qualibat}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         {pros.length > 60 && (
           <p class="cl-more folio container-wide">
-            + {pros.length - 60} autres professionnels actifs dans le {deptObj.nom}, en cours d'examen éditorial pour les prochaines éditions.
+            + {pros.length - 60} autres professionnels actifs {dg.in}, en cours d'examen éditorial pour les prochaines éditions.
           </p>
         )}
 
@@ -267,7 +373,7 @@ const hasPros = pros.length > 0;
         <!-- MÉTHODE -->
         <section class="container-wide">
           <MethodologyBlock
-            appliedTo={`Pour ce classement, ${pros.length} candidats actifs Sirene ont été examinés dans le ${deptObj.nom}.`}
+            appliedTo={`Pour ce classement, ${pros.length} candidats actifs Sirene ont été examinés ${dg.in}.`}
           />
         </section>
       </>
@@ -275,11 +381,11 @@ const hasPros = pros.length > 0;
       <section class="container-editorial cl-empty">
         <EditorialHeader
           category="EN COURS"
-          title={`Classement ${metierObj.nom_pluriel} ${deptObj.nom} en cours de constitution`}
+          title={`Classement ${metierObj.nom_pluriel} ${dg.of} en cours de constitution`}
           align="center"
         />
         <p class="lead" style="text-align: center;">
-          Notre rédaction constitue actuellement le classement des {metierObj.nom_pluriel.toLowerCase()} du {deptObj.nom}. Il sera publié dans la prochaine édition mensuelle.
+          Notre rédaction constitué actuellement le classement des {metierObj.nom_pluriel.toLowerCase()} {dg.of}. Il sera publié dans la prochaine édition mensuelle.
         </p>
         <p style="text-align: center; margin-top: 2rem;">
           <a class="btn btn-outline" href="/selection/">Voir les classements disponibles</a>
@@ -293,7 +399,7 @@ const hasPros = pros.length > 0;
         <div class="container-wide">
           <EditorialHeader
             category="GUIDE TARIFAIRE LOCAL"
-            title={`Combien coûte un ${metierObj.nom.toLowerCase()} dans le ${deptObj.nom} ?`}
+            title={`Combien coûte un ${metierObj.nom.toLowerCase()} ${dg.in} ?`}
             subtitle="Fourchettes indicatives observées dans le département. Hors TVA sauf mention contraire."
           />
           <div class="cl-tarifs-grid stagger-children">
@@ -327,7 +433,7 @@ const hasPros = pros.length > 0;
 
     <!-- FAQ (reste tel quel, deja bien) -->
     <section class="container-editorial cl-faq">
-      <EditorialHeader category="QUESTIONS FRÉQUENTES" title={`${metierObj.nom_pluriel} du ${deptObj.nom} , questions posées`} />
+      <EditorialHeader category="QUESTIONS FRÉQUENTES" title={`${metierObj.nom_pluriel} ${dg.of} , questions posées`} />
       <div class="faq-list stagger-children">
         {faq.map((q, i) => (
           <details class="faq-item">
@@ -348,7 +454,7 @@ const hasPros = pros.length > 0;
         <span class="meta-label-or">Vous êtes professionnel ?</span>
         <h2 class="heading-display cl-cta-title">Rejoindre l'édition suivante.</h2>
         <p class="lead">
-          Votre entreprise exerce dans le {deptObj.nom} et vous estimez qu'elle mérite une position supérieure ? Soumettez votre candidature Vérifié ou Lauréat. L'examen est gratuit. L'abonnement optionnel.
+          Votre entreprise exerce {dg.in} et vous estimez qu'elle mérite une position supérieure ? Soumettez votre candidature Vérifié ou Lauréat. L'examen est gratuit. L'abonnement optionnel.
         </p>
         <a href="/candidater/" class="btn btn-primary magnetic">Candidater à l'édition suivante</a>
       </div>
@@ -381,6 +487,61 @@ const hasPros = pros.length > 0;
     justify-content: center;
     max-width: 56rem;
     margin: 0 auto;
+  }
+
+  /* Podium , traitement visuel renforce pour les 3 premieres */
+  .cl-podium-section {
+    max-width: 62rem;
+    margin: 1.5rem auto 2.5rem;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+  .cl-podium-list {
+    display: grid;
+    gap: 1.1rem;
+    margin-top: 1.8rem;
+  }
+  .cl-podium-item {
+    position: relative;
+    transition: transform 420ms var(--ease-out-expo);
+  }
+  .cl-podium-item :global(.pro-v3) {
+    padding: 2rem 2.2rem 2rem;
+    border-radius: 4px 40px 4px 4px;
+    border-width: 1.5px;
+  }
+  .cl-podium-item:nth-child(1) :global(.pro-v3) {
+    background: linear-gradient(135deg, rgba(184, 134, 61, 0.12) 0%, var(--paper) 55%);
+    border-color: rgba(184, 134, 61, 0.65);
+    box-shadow:
+      0 2px 0 rgba(184, 134, 61, 0.18),
+      0 28px 56px -28px rgba(184, 134, 61, 0.35);
+  }
+  .cl-podium-item:nth-child(1) :global(.pro-v3::before) {
+    background: linear-gradient(180deg, var(--or) 0%, var(--or-deep) 100%);
+    transform: scaleY(1);
+    width: 4px;
+  }
+  .cl-podium-item:nth-child(1) :global(.pv-rank-num) {
+    font-size: clamp(4.5rem, 6vw, 5.5rem);
+    color: var(--or-deep);
+    line-height: 0.85;
+  }
+  .cl-podium-item:nth-child(2) :global(.pro-v3) {
+    background: linear-gradient(135deg, rgba(122, 110, 99, 0.08) 0%, var(--paper) 60%);
+    border-color: rgba(122, 110, 99, 0.35);
+  }
+  .cl-podium-item:nth-child(2) :global(.pv-rank-num) {
+    font-size: clamp(4rem, 5.5vw, 4.8rem);
+    color: #7A6E63;
+  }
+  .cl-podium-item:nth-child(3) :global(.pro-v3) {
+    background: linear-gradient(135deg, rgba(184, 134, 61, 0.05) 0%, var(--paper) 60%);
+    border-color: rgba(184, 134, 61, 0.3);
+  }
+  .cl-podium-item:nth-child(3) :global(.pv-rank-num) {
+    font-size: clamp(3.8rem, 5vw, 4.4rem);
+    color: var(--or-deep);
+    opacity: 0.85;
   }
 
   /* Top Classement */
@@ -426,6 +587,28 @@ const hasPros = pros.length > 0;
     max-width: 62rem;
     margin: 2rem auto 3rem;
     padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+  .cl-palmares-head {
+    display: grid;
+    grid-template-columns: 44px 1fr auto auto 20px;
+    gap: 1rem;
+    padding: 0.5rem 0.8rem 0.5rem 1rem;
+    margin: 1.5rem 0 0.6rem;
+    font-family: var(--font-body);
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(26, 22, 20, 0.1);
+  }
+  @media (max-width: 680px) {
+    .cl-palmares-head { display: none; }
+  }
+  .cl-palmares-list {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
   }
   .cl-more {
     margin: 1.5rem auto 2rem;

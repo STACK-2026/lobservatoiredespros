@@ -1,0 +1,254 @@
+---
+/**
+ * CompletenessGauge , remplace le ScoreCircle quand les signaux publics sont trop
+ * clairsemes pour qu'un score /10 soit informatif. Presente plutot une jauge de
+ * completude editoriale : "Dossier ouvert : 2 criteres sur 6 verifies."
+ *
+ * Chaque critere = un point lumineux. Remplis en or, vides en dotted.
+ * L'effet est celui d'une progression editoriale, pas d'une note basse.
+ */
+interface Props {
+  siretActif: boolean;
+  ancienneteAnnees: number | null;
+  rge: boolean;
+  qualibat: boolean;
+  siteWeb: string | null;
+  telephone: string | null;
+  size?: number;
+}
+
+const {
+  siretActif,
+  ancienneteAnnees,
+  rge,
+  qualibat,
+  siteWeb,
+  telephone,
+  size = 148,
+} = Astro.props;
+
+const criteres = [
+  { label: "SIRET actif", short: "Sirene", rempli: siretActif },
+  { label: "Ancienneté ≥ 3 ans", short: "Ancienneté", rempli: (ancienneteAnnees ?? 0) >= 3 },
+  { label: "Certification RGE", short: "RGE", rempli: !!rge },
+  { label: "Qualification Qualibat", short: "Qualibat", rempli: !!qualibat },
+  { label: "Site web déclaré", short: "Site web", rempli: !!siteWeb },
+  { label: "Téléphone direct", short: "Téléphone", rempli: !!telephone },
+];
+
+const remplis = criteres.filter((c) => c.rempli).length;
+const total = criteres.length;
+const pct = (remplis / total) * 100;
+---
+
+<div class="cg-wrap" style={`--cg-size: ${size}px;`}>
+  <div class="cg-ring">
+    <!-- Arc SVG qui se remplit en or -->
+    <svg class="cg-svg" viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
+      <!-- Track neutre en pointillé -->
+      <circle
+        cx="50" cy="50" r="44"
+        fill="none"
+        stroke="rgba(26, 22, 20, 0.14)"
+        stroke-width="2"
+        stroke-dasharray="2 3"
+      />
+      <!-- Progress en or -->
+      <circle
+        cx="50" cy="50" r="44"
+        fill="none"
+        stroke="var(--or)"
+        stroke-width="3.2"
+        stroke-linecap="round"
+        transform="rotate(-90 50 50)"
+        pathLength="100"
+        stroke-dasharray={`${pct} 100`}
+        class="cg-progress"
+        style={`stroke-dashoffset: 100;`}
+        data-cg-target={pct}
+      />
+      <!-- 6 points de jalons sur le cercle, repartis egalement -->
+      {criteres.map((c, i) => {
+        const angle = (i / total) * 360 - 90;
+        const rad = (angle * Math.PI) / 180;
+        const x = 50 + 44 * Math.cos(rad);
+        const y = 50 + 44 * Math.sin(rad);
+        return (
+          <circle
+            cx={x} cy={y} r="3.2"
+            fill={c.rempli ? "var(--or)" : "var(--paper)"}
+            stroke={c.rempli ? "var(--or-deep)" : "rgba(26,22,20,0.22)"}
+            stroke-width="1.2"
+            class={c.rempli ? "cg-jalon cg-jalon-on" : "cg-jalon cg-jalon-off"}
+            style={`animation-delay: ${i * 120 + 400}ms`}
+          />
+        );
+      })}
+    </svg>
+    <!-- Centre : X sur Y -->
+    <div class="cg-center">
+      <span class="cg-count">
+        <span class="cg-filled" data-cg-count={remplis}>0</span><span class="cg-slash">/</span><span class="cg-total">{total}</span>
+      </span>
+      <span class="cg-unit">critères</span>
+    </div>
+  </div>
+  <p class="cg-label">Dossier éditorial<br /><span class="cg-status">en cours de constitution</span></p>
+</div>
+
+<style>
+  .cg-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .cg-ring {
+    position: relative;
+    width: var(--cg-size);
+    height: var(--cg-size);
+  }
+  .cg-svg {
+    display: block;
+    transform: rotate(0deg);
+  }
+  .cg-progress {
+    transition: stroke-dashoffset 1600ms cubic-bezier(0.22, 1, 0.36, 1);
+    filter: drop-shadow(0 1px 4px rgba(184, 134, 61, 0.35));
+  }
+  .cg-jalon {
+    transform-origin: center;
+    opacity: 0;
+    animation: cg-pop 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .cg-jalon-on {
+    filter: drop-shadow(0 0 4px rgba(184, 134, 61, 0.6));
+  }
+  @keyframes cg-pop {
+    from { opacity: 0; transform: scale(0.3); }
+    60%  { opacity: 1; transform: scale(1.25); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .cg-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    pointer-events: none;
+  }
+  .cg-count {
+    display: inline-flex;
+    align-items: baseline;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: calc(var(--cg-size) * 0.28);
+    color: var(--or-deep);
+    line-height: 1;
+    letter-spacing: -0.028em;
+    font-variant-numeric: tabular-nums;
+  }
+  .cg-slash {
+    font-size: 0.62em;
+    color: var(--ink-muted);
+    margin: 0 0.06em;
+    opacity: 0.8;
+  }
+  .cg-total {
+    font-size: 0.62em;
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+  .cg-unit {
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+  .cg-label {
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    line-height: 1.55;
+  }
+  .cg-status {
+    display: block;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: var(--ink-muted);
+    font-style: italic;
+    font-size: 0.7rem;
+    margin-top: 0.2rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cg-progress { transition: none; }
+    .cg-jalon { animation: none; opacity: 1; }
+  }
+</style>
+
+<script>
+  // Animation : ring progresse, compteur central s'incremente
+  function animateCompletenessGauge(wrap: HTMLElement) {
+    const progress = wrap.querySelector<SVGCircleElement>(".cg-progress");
+    if (progress) {
+      const target = parseFloat(progress.getAttribute("data-cg-target") || "0");
+      requestAnimationFrame(() => {
+        progress.style.strokeDashoffset = String(100 - target);
+      });
+    }
+    const counter = wrap.querySelector<HTMLElement>(".cg-filled");
+    if (counter) {
+      const target = parseInt(counter.dataset.cgCount || "0", 10);
+      const duration = 1400;
+      const start = performance.now();
+      function tick(now: number) {
+        const elapsed = now - start;
+        const p = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 4);
+        counter!.textContent = String(Math.round(eased * target));
+        if (p < 1) requestAnimationFrame(tick);
+        else counter!.textContent = String(target);
+      }
+      requestAnimationFrame(tick);
+    }
+  }
+
+  const cgObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          animateCompletenessGauge(entry.target as HTMLElement);
+          cgObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.2 }
+  );
+
+  function initCompletenessGauges() {
+    document.querySelectorAll<HTMLElement>(".cg-wrap").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) {
+        setTimeout(() => animateCompletenessGauge(el), 200);
+      } else {
+        cgObserver.observe(el);
+      }
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initCompletenessGauges);
+  } else {
+    initCompletenessGauges();
+  }
+</script>

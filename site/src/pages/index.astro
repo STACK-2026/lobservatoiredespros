@@ -6,11 +6,13 @@ import EditorialHeader from "../components/EditorialHeader.astro";
 import Medaille from "../components/Medaille.astro";
 import ProCard from "../components/ProCard.astro";
 import PullQuote from "../components/PullQuote.astro";
-import TelescopeWatermark from "../components/TelescopeWatermark.astro";
 import InkBleedDivider from "../components/InkBleedDivider.astro";
 import InfoPill from "../components/InfoPill.astro";
 import ScoreCircle from "../components/ScoreCircle.astro";
 import GlossaireTerm from "../components/GlossaireTerm.astro";
+import HeadlineFigure from "../components/HeadlineFigure.astro";
+import SpeakableTLDR from "../components/SpeakableTLDR.astro";
+import EditorsLog from "../components/EditorsLog.astro";
 import { siteConfig } from "../utils/config";
 
 // Classements populaires , 8 combinaisons métier × dept
@@ -80,6 +82,7 @@ const topClassementMisEnAvant = [
     specialites: ["Reseaux anciens", "Depannage urgence", "Salles de bain"],
     resumeCourt: "Entreprise familiale plomberie generale Yonne, 4 generations, deux compagnons du devoir.",
     previewImages: [],
+    verdictEditorial: "Ouvre l'edition pour la densite rare de ses deux qualifications actives et 42 ans d'ancrage Sirene continu.",
   },
   {
     rank: 2, name: "Lefevre Thermique", slug: "lefevre-thermique", score: 9.1,
@@ -87,6 +90,7 @@ const topClassementMisEnAvant = [
     ancienneteAnnees: 22, rge: true, qualibat: false,
     specialites: ["Chaudieres gaz", "Pompes a chaleur", "Sanitaires"],
     resumeCourt: "Specialiste PAC et chaudieres gaz a condensation, certifie RGE depuis 2014.",
+    verdictEditorial: "Appuie sa deuxieme place sur 22 ans de continuite et une mention RGE a jour depuis 2014.",
   },
   {
     rank: 3, name: "SARL Martin", slug: "sarl-martin-plombier", score: 8.7,
@@ -94,6 +98,7 @@ const topClassementMisEnAvant = [
     ancienneteAnnees: 18, rge: false, qualibat: true,
     specialites: ["Depannage", "Pose sanitaires"],
     resumeCourt: "Artisan installe depuis 2008, qualification Qualibat confirmee.",
+    verdictEditorial: "Ferme le podium pour son positionnement specialise et la mention Qualibat verifiee.",
   },
 ];
 
@@ -127,11 +132,16 @@ const jsonLd = {
 
   <!-- ═══════════════════ HERO ═══════════════════ -->
   <section class="hero-section" aria-label="Accueil éditorial">
-    <TelescopeWatermark side="right" size={520} parallax={0.05} />
+    <!-- Gradient mesh moderne , atmosphere subtile -->
+    <div class="hero-mesh" aria-hidden="true">
+      <span class="mesh-blob mesh-blob-1"></span>
+      <span class="mesh-blob mesh-blob-2"></span>
+      <span class="mesh-blob mesh-blob-3"></span>
+    </div>
 
     <div class="container-wide hero-inner">
       <div class="hero-text">
-        <div class="hero-overline fade-up">
+        <div class="hero-overline fade-up" style="transition-delay: 100ms">
           <span class="live-dot" aria-hidden="true"></span>
           <span class="meta-label-ink">Édition N°{siteConfig.editionNumber} &middot; {siteConfig.editionMonth} {siteConfig.editionYear}</span>
         </div>
@@ -152,21 +162,32 @@ const jsonLd = {
           </span>
         </h1>
 
-        <p class="lead hero-lead fade-up">
+        <p class="lead hero-lead fade-up" style="transition-delay: 850ms">
           Chaque mois, notre rédaction observe, vérifie et classe les meilleurs artisans de France. Sans algorithme opaque. Avec méthode. Avec patience.
         </p>
 
-        <div class="hero-counter fade-up">
+        <div class="hero-tldr fade-up" style="transition-delay: 1050ms">
+          <SpeakableTLDR label="En résumé">
+            <p>
+              <strong>L'Observatoire des Pros</strong> est un média éditorial français qui classe les
+              artisans et entreprises du BTP, métier par métier, département par département. Six
+              critères publics, vérifiés sur sources officielles (INSEE, ADEME, Qualibat), donnent le
+              <strong>Score de Confiance</strong>. Aucune position ne s'achète.
+            </p>
+          </SpeakableTLDR>
+        </div>
+
+        <div class="hero-counter fade-up" style="transition-delay: 1250ms">
           <CounterLive initial={47382} label="professionnels sous observation" />
         </div>
 
-        <div class="hero-cta-row fade-up">
+        <div class="hero-cta-row fade-up" style="transition-delay: 1450ms">
           <a href="/selection/" class="btn btn-primary magnetic">Explorer la sélection</a>
           <a href="/methode/" class="btn btn-ghost">Consulter la méthode <span class="arrow">&rarr;</span></a>
         </div>
 
         <!-- Hero pills , credentials d'autorite -->
-        <div class="hero-pills fade-up">
+        <div class="hero-pills fade-up" style="transition-delay: 1650ms">
           <InfoPill variant="verified" label="Sources" value="INSEE" glossaireSlug="sirene" />
           <InfoPill variant="or" label="RGE" value="ADEME" glossaireSlug="rge" />
           <InfoPill variant="or" label="Qualibat" value="Vérifié" glossaireSlug="qualibat" />
@@ -175,12 +196,22 @@ const jsonLd = {
         </div>
       </div>
 
-      <div class="hero-seal scale-reveal">
+      <div class="hero-seal scale-reveal" style="transition-delay: 400ms">
         <Seal size={280} variant="or" animated={true} stamp={true} />
         <p class="hero-seal-caption meta-label-or">Sceau de la rédaction 2026</p>
       </div>
     </div>
   </section>
+
+  <!-- ═══════════════════ CHIFFRE-CHOC , hook éditorial speakable ═══════════════════ -->
+  <HeadlineFigure
+    figure="6"
+    label="labels RGE retirés"
+    context="en six mois d'observation dans l'Yonne. 412 sites d'artisans passés au crible, six entreprises confrontées à leur mention. Aucun n'a tenu."
+    source={`Enquête Observatoire · ${siteConfig.editionMonth} ${siteConfig.editionYear}`}
+    linkHref="/observations/enquete-rge-yonne-412-sites/"
+    linkLabel="Lire l'enquête"
+  />
 
   <!-- ═══════════════════ À LA UNE ═══════════════════ -->
   <section class="section-alaune container-wide">
@@ -474,6 +505,9 @@ const jsonLd = {
       <a href="/observations/" class="btn btn-outline magnetic">Toutes les observations <span class="arrow">&rarr;</span></a>
     </p>
   </section>
+
+  <!-- ═══════════════════ LIVRE DE BORD , note de la redaction ═══════════════════ -->
+  <EditorsLog />
 
   <!-- ═══════════════════ FAQ v3 , coin asymétrique + hover ═══════════════════ -->
   <section class="section-faq-v3">

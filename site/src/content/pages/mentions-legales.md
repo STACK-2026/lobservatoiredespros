@@ -1,29 +1,29 @@
 ---
-title: "Mentions legales"
-description: "Mentions legales et informations sur l'editeur du site."
+title: "Mentions légales"
+description: "Mentions légales et informations sur l'éditeur du site."
 lastUpdated: 2026-04-09
 ---
 
-## Editeur du site
+## Éditeur du site
 
 - **Raison sociale** : {{COMPANY_NAME}}
 - **SIRET** : {{SIRET}}
-- **Siege social** : {{ADDRESS}}
+- **Siège social** : {{ADDRESS}}
 - **Email** : {{EMAIL}}
 - **Directeur de la publication** : {{AUTHOR}}
 
-## Hebergement
+## Hébergement
 
-- **Hebergeur** : Cloudflare, Inc.
+- **Hébergeur** : Cloudflare, Inc.
 - **Adresse** : 101 Townsend St, San Francisco, CA 94107, USA
 - **Site** : cloudflare.com
 
-## Propriete intellectuelle
+## Propriété intellectuelle
 
-L'ensemble du contenu de ce site (textes, images, graphismes, logo, icones) est la propriete exclusive de {{COMPANY_NAME}}, sauf mention contraire. Toute reproduction est interdite sans autorisation prealable.
+L'ensemble du contenu de ce site (textes, images, graphismes, logo, icônes) est la propriété exclusive de {{COMPANY_NAME}}, sauf mention contraire. Toute reproduction est interdite sans autorisation préalable.
 
-## Donnees personnelles
+## Données personnelles
 
-Conformement au RGPD, vous disposez d'un droit d'acces, de rectification et de suppression de vos donnees personnelles. Pour exercer ce droit, contactez-nous a **{{EMAIL}}**.
+Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Pour exercer ce droit, contactez-nous à **{{EMAIL}}**.
 
-Pour plus d'informations, consultez notre [politique de confidentialite](/politique-confidentialite).
+Pour plus d'informations, consultez notre [politique de confidentialité](/politique-confidentialite).

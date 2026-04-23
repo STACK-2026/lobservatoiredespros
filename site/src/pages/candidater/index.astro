@@ -44,7 +44,7 @@ const jsonLd = [
     <div class="container-wide cand-hero-inner">
       <div class="cand-hero-text">
         <Masthead category="CANDIDATURE 2026" signature="Guide a l'attention des professionnels" />
-        <h1 class="heading-display">Candidatez a l'edition 2026 de L'Observatoire.</h1>
+        <h1 class="heading-display">Candidatez a l'édition 2026 de L'Observatoire.</h1>
         <p class="lead">
           Chaque annee, notre rédaction sélectionné les entreprises dignes de figurer dans notre guide. Voici comment soumettre votre candidature, et ce que votre dossier apporte a nos lecteurs.
         </p>
@@ -80,9 +80,9 @@ const jsonLd = [
         {siteConfig.candidature.offres.map((o) => (
           <article class={`offre-card card-editorial ${o.highlight ? "is-highlight" : ""} ${o.slug === "laureat" ? "is-laureat" : ""}`}>
             <header class="offre-head">
-              {o.slug === "laureat" && <Medaille tier="or" />}
+              {o.slug === "lauréat" && <Medaille tier="or" />}
               {o.slug === "vérifié" && <Medaille tier="argent" />}
-              {o.slug === "recommande" && <span class="meta-label-or">Automatique</span>}
+              {o.slug === "recommandé" && <span class="meta-label-or">Automatique</span>}
               <h3 class="offre-nom italic-fraunces">{o.nom}</h3>
               <p class="offre-prix">
                 {o.prix === 0 ? (
@@ -105,7 +105,7 @@ const jsonLd = [
               ))}
             </ul>
             <footer class="offre-foot">
-              {o.slug === "recommande" ? (
+              {o.slug === "recommandé" ? (
                 <a class="btn btn-outline" href="/selection/">Voir la sélection</a>
               ) : (
                 <a class="btn btn-observatoire magnetic" href="#formulaire">Candidater , {o.nom}</a>
@@ -165,11 +165,11 @@ const jsonLd = [
           </select>
         </div>
         <div class="form-row">
-          <label for="spécialités">Spécialités (separees par des virgules)</label>
-          <input id="specialites" name="specialites" type="text" placeholder="ex : renovation reseau ancien, depannage 24h, salles de bain..." />
+          <label for="specialites">Spécialités (séparées par des virgules)</label>
+          <input id="specialites" name="specialites" type="text" placeholder="ex : rénovation réseau ancien, dépannage 24h, salles de bain..." />
         </div>
         <div class="form-row">
-          <label for="ancienneté">Annee de creation *</label>
+          <label for="anciennete">Année de création *</label>
           <input id="anciennete" name="anciennete" required type="number" min="1900" max="2026" />
         </div>
         <div class="form-row">
@@ -187,7 +187,7 @@ const jsonLd = [
         <div class="form-row form-consent">
           <label>
             <input type="checkbox" name="rgpd" required />
-            <span>J'accepte que L'Observatoire utilise ces informations pour l'examen de ma candidature, conformément a la <a href="/politique-confidentialite/">politique de confidentialite</a>.</span>
+            <span>J'accepté que L'Observatoire utilise ces informations pour l'examen de ma candidature, conformément a la <a href="/politique-confidentialite/">politique de confidentialité</a>.</span>
           </label>
         </div>
 

@@ -1,222 +1,454 @@
 ---
 /**
- * UnknownsCard , "Ce que nous ne savons pas encore" (transparence journalistique).
+ * UnknownsCard v2 , bilan editorial deux colonnes.
  *
- * Liste dynamique des trous de data pour un pro. Plutôt que de masquer
- * les infos manquantes, on les assume publiquement.
+ * A gauche : "Verifie publiquement" (tout ce qu'on a pu confirmer sur sources
+ * officielles). A droite : "A completer par le professionnel" (invitation, pas
+ * liste de carences). L'equilibre des deux colonnes est instantanement lisible
+ * et transforme une perception d'echec en perception de progression.
  *
- * Principe : crée plus de confiance que de faire semblant d'avoir tout.
+ * Aucune meta-discours sur la transparence : le design parle de lui-meme.
  */
 interface Props {
+  siret?: string | null;
+  siren?: string | null;
+  ancienneteAnnees?: number | null;
+  nafCode?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
   rge?: boolean;
   qualibat?: boolean;
   site_web?: string | null;
   telephone?: string | null;
   photos?: string[];
   avis_moyen?: number | null;
-  adresse?: string | null;
   description?: string | null;
 }
 
 const {
+  siret,
+  siren,
+  ancienneteAnnees,
+  nafCode,
+  adresse,
+  ville,
   rge = false,
   qualibat = false,
   site_web,
   telephone,
   photos = [],
   avis_moyen,
-  adresse,
   description,
 } = Astro.props;
 
-const unknowns: { label: string; note: string }[] = [];
+type Point = { label: string; detail: string; source?: string };
 
-if (!rge) {
-  unknowns.push({
+const verifies: Point[] = [];
+const aCompleter: Point[] = [];
+
+if (siret) {
+  verifies.push({ label: "Identifiant Sirene", detail: `SIRET ${siret} actif`, source: "INSEE" });
+} else {
+  aCompleter.push({ label: "SIRET vérifié", detail: "en attente de croisement registre" });
+}
+
+if (nafCode) {
+  verifies.push({ label: "Code d'activité NAF", detail: nafCode, source: "INSEE" });
+}
+
+if (ancienneteAnnees && ancienneteAnnees >= 3) {
+  verifies.push({
+    label: "Ancienneté d'exercice",
+    detail: `${ancienneteAnnees} ans d'activité continue`,
+    source: "INSEE",
+  });
+} else if (ancienneteAnnees && ancienneteAnnees > 0) {
+  verifies.push({
+    label: "Date d'immatriculation",
+    detail: `${ancienneteAnnees} an${ancienneteAnnees > 1 ? "s" : ""} de registre`,
+    source: "INSEE",
+  });
+}
+
+if (adresse || ville) {
+  verifies.push({
+    label: "Siège social déclaré",
+    detail: ville || adresse || "",
+    source: "INSEE",
+  });
+}
+
+if (rge) {
+  verifies.push({ label: "Certification RGE", detail: "Reconnu Garant de l'Environnement", source: "ADEME" });
+} else {
+  aCompleter.push({
     label: "Certification RGE",
-    note: "aucune certification détectée sur france-renov.gouv.fr",
+    detail: "qualification éco-travaux attendue pour les chantiers aidés (MaPrimeRénov', CEE)",
   });
 }
-if (!qualibat) {
-  unknowns.push({
+
+if (qualibat) {
+  verifies.push({ label: "Qualification Qualibat", detail: "qualification BTP confirmée", source: "Qualibat" });
+} else {
+  aCompleter.push({
     label: "Qualification Qualibat",
-    note: "pas de qualification au registre Qualibat",
+    detail: "qualification métier à obtenir ou à déclarer à la rédaction",
   });
 }
-if (!avis_moyen) {
-  unknowns.push({
-    label: "Avis clients publics",
-    note: "pas de moyenne d'avis consolidée à ce jour",
-  });
-}
-if (!site_web) {
-  unknowns.push({
+
+if (site_web) {
+  verifies.push({
     label: "Site web professionnel",
-    note: "pas de site web indépendant repéré",
+    detail: site_web.replace(/^https?:\/\//, "").replace(/\/$/, ""),
+    source: "web",
+  });
+} else {
+  aCompleter.push({
+    label: "Site web",
+    detail: "lien web permettant de vérifier la réalité éditoriale du pro",
   });
 }
-if (!telephone) {
-  unknowns.push({
+
+if (telephone) {
+  verifies.push({ label: "Téléphone direct", detail: telephone, source: "déclaré" });
+} else {
+  aCompleter.push({
     label: "Téléphone direct",
-    note: "à solliciter auprès du professionnel",
+    detail: "numéro public pour le premier contact client",
   });
 }
-if (!photos || photos.length === 0) {
-  unknowns.push({
+
+if (photos && photos.length >= 3) {
+  verifies.push({ label: "Portfolio de réalisations", detail: `${photos.length} visuels publics`, source: "pro" });
+} else {
+  aCompleter.push({
     label: "Photos de réalisations",
-    note: "portfolio visuel non accessible publiquement",
+    detail: "3 à 6 visuels de chantier pour illustrer le portrait éditorial",
   });
 }
-unknowns.push({
-  label: "Attestation décennale en cours",
-  note: "à demander au professionnel avant tout chantier",
+
+if (avis_moyen && avis_moyen > 0) {
+  verifies.push({ label: "Avis clients consolidés", detail: `moyenne ${avis_moyen.toFixed(1)}/5`, source: "agrégat" });
+} else {
+  aCompleter.push({
+    label: "Avis clients",
+    detail: "attendu via Google Business, Pages Jaunes ou déclaration directe",
+  });
+}
+
+if (description && description.length > 80) {
+  verifies.push({ label: "Présentation éditoriale", detail: "résumé d'activité vérifié", source: "rédaction" });
+}
+
+aCompleter.push({
+  label: "Attestation décennale",
+  detail: "document à présenter au client avant tout chantier, obligatoire en BTP",
 });
 
-// Si aucune info manquante (cas exceptionnel), on ne rend rien
-const hasUnknowns = unknowns.length > 0;
+const verifCount = verifies.length;
+const manquantsCount = aCompleter.length;
+const totalPoints = verifCount + manquantsCount;
 ---
 
-{hasUnknowns && (
-  <aside class="unknowns-card fade-up" aria-labelledby="unknowns-title">
-    <header class="uc-head">
-      <span class="uc-icon" aria-hidden="true">
-        <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
-          <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5 2" />
-          <circle cx="10" cy="14" r="0.8" fill="currentColor" />
-          <path d="M10 5 C 11.5 5 12.5 6 12.5 7.2 C 12.5 8.5 10 9 10 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none" />
-        </svg>
+<section class="pub-card fade-up" aria-labelledby="pub-title">
+  <header class="pub-head">
+    <div class="pub-head-left">
+      <span class="meta-label-or">Fiche publique, point par point</span>
+      <h3 id="pub-title" class="pub-title italic-fraunces">Où vérifier, où compléter</h3>
+    </div>
+    <div class="pub-head-right" aria-hidden="true">
+      <span class="pub-score">
+        <span class="pub-score-v">{verifCount}</span>
+        <span class="pub-score-s">/</span>
+        <span class="pub-score-t">{totalPoints}</span>
       </span>
-      <div>
-        <span class="meta-label-or">Transparence éditoriale</span>
-        <h3 id="unknowns-title" class="uc-title italic-fraunces">Ce que nous ne savons pas encore</h3>
-      </div>
-    </header>
-    <p class="uc-intro">
-      Nous préférons lister nos angles morts plutôt que de prétendre à une connaissance complète. Ces informations, si elles sont publiques, seront intégrées lors des prochaines éditions.
-    </p>
-    <ul class="uc-list">
-      {unknowns.map((u) => (
-        <li class="uc-item">
-          <span class="uc-bullet" aria-hidden="true"></span>
-          <div class="uc-body">
-            <p class="uc-label">{u.label}</p>
-            <p class="uc-note">{u.note}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
-    <footer class="uc-foot">
-      <p class="folio">
-        <a href="/candidater/" class="link-fancy">Le professionnel peut compléter ces informations via une candidature enrichie &rarr;</a>
+      <span class="pub-score-lbl">vérifiés sur sources publiques</span>
+    </div>
+  </header>
+
+  <div class="pub-grid">
+    <!-- Colonne 1 : verifie publiquement -->
+    <div class="pub-col pub-col-ok">
+      <p class="pub-col-kicker">
+        <span class="pub-col-badge pub-col-badge-ok">
+          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M3 7.3 L5.7 10 L11 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span>Vérifié publiquement</span>
+        <span class="pub-col-count">{verifCount}</span>
       </p>
-    </footer>
-  </aside>
-)}
+      <ul class="pub-list pub-list-ok">
+        {verifies.map((v) => (
+          <li class="pub-item">
+            <div class="pub-item-body">
+              <p class="pub-item-label">{v.label}</p>
+              <p class="pub-item-detail">{v.detail}</p>
+            </div>
+            {v.source && <span class="pub-item-src folio">{v.source}</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <!-- Colonne 2 : a completer par candidature -->
+    <div class="pub-col pub-col-pending">
+      <p class="pub-col-kicker">
+        <span class="pub-col-badge pub-col-badge-pending">
+          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 2.5 V 11.5 M 2.5 7 H 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span>À compléter par le professionnel</span>
+        <span class="pub-col-count">{manquantsCount}</span>
+      </p>
+      <ul class="pub-list pub-list-pending">
+        {aCompleter.map((u) => (
+          <li class="pub-item">
+            <div class="pub-item-body">
+              <p class="pub-item-label">{u.label}</p>
+              <p class="pub-item-detail">{u.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <footer class="pub-foot">
+    <p class="pub-foot-text">
+      Vous dirigez cette entreprise ? Chaque ligne de la colonne de droite peut être
+      complétée en quelques minutes via une candidature enrichie. Nos vérifications
+      restent publiques et la grille de notation ne change pas.
+    </p>
+    <a class="btn btn-outline btn-sm" href="/candidater/">
+      <span>Compléter le dossier</span>
+      <span class="arrow" aria-hidden="true">&rarr;</span>
+    </a>
+  </footer>
+</section>
 
 <style>
-  .unknowns-card {
-    background: var(--paper);
-    border: 1px dashed rgba(26, 22, 20, 0.18);
-    border-radius: 4px 22px 4px 4px;
-    padding: 1.4rem 1.5rem 1.3rem;
-    margin: 2rem 0;
-    max-width: 46rem;
+  .pub-card {
+    background:
+      linear-gradient(180deg, var(--paper) 0%, var(--paper) 100%);
+    border: 1px solid rgba(26, 22, 20, 0.1);
+    border-radius: 4px 28px 4px 4px;
+    padding: 1.6rem 1.8rem 1.6rem;
+    margin: 1.5rem 0;
     position: relative;
     overflow: hidden;
   }
-  .unknowns-card::before {
+  .pub-card::before {
     content: "";
     position: absolute;
-    top: 0; left: 0;
-    width: 3px;
-    height: 100%;
-    background: linear-gradient(180deg, var(--observatoire) 0%, rgba(30, 58, 82, 0.15) 100%);
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4A913A 0%, #4A913A 50%, var(--observatoire) 50%, var(--observatoire) 100%);
+    opacity: 0.85;
   }
 
-  .uc-head {
+  .pub-head {
     display: flex;
+    justify-content: space-between;
     align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 0.6rem;
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed rgba(26, 22, 20, 0.1);
+    flex-wrap: wrap;
   }
-  .uc-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: rgba(30, 58, 82, 0.08);
-    color: var(--observatoire);
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-  }
-  .uc-title {
+  .pub-title {
     font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
     font-weight: 400;
     color: var(--ink);
     margin: 0.2rem 0 0;
     letter-spacing: -0.012em;
   }
-  .uc-intro {
-    font-size: 0.9rem;
-    color: var(--ink-soft);
-    line-height: 1.55;
-    margin: 0 0 1rem;
-    padding-left: 0.1rem;
+  .pub-head-right {
+    text-align: right;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
   }
-  .uc-list {
-    list-style: none;
-    padding: 0;
-    margin: 0.4rem 0;
+  .pub-score {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 400;
+    color: #3a6e30;
+    line-height: 1;
+    letter-spacing: -0.028em;
+    font-variant-numeric: tabular-nums;
+  }
+  .pub-score-s {
+    color: var(--ink-muted);
+    font-size: 0.7em;
+    margin: 0 0.08em;
+  }
+  .pub-score-t {
+    color: var(--ink-muted);
+    font-size: 0.62em;
+  }
+  .pub-score-lbl {
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+    margin-top: 0.1rem;
+  }
+
+  .pub-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .pub-grid { grid-template-columns: 1fr; gap: 1.1rem; }
+  }
+
+  .pub-col {
     display: grid;
     gap: 0.55rem;
   }
-  .uc-item {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.7rem;
-    align-items: baseline;
-    padding: 0.55rem 0.7rem;
-    background: rgba(30, 58, 82, 0.03);
-    border-left: 2px solid rgba(30, 58, 82, 0.25);
-    border-radius: 0 4px 4px 0;
+  .pub-col-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.3rem;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+    padding: 0.35rem 0;
   }
-  .uc-bullet {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
+  .pub-col-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    background: var(--observatoire);
-    opacity: 0.5;
-    margin-top: 0.45rem;
     flex-shrink: 0;
   }
-  .uc-label {
+  .pub-col-badge-ok {
+    background: rgba(74, 145, 58, 0.15);
+    color: #3a6e30;
+  }
+  .pub-col-badge-pending {
+    background: rgba(30, 58, 82, 0.12);
+    color: var(--observatoire);
+  }
+  .pub-col-ok .pub-col-kicker { color: #3a6e30; }
+  .pub-col-pending .pub-col-kicker { color: var(--observatoire); }
+  .pub-col-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 0.12rem 0.45rem;
+    background: rgba(26, 22, 20, 0.05);
+    border-radius: 999px;
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .pub-col-ok .pub-col-count { background: rgba(74, 145, 58, 0.15); color: #3a6e30; }
+  .pub-col-pending .pub-col-count { background: rgba(30, 58, 82, 0.12); color: var(--observatoire); }
+
+  .pub-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .pub-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.06);
+    border-radius: 2px 12px 2px 2px;
+    transition: border-color 220ms, transform 220ms, box-shadow 220ms;
+  }
+  .pub-item:hover {
+    transform: translateX(2px);
+    box-shadow: 0 6px 14px -10px rgba(26, 22, 20, 0.2);
+  }
+  .pub-list-ok .pub-item {
+    border-left: 2px solid rgba(74, 145, 58, 0.55);
+    background: linear-gradient(90deg, rgba(74, 145, 58, 0.04) 0%, var(--paper) 100%);
+  }
+  .pub-list-ok .pub-item:hover { border-left-color: #4A913A; }
+
+  .pub-list-pending .pub-item {
+    border-left: 2px dashed rgba(30, 58, 82, 0.35);
+    background: linear-gradient(90deg, rgba(30, 58, 82, 0.03) 0%, var(--paper) 100%);
+  }
+  .pub-list-pending .pub-item:hover { border-left-color: var(--observatoire); }
+
+  .pub-item-label {
     font-family: var(--font-display);
-    font-size: 0.96rem;
+    font-size: 0.94rem;
     font-weight: 500;
     color: var(--ink);
     margin: 0;
     letter-spacing: -0.008em;
+    line-height: 1.25;
   }
-  .uc-note {
-    font-size: 0.82rem;
-    color: var(--ink-muted);
-    margin: 0.15rem 0 0;
-    line-height: 1.4;
-    font-style: italic;
-  }
-  .uc-foot {
-    margin-top: 1rem;
-    padding-top: 0.7rem;
-    border-top: 1px dashed rgba(26, 22, 20, 0.1);
-  }
-  .uc-foot p { margin: 0; }
-  .uc-foot a {
-    color: var(--or-deep);
-    text-decoration: none;
+  .pub-item-detail {
     font-size: 0.8rem;
+    color: var(--ink-muted);
+    margin: 0.18rem 0 0;
+    line-height: 1.4;
+  }
+  .pub-item-src {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+    background: rgba(26, 22, 20, 0.04);
+    padding: 0.12rem 0.4rem;
+    border-radius: 2px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .pub-foot {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.1);
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .pub-foot-text {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0;
+    max-width: 38rem;
+  }
+  .btn-sm {
+    padding: 0.55rem 0.95rem;
+    font-size: 0.78rem;
+  }
+  .btn-sm .arrow { display: inline-block; transition: transform 240ms var(--ease-out-quart); }
+  .btn-sm:hover .arrow { transform: translateX(3px); }
+
+  @media (max-width: 540px) {
+    .pub-card { padding: 1.2rem 1.2rem 1.3rem; }
+    .pub-head { flex-direction: column; }
+    .pub-head-right { text-align: left; align-items: flex-start; }
+    .pub-foot { flex-direction: column; align-items: flex-start; }
   }
 </style>

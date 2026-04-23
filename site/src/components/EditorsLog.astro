@@ -1,0 +1,194 @@
+---
+/**
+ * EditorsLog , Note de la rédaction. Rendez-vous editorial mensuel sur la
+ * home (type Brief Loopsider / The Browser letter from editor).
+ *
+ * Format : date italique, court paragraphe 80-150 mots, paraphe manuscrit
+ * SVG en signature. Donne une presence humaine au media sans passer par un
+ * portrait photo.
+ */
+interface Props {
+  date?: string;
+  body?: string;
+  signature?: string;
+  role?: string;
+}
+
+const {
+  date = "23 avril 2026",
+  body = "Cette édition marque le premier mois complet d'observation dans l'Yonne. Nous y avons confronté 412 sites d'artisans à leur mention RGE, retiré six labels non fondés, intégré 290 plombiers au registre éditorial. Le score n'est jamais publié avant croisement Sirene, ADEME, Qualibat. Trois portraits long format paraissent ce mois. La prochaine édition basculera sur la Côte-d'Or et Paris. Bonne lecture.",
+  signature = "A. D.",
+  role = "pour la rédaction",
+} = Astro.props;
+---
+
+<section class="el-section" aria-labelledby="el-title">
+  <div class="el-inner">
+    <aside class="el-card" aria-label="Note de la rédaction">
+      <!-- Ornement coin TL : petite pince/onglet papier -->
+      <span class="el-corner el-corner-tl" aria-hidden="true"></span>
+      <span class="el-corner el-corner-br" aria-hidden="true"></span>
+
+      <header class="el-head">
+        <p class="el-kicker folio">
+          <span class="el-dot" aria-hidden="true"></span>
+          Livre de bord
+        </p>
+        <h2 id="el-title" class="el-title italic-fraunces">
+          Note de la rédaction <span class="el-date">, {date}</span>
+        </h2>
+      </header>
+
+      <p class="el-body">{body}</p>
+
+      <footer class="el-foot">
+        <!-- Signature mono moderne , simple et propre -->
+        <span class="el-sig">
+          <span class="el-sig-initials">{signature}</span>
+          <span class="el-sig-role">{role}</span>
+        </span>
+        <span class="el-sig-ornament" aria-hidden="true"></span>
+      </footer>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .el-section {
+    padding: clamp(2.5rem, 4vw, 4rem) 0;
+    background:
+      linear-gradient(180deg, var(--paper-warm) 0%, var(--paper) 100%);
+    position: relative;
+  }
+  .el-section::before,
+  .el-section::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: clamp(60px, 30vw, 220px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(184, 134, 61, 0.45) 50%, transparent);
+  }
+  .el-section::before { top: 0; }
+  .el-section::after { bottom: 0; }
+
+  .el-inner {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: 0 clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .el-card {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%),
+      var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 20px;
+    padding: clamp(1.8rem, 3vw, 2.6rem) clamp(1.8rem, 3.5vw, 2.8rem);
+    position: relative;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.7) inset,
+      0 0 0 1px rgba(26, 22, 20, 0.02),
+      0 24px 48px -24px rgba(26, 22, 20, 0.14);
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  }
+
+  .el-corner { display: none; }
+
+  .el-head {
+    margin-bottom: 1.1rem;
+  }
+  .el-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--or-deep);
+    font-weight: 600;
+    margin: 0 0 0.6rem;
+  }
+  .el-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--or);
+    box-shadow: 0 0 0 0 rgba(184, 134, 61, 0.5);
+    animation: el-pulse 3s ease-out infinite;
+  }
+  @keyframes el-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(184, 134, 61, 0.55); }
+    70%  { box-shadow: 0 0 0 8px rgba(184, 134, 61, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(184, 134, 61, 0); }
+  }
+
+  .el-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+  }
+  .el-date {
+    color: var(--ink-muted);
+    font-style: italic;
+    font-size: 0.88em;
+    font-weight: 400;
+  }
+
+  .el-body {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    margin: 0 0 1.3rem;
+    padding-left: clamp(0.6rem, 1.2vw, 0.9rem);
+    max-width: 44rem;
+  }
+
+  .el-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(26, 22, 20, 0.06);
+    flex-wrap: wrap;
+  }
+  .el-sig {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .el-sig-initials {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    font-weight: 500;
+    font-variation-settings: "SOFT" 40, "opsz" 48;
+  }
+  .el-sig-role {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .el-sig-ornament {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--or) 0%, transparent 100%);
+    opacity: 0.5;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .el-dot { animation: none; }
+  }
+</style>

@@ -1,0 +1,215 @@
+---
+/**
+ * VerifiedStamp , petit sceau animé qui simule un tampon apposé par la
+ * rédaction. Posé au mount (animation one-shot), léger hover, tooltip
+ * avec date de vérification. Signature brand memorable.
+ *
+ * Différent de Seal (grand, rotation continue) et de Medaille (pill plate) :
+ * c'est un tampon de cire/d'encre posé à côté du H1.
+ *
+ * Usage :
+ *   <VerifiedStamp label="Portrait vérifié" date="23 avril 2026" tier="or" />
+ */
+interface Props {
+  label?: string;
+  date?: string;
+  tier?: "or" | "argent" | "neutral";
+  size?: number;
+}
+
+const {
+  label = "Dossier vérifié",
+  date,
+  tier = "neutral",
+  size = 72,
+} = Astro.props;
+
+const palette: Record<string, { stroke: string; fill: string; ink: string; glow: string }> = {
+  or: { stroke: "#B8863D", fill: "rgba(184, 134, 61, 0.06)", ink: "#7A5A22", glow: "rgba(184, 134, 61, 0.35)" },
+  argent: { stroke: "#7A6E63", fill: "rgba(122, 110, 99, 0.05)", ink: "#3E362C", glow: "rgba(122, 110, 99, 0.25)" },
+  neutral: { stroke: "#1E3A52", fill: "rgba(30, 58, 82, 0.05)", ink: "#0F2335", glow: "rgba(30, 58, 82, 0.25)" },
+};
+const c = palette[tier];
+const tooltipContent = date ? `${label} · ${date}` : label;
+---
+
+<span
+  class={`vs vs-${tier}`}
+  style={`--vs-size: ${size}px; --vs-stroke: ${c.stroke}; --vs-fill: ${c.fill}; --vs-ink: ${c.ink}; --vs-glow: ${c.glow};`}
+  tabindex="0"
+  aria-label={tooltipContent}
+  data-tooltip={tooltipContent}
+>
+  <svg
+    viewBox="0 0 100 100"
+    width={size}
+    height={size}
+    xmlns="http://www.w3.org/2000/svg"
+    class="vs-svg"
+    aria-hidden="true"
+  >
+    <defs>
+      <path id="vs-ring" d="M50 12 A38 38 0 1 1 49.99 12" />
+    </defs>
+
+    <!-- Outer ring + inner ring -->
+    <circle cx="50" cy="50" r="46" fill="var(--vs-fill)" stroke="var(--vs-stroke)" stroke-width="1.1" />
+    <circle cx="50" cy="50" r="38" fill="none" stroke="var(--vs-stroke)" stroke-width="0.5" opacity="0.6" />
+
+    <!-- Ring text rotating name -->
+    <text
+      fill="var(--vs-stroke)"
+      font-family="Instrument Serif, Georgia, serif"
+      font-size="7"
+      letter-spacing="2"
+      font-weight="400"
+      opacity="0.85"
+    >
+      <textPath href="#vs-ring" startOffset="0" method="align" spacing="auto">
+        LA RÉDACTION · L'OBSERVATOIRE ·
+      </textPath>
+    </text>
+
+    <!-- Central checkmark -->
+    <circle cx="50" cy="50" r="22" fill="var(--vs-stroke)" opacity="0.92" />
+    <path
+      d="M40 51 L47 58 L61 43"
+      stroke="#F7F3EC"
+      stroke-width="3"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Dot ornaments 4 corners -->
+    <circle cx="50" cy="8" r="1.2" fill="var(--vs-stroke)" opacity="0.7" />
+    <circle cx="50" cy="92" r="1.2" fill="var(--vs-stroke)" opacity="0.7" />
+    <circle cx="8" cy="50" r="1.2" fill="var(--vs-stroke)" opacity="0.7" />
+    <circle cx="92" cy="50" r="1.2" fill="var(--vs-stroke)" opacity="0.7" />
+  </svg>
+
+  <!-- Tooltip at hover -->
+  {date && (
+    <span class="vs-tip" role="tooltip">
+      <span class="vs-tip-label">{label}</span>
+      <span class="vs-tip-date">le {date}</span>
+    </span>
+  )}
+</span>
+
+<style>
+  .vs {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--vs-size);
+    height: var(--vs-size);
+    flex-shrink: 0;
+    vertical-align: baseline;
+    transform-origin: center;
+    animation: vs-stamp 1100ms cubic-bezier(0.22, 1, 0.36, 1) 400ms both;
+    cursor: help;
+    filter: drop-shadow(0 4px 12px var(--vs-glow));
+    outline: none;
+  }
+  .vs-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    shape-rendering: geometricPrecision;
+    text-rendering: geometricPrecision;
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .vs:hover .vs-svg,
+  .vs:focus-visible .vs-svg {
+    transform: rotate(-4deg) scale(1.06);
+  }
+  .vs:focus-visible {
+    outline: 2px solid var(--vs-stroke);
+    outline-offset: 3px;
+    border-radius: 50%;
+  }
+
+  @keyframes vs-stamp {
+    0%   { opacity: 0; transform: scale(1.65) rotate(-15deg); }
+    45%  { opacity: 1; transform: scale(0.88) rotate(5deg); filter: drop-shadow(0 6px 18px var(--vs-glow)) brightness(1.15); }
+    70%  { opacity: 1; transform: scale(1.04) rotate(-2deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0); filter: drop-shadow(0 4px 12px var(--vs-glow)); }
+  }
+
+  /* Mini "impact" flash when stamping */
+  .vs::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--vs-glow) 0%, transparent 65%);
+    opacity: 0;
+    animation: vs-impact 900ms ease-out 520ms both;
+    pointer-events: none;
+    z-index: -1;
+  }
+  @keyframes vs-impact {
+    0%   { opacity: 0; transform: scale(0.6); }
+    30%  { opacity: 0.8; }
+    100% { opacity: 0; transform: scale(1.4); }
+  }
+
+  /* Tooltip */
+  .vs-tip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: linear-gradient(135deg, #0F2335 0%, #1E3A52 100%);
+    color: var(--paper);
+    padding: 0.55rem 0.8rem;
+    border-radius: 2px 10px 2px 2px;
+    border: 1px solid rgba(184, 134, 61, 0.4);
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 40;
+    box-shadow: 0 12px 28px -12px rgba(15, 35, 53, 0.45);
+  }
+  .vs-tip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1E3A52;
+  }
+  .vs-tip-label {
+    display: block;
+    font-weight: 600;
+    color: #D4A55C;
+    margin-bottom: 0.15rem;
+    letter-spacing: 0.02em;
+  }
+  .vs-tip-date {
+    display: block;
+    color: rgba(247, 243, 236, 0.8);
+    font-style: italic;
+    font-size: 0.68rem;
+  }
+  .vs:hover .vs-tip,
+  .vs:focus-visible .vs-tip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vs { animation: none; }
+    .vs::before { animation: none; opacity: 0; }
+    .vs-svg { transition: none; }
+    .vs:hover .vs-svg { transform: none; }
+  }
+</style>

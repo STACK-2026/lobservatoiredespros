@@ -9,7 +9,7 @@ const ed = `N°${siteConfig.editionNumber} · ${siteConfig.editionMonth} ${siteC
 <div class="editorial-strip">
   <div class="container-wide editorial-strip-inner">
     <span class="folio">{todayFR}</span>
-    <span class="folio editorial-strip-edition">Edition {ed}</span>
+    <span class="folio editorial-strip-edition">Édition {ed}</span>
     <a href="/newsletter/" class="editorial-strip-cta">S'abonner a la lettre</a>
   </div>
 </div>
@@ -49,7 +49,7 @@ const ed = `N°${siteConfig.editionNumber} · ${siteConfig.editionMonth} ${siteC
         <li><a href={link.href}>{link.label}</a></li>
       ))}
       <li class="mobile-menu-sep"></li>
-      <li><a class="btn btn-primary" href="/candidater/">Candidater a l'edition 2026</a></li>
+      <li><a class="btn btn-primary" href="/candidater/">Candidater a l'édition 2026</a></li>
     </ul>
   </div>
 </header>
@@ -109,13 +109,16 @@ const ed = `N°${siteConfig.editionNumber} · ${siteConfig.editionMonth} ${siteC
 
   .site-header {
     position: sticky; top: 0; z-index: 50;
-    background: var(--paper);
+    background: rgba(247, 243, 236, 0.72);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
     border-bottom: 1px solid transparent;
-    transition: border-color 240ms var(--ease-out-quart), box-shadow 240ms var(--ease-out-quart);
+    transition: background 300ms, border-color 300ms, box-shadow 300ms;
   }
   .site-header.is-scrolled {
-    border-bottom-color: rgba(26, 22, 20, 0.12);
-    box-shadow: 0 14px 28px -20px rgba(26, 22, 20, 0.22);
+    background: rgba(247, 243, 236, 0.9);
+    border-bottom-color: rgba(26, 22, 20, 0.08);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 8px 20px -12px rgba(26, 22, 20, 0.15);
   }
   .site-header-inner {
     display: grid; grid-template-columns: auto 1fr auto auto;

@@ -1,0 +1,264 @@
+---
+/**
+ * TerritoireBadge , ancrage territorial style cabinet de curiosites.
+ *
+ * Plutot qu'une carte Leaflet generique (SaaS-y), un badge type "carnet
+ * d'atlas XIXe" : rose des vents, coordonnees approximatives, depot,
+ * chef-lieu. Ajoute une dimension territoriale sans les pieges des
+ * cartes (tile servers, accessibility, perf).
+ *
+ * Parallax subtil au scroll : decale le pointeur de quelques pixels.
+ *
+ * Usage :
+ *   <TerritoireBadge
+ *     ville="Auxerre"
+ *     dept="Yonne"
+ *     deptCode="89"
+ *     lat={47.7982}
+ *     lng={3.5708}
+ *     region="Bourgogne-Franche-Comté"
+ *   />
+ */
+interface Props {
+  ville?: string | null;
+  dept: string;
+  deptCode: string;
+  lat?: number;
+  lng?: number;
+  region?: string;
+}
+
+const { ville, dept, deptCode, lat, lng, region } = Astro.props;
+
+// Coords approximatives pour affichage (fallback si manquent)
+const latStr = lat ? `${lat.toFixed(2)}° N` : "48° N";
+const lngStr = lng ? `${lng.toFixed(2)}° E` : "3° E";
+---
+
+<aside class="tb" aria-label={`Ancrage territorial , ${dept} ${deptCode}`}>
+  <div class="tb-frame">
+    <!-- Cadre avec 4 coins -->
+    <span class="tb-corner tb-corner-tl" aria-hidden="true"></span>
+    <span class="tb-corner tb-corner-tr" aria-hidden="true"></span>
+    <span class="tb-corner tb-corner-bl" aria-hidden="true"></span>
+    <span class="tb-corner tb-corner-br" aria-hidden="true"></span>
+
+    <!-- Rose des vents -->
+    <div class="tb-rose" aria-hidden="true">
+      <svg viewBox="0 0 120 120" width="120" height="120" class="tb-rose-svg">
+        <!-- Cercle externe + interne -->
+        <circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="0.7" opacity="0.45" />
+        <circle cx="60" cy="60" r="40" fill="none" stroke="currentColor" stroke-width="0.4" opacity="0.3" />
+        <circle cx="60" cy="60" r="28" fill="none" stroke="currentColor" stroke-width="0.3" opacity="0.25" />
+
+        <!-- 8 rayons cardinaux / ordinaux -->
+        <g opacity="0.4" stroke="currentColor" stroke-width="0.5">
+          <line x1="60" y1="10" x2="60" y2="110" />
+          <line x1="10" y1="60" x2="110" y2="60" />
+          <line x1="24" y1="24" x2="96" y2="96" />
+          <line x1="96" y1="24" x2="24" y2="96" />
+        </g>
+
+        <!-- Rose centrale 4 petales -->
+        <g fill="currentColor" opacity="0.9">
+          <path d="M60 10 L64 55 L56 55 Z" />
+          <path d="M60 110 L56 65 L64 65 Z" opacity="0.5" />
+          <path d="M10 60 L55 56 L55 64 Z" opacity="0.7" />
+          <path d="M110 60 L65 64 L65 56 Z" opacity="0.7" />
+        </g>
+
+        <!-- Point central pulse -->
+        <circle cx="60" cy="60" r="3" fill="currentColor" class="tb-center-dot" />
+
+        <!-- Lettre N -->
+        <text x="60" y="8" text-anchor="middle"
+          font-family="Instrument Serif, Georgia, serif"
+          font-size="8"
+          fill="currentColor"
+          opacity="0.85"
+          font-weight="400"
+          letter-spacing="0.5"
+        >N</text>
+
+        <!-- Localisation "X" marker au centre, legerement decale -->
+        <g class="tb-mark" transform="translate(60 60)">
+          <circle cx="0" cy="0" r="6" fill="none" stroke="currentColor" stroke-width="1.2" />
+          <line x1="-4" y1="0" x2="4" y2="0" stroke="currentColor" stroke-width="1.1" />
+          <line x1="0" y1="-4" x2="0" y2="4" stroke="currentColor" stroke-width="1.1" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- Info a droite -->
+    <div class="tb-info">
+      <p class="tb-kicker folio">Ancrage territorial</p>
+      <p class="tb-title italic-fraunces">
+        {ville ? ville : dept}<span class="tb-code">, {deptCode}</span>
+      </p>
+      <dl class="tb-dl">
+        <div class="tb-row">
+          <dt>Département</dt>
+          <dd>{dept}</dd>
+        </div>
+        {region && (
+          <div class="tb-row">
+            <dt>Région</dt>
+            <dd>{region}</dd>
+          </div>
+        )}
+        <div class="tb-row">
+          <dt>Coordonnées</dt>
+          <dd class="mono">{latStr} · {lngStr}</dd>
+        </div>
+        <div class="tb-row">
+          <dt>Pays</dt>
+          <dd>France</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .tb {
+    margin: 2.5rem 0 1rem;
+    max-width: 40rem;
+  }
+  .tb-frame {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.5rem 1.7rem 1.5rem 1.8rem;
+    background:
+      radial-gradient(circle at 15% 50%, rgba(184, 134, 61, 0.06) 0%, transparent 45%),
+      var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.1);
+    border-radius: 2px 18px 2px 2px;
+  }
+  @media (max-width: 540px) {
+    .tb-frame { grid-template-columns: 1fr; gap: 1rem; padding: 1.3rem 1.4rem; }
+    .tb-rose { justify-self: center; }
+  }
+
+  .tb-corner {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--or);
+    opacity: 0.55;
+  }
+  .tb-corner-tl { top: 5px; left: 5px; border-right: none; border-bottom: none; }
+  .tb-corner-tr { top: 5px; right: 5px; border-left: none; border-bottom: none; }
+  .tb-corner-bl { bottom: 5px; left: 5px; border-right: none; border-top: none; }
+  .tb-corner-br { bottom: 5px; right: 5px; border-left: none; border-top: none; }
+
+  .tb-rose {
+    color: var(--or-deep);
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tb-rose-svg {
+    display: block;
+    filter: drop-shadow(0 2px 6px rgba(184, 134, 61, 0.12));
+    will-change: transform;
+    transform: translateZ(0);
+    animation: tb-rose-float 9s ease-in-out infinite alternate;
+  }
+  @keyframes tb-rose-float {
+    from { transform: rotate(-1deg) translateY(0); }
+    to   { transform: rotate(1deg) translateY(-2px); }
+  }
+
+  .tb-center-dot {
+    transform-origin: 60px 60px;
+    animation: tb-dot-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes tb-dot-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.95; }
+    50%      { transform: scale(1.7); opacity: 0.5; }
+  }
+  .tb-mark {
+    animation: tb-mark-bob 4s ease-in-out infinite alternate;
+    transform-origin: 0 0;
+  }
+  @keyframes tb-mark-bob {
+    from { transform: translate(60px, 60px) scale(1); }
+    to   { transform: translate(61px, 59px) scale(1.05); }
+  }
+
+  .tb-info { min-width: 0; }
+  .tb-kicker {
+    font-family: var(--font-body);
+    font-size: 0.64rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--or-deep);
+    font-weight: 600;
+    margin: 0 0 0.3rem;
+  }
+  .tb-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+    color: var(--ink);
+    margin: 0 0 0.9rem;
+    letter-spacing: -0.012em;
+    line-height: 1.15;
+  }
+  .tb-code {
+    font-family: var(--font-mono);
+    font-style: normal;
+    font-size: 0.68em;
+    color: var(--or-deep);
+    letter-spacing: 0.05em;
+    margin-left: 0.1em;
+  }
+
+  .tb-dl {
+    margin: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .tb-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0.8rem;
+    align-items: baseline;
+    padding: 0.25rem 0;
+    border-bottom: 1px dashed rgba(26, 22, 20, 0.07);
+  }
+  .tb-row:last-child { border-bottom: none; }
+  .tb-row dt {
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+  .tb-row dd {
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    color: var(--ink);
+    margin: 0;
+    font-weight: 400;
+  }
+  .tb-row dd.mono {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--or-deep);
+    letter-spacing: 0.02em;
+  }
+  @media (max-width: 540px) {
+    .tb-row { grid-template-columns: 100px 1fr; gap: 0.6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tb-rose-svg, .tb-center-dot, .tb-mark { animation: none; }
+  }
+</style>

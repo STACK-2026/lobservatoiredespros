@@ -1,0 +1,165 @@
+---
+/**
+ * EditorialCartouche , meta-line presse papier sous un H1. Signale E-E-A-T
+ * (author, reviewed, lastReviewed, nextReview). Rendu en petite capitale
+ * espacee. Speakable-friendly.
+ *
+ * Usage :
+ *   <EditorialCartouche
+ *     author="La rédaction"
+ *     authorHref="/redaction/"
+ *     verifiedOn="23 avril 2026"
+ *     nextAudit="mai 2026"
+ *     edition="N°1"
+ *   />
+ */
+interface Props {
+  author?: string;
+  authorHref?: string;
+  verifiedOn?: string;
+  nextAudit?: string;
+  edition?: string;
+  compact?: boolean;
+}
+
+const {
+  author = "La rédaction",
+  authorHref,
+  verifiedOn,
+  nextAudit,
+  edition,
+  compact = false,
+} = Astro.props;
+---
+
+<p class={`ec ${compact ? "ec-compact" : ""}`} data-speakable>
+  <span class="ec-part ec-author">
+    <svg class="ec-icon" viewBox="0 0 14 14" width="10" height="10" fill="none" aria-hidden="true">
+      <circle cx="7" cy="4.5" r="2.2" stroke="currentColor" stroke-width="1.2" />
+      <path d="M2 12.5 C 2 9.8 4.2 8.5 7 8.5 C 9.8 8.5 12 9.8 12 12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+    </svg>
+    <span class="ec-k">Par</span>
+    {authorHref ? (
+      <a href={authorHref} class="ec-v ec-v-link">{author}</a>
+    ) : (
+      <span class="ec-v">{author}</span>
+    )}
+  </span>
+
+  {verifiedOn && (
+    <>
+      <span class="ec-sep" aria-hidden="true">·</span>
+      <span class="ec-part">
+        <svg class="ec-icon ec-icon-check" viewBox="0 0 14 14" width="10" height="10" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="5.8" stroke="currentColor" stroke-width="1.2" />
+          <path d="M4.6 7.2 L6.3 8.9 L9.6 5.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="ec-k">Vérifié le</span>
+        <span class="ec-v">{verifiedOn}</span>
+      </span>
+    </>
+  )}
+
+  {nextAudit && (
+    <>
+      <span class="ec-sep" aria-hidden="true">·</span>
+      <span class="ec-part">
+        <svg class="ec-icon" viewBox="0 0 14 14" width="10" height="10" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="5.8" stroke="currentColor" stroke-width="1.2" />
+          <path d="M7 3.8 V 7 L 9.2 8.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+        <span class="ec-k">Prochain audit</span>
+        <span class="ec-v">{nextAudit}</span>
+      </span>
+    </>
+  )}
+
+  {edition && (
+    <>
+      <span class="ec-sep" aria-hidden="true">·</span>
+      <span class="ec-part ec-edition">
+        <span class="ec-k">Édition</span>
+        <span class="ec-v ec-v-folio">{edition}</span>
+      </span>
+    </>
+  )}
+</p>
+
+<style>
+  .ec {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem 0.6rem;
+    margin: 0.7rem 0 1.1rem;
+    padding: 0.5rem 0.8rem;
+    background: rgba(247, 243, 236, 0.55);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-left: 2px solid var(--or);
+    border-radius: 2px 10px 2px 2px;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+    line-height: 1.45;
+    max-width: 52rem;
+    backdrop-filter: saturate(1.1);
+  }
+  .ec-compact {
+    font-size: 0.68rem;
+    padding: 0.35rem 0.65rem;
+  }
+  .ec-part {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+  }
+  .ec-icon {
+    color: var(--or-deep);
+    flex-shrink: 0;
+  }
+  .ec-icon-check { color: #4A913A; }
+  .ec-k {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    font-size: 0.62rem;
+  }
+  .ec-v {
+    color: var(--ink);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .ec-v-link {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(26, 22, 20, 0.35);
+    padding-bottom: 1px;
+    transition: color 180ms, border-color 180ms;
+  }
+  .ec-v-link:hover {
+    color: var(--or-deep);
+    border-bottom-color: var(--or);
+  }
+  .ec-v-folio {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--or-deep);
+    letter-spacing: 0.05em;
+  }
+  .ec-sep {
+    color: var(--or);
+    opacity: 0.5;
+    font-weight: 600;
+    user-select: none;
+  }
+  .ec-edition .ec-v-folio {
+    font-weight: 600;
+  }
+  @media (max-width: 540px) {
+    .ec { gap: 0.4rem 0.5rem; padding: 0.45rem 0.7rem; }
+    .ec-sep { display: none; }
+  }
+</style>
