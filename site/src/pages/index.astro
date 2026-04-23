@@ -7,6 +7,7 @@ import Medaille from "../components/Medaille.astro";
 import ProCard from "../components/ProCard.astro";
 import PullQuote from "../components/PullQuote.astro";
 import TelescopeWatermark from "../components/TelescopeWatermark.astro";
+import InkBleedDivider from "../components/InkBleedDivider.astro";
 import { siteConfig } from "../utils/config";
 
 // Classements populaires , 8 combinaisons métier × dept
@@ -247,6 +248,8 @@ const jsonLd = {
     </p>
   </section>
 
+  <InkBleedDivider variant="hairline" />
+
   <!-- ═══════════════════ CLASSEMENTS POPULAIRES ═══════════════════ -->
   <section class="section-classements container-wide">
     <EditorialHeader category="LA SÉLECTION" title="Les classements les plus consultés" subtitle="Huit classements départementaux les plus consultés cette semaine par les lecteurs." />
@@ -266,6 +269,8 @@ const jsonLd = {
       <a href="/selection/" class="btn-ghost">Voir tous les classements <span class="arrow">&rarr;</span></a>
     </p>
   </section>
+
+  <InkBleedDivider variant="ornament" />
 
   <!-- ═══════════════════ TOP 3 , EXTRAIT D'UN CLASSEMENT ═══════════════════ -->
   <section class="section-top3 container-wide">
@@ -320,6 +325,8 @@ const jsonLd = {
       </div>
     </div>
   </section>
+
+  <InkBleedDivider variant="compass" />
 
   <!-- ═══════════════════ DERNIÈRES OBSERVATIONS ═══════════════════ -->
   <section class="section-observations container-wide">
@@ -444,7 +451,7 @@ const jsonLd = {
   }
 
   /* ═══════ À LA UNE ═══════ */
-  .section-alaune { padding: clamp(2rem, 5vw, 4rem) 0 clamp(3rem, 5vw, 5rem); }
+  .section-alaune { padding: clamp(2rem, 3vw, 3rem) 0 clamp(2rem, 3.5vw, 3.5rem); }
   .alaune-grid {
     display: grid;
     grid-template-columns: 1.4fr 1fr 1fr;
@@ -502,7 +509,7 @@ const jsonLd = {
   .portrait-resume { font-size: 0.98rem; }
 
   /* ═══════ MÉTHODE 3 TEMPS ═══════ */
-  .section-methode { padding: clamp(3rem, 6vw, 6rem) 0 clamp(2rem, 4vw, 4rem); }
+  .section-methode { padding: clamp(2rem, 3vw, 3rem) 0 clamp(1.5rem, 2.5vw, 2.5rem); }
   .methode-trois-temps {
     list-style: none;
     padding: 0;
@@ -524,7 +531,7 @@ const jsonLd = {
   .methode-foot-cta { text-align: center; margin-top: 1.5rem; }
 
   /* ═══════ CLASSEMENTS POPULAIRES ═══════ */
-  .section-classements { padding: clamp(2rem, 4vw, 4rem) 0; }
+  .section-classements { padding: clamp(1rem, 2vw, 2rem) 0 clamp(1rem, 2vw, 2rem); }
   .classements-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -556,7 +563,7 @@ const jsonLd = {
   .classements-tous { text-align: center; margin-top: 1.6rem; }
 
   /* ═══════ TOP 3 ═══════ */
-  .section-top3 { padding: clamp(2rem, 4vw, 3.5rem) 0 clamp(3rem, 5vw, 5rem); }
+  .section-top3 { padding: clamp(1rem, 2vw, 2rem) 0 clamp(2rem, 4vw, 4rem); }
   .top3-list { display: grid; gap: 1.1rem; }
   .top3-link { text-align: center; margin-top: 2rem; }
 
@@ -612,7 +619,7 @@ const jsonLd = {
   }
 
   /* ═══════ OBSERVATIONS LIST ═══════ */
-  .section-observations { padding: clamp(3rem, 5vw, 5rem) 0 clamp(2rem, 4vw, 4rem); }
+  .section-observations { padding: clamp(1.5rem, 3vw, 3rem) 0 clamp(2rem, 3.5vw, 3.5rem); }
   .observations-list { display: grid; gap: 0; margin-top: 1rem; }
   .observation-row {
     display: block;

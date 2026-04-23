@@ -1,31 +1,65 @@
 ---
 /**
- * En-tête de section , fine ligne + meta + titre.
+ * En-tête de section , fine ligne + meta + titre avec scramble reveal.
  */
+import ScrambleText from "./ScrambleText.astro";
+
 interface Props {
   category?: string;
   title: string;
   subtitle?: string;
   align?: "left" | "center";
+  /** Pas de scramble (pour eviter trop d'animations sur une meme page) */
+  scramble?: boolean;
 }
-const { category, title, subtitle, align = "left" } = Astro.props;
+const { category, title, subtitle, align = "left", scramble = true } = Astro.props;
 ---
 
 <header class={`editorial-header align-${align}`}>
-  <div class="hairline"></div>
-  {category && <span class="meta-label-or">{category}</span>}
+  <div class="editorial-rule" aria-hidden="true">
+    <span class="editorial-rule-line"></span>
+    <span class="editorial-rule-dot"></span>
+    <span class="editorial-rule-line"></span>
+  </div>
+  {category && (
+    <span class="meta-label-or editorial-category">
+      {scramble ? <ScrambleText text={category} speed={34} frames={14} trigger="scroll" /> : category}
+    </span>
+  )}
   <h2 class="editorial-title blur-reveal">{title}</h2>
   {subtitle && <p class="editorial-subtitle fade-up">{subtitle}</p>}
 </header>
 
 <style>
-  .editorial-header { margin: 4rem 0 2.2rem; }
-  .editorial-header .hairline { margin-bottom: 1.1rem; }
-  .editorial-header .meta-label-or { display: block; margin-bottom: 0.75rem; }
+  .editorial-header { margin: 3rem 0 1.8rem; }
+  .editorial-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 6rem;
+    opacity: 0.8;
+  }
+  .editorial-rule-line {
+    flex: 1;
+    height: 1px;
+    background: var(--or);
+    opacity: 0.65;
+  }
+  .editorial-rule-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--or);
+    border-radius: 50%;
+    transform: rotate(45deg);
+  }
+  .align-center .editorial-rule { margin-inline: auto; max-width: 8rem; }
+  .editorial-category { display: block; margin-bottom: 0.6rem; }
   .editorial-title {
     font-family: var(--font-display);
     font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: -0.022em;
     line-height: 1.1;
     color: var(--ink);
@@ -34,9 +68,9 @@ const { category, title, subtitle, align = "left" } = Astro.props;
   .editorial-subtitle {
     font-family: var(--font-display);
     font-style: italic;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: var(--ink-soft);
-    margin: 0.6rem 0 0;
+    margin: 0.55rem 0 0;
     max-width: 42rem;
   }
   .align-center { text-align: center; }

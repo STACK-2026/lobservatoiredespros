@@ -1,0 +1,100 @@
+---
+/**
+ * InkBleedDivider , separateur signature entre sections.
+ *
+ * Variants :
+ * - "hairline" : fine ligne avec petit ornement centre (etoile ou cercle)
+ * - "double"   : deux lignes paralleles fines
+ * - "ornament" : ligne + monogramme central style journal
+ * - "scroll"   : parchemin decoratif
+ *
+ * Animation : clip-path qui se propage de gauche a droite quand l'element
+ * entre dans le viewport (via .visible ajoute par l'IntersectionObserver
+ * de BaseLayout).
+ */
+interface Props {
+  variant?: "hairline" | "double" | "ornament" | "compass";
+  width?: string;
+  color?: "or" | "ink";
+}
+
+const {
+  variant = "ornament",
+  width = "100%",
+  color = "or",
+} = Astro.props;
+
+const stroke = color === "or" ? "var(--or)" : "var(--ink)";
+---
+
+<div class={`divider-bleed divider-${variant} fade-up`} style={`max-width: ${width}; color: ${stroke};`}>
+  {variant === "hairline" && (
+    <svg viewBox="0 0 600 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <line x1="20" y1="20" x2="280" y2="20" stroke="currentColor" stroke-width="0.6" opacity="0.5" />
+      <circle cx="300" cy="20" r="2.8" fill="currentColor" />
+      <line x1="320" y1="20" x2="580" y2="20" stroke="currentColor" stroke-width="0.6" opacity="0.5" />
+    </svg>
+  )}
+
+  {variant === "double" && (
+    <svg viewBox="0 0 600 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <line x1="40" y1="15" x2="560" y2="15" stroke="currentColor" stroke-width="0.5" opacity="0.55" />
+      <line x1="40" y1="25" x2="560" y2="25" stroke="currentColor" stroke-width="0.3" opacity="0.35" />
+    </svg>
+  )}
+
+  {variant === "ornament" && (
+    <svg viewBox="0 0 600 46" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <line x1="30" y1="23" x2="245" y2="23" stroke="currentColor" stroke-width="0.5" opacity="0.4" />
+      <g transform="translate(300 23)">
+        <!-- Petit losange central -->
+        <line x1="-45" y1="0" x2="45" y2="0" stroke="currentColor" stroke-width="0.5" opacity="0.55" />
+        <path d="M0 -5 L6 0 L0 5 L-6 0 Z" fill="currentColor" opacity="0.75" />
+        <circle cx="-22" cy="0" r="1" fill="currentColor" opacity="0.55" />
+        <circle cx="22" cy="0" r="1" fill="currentColor" opacity="0.55" />
+      </g>
+      <line x1="355" y1="23" x2="570" y2="23" stroke="currentColor" stroke-width="0.5" opacity="0.4" />
+    </svg>
+  )}
+
+  {variant === "compass" && (
+    <svg viewBox="0 0 600 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <line x1="30" y1="30" x2="255" y2="30" stroke="currentColor" stroke-width="0.45" opacity="0.45" />
+      <g transform="translate(300 30)">
+        <circle cx="0" cy="0" r="14" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.8" />
+        <circle cx="0" cy="0" r="10" fill="none" stroke="currentColor" stroke-width="0.3" opacity="0.55" />
+        <path d="M0 -18 L3 0 L-3 0 Z" fill="currentColor" opacity="0.95" />
+        <path d="M0 18 L-3 0 L3 0 Z" fill="currentColor" opacity="0.55" />
+        <line x1="-18" y1="0" x2="-14" y2="0" stroke="currentColor" stroke-width="0.55" />
+        <line x1="18" y1="0" x2="14" y2="0" stroke="currentColor" stroke-width="0.55" />
+      </g>
+      <line x1="345" y1="30" x2="570" y2="30" stroke="currentColor" stroke-width="0.45" opacity="0.45" />
+    </svg>
+  )}
+</div>
+
+<style>
+  .divider-bleed {
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .divider-bleed svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 600px;
+  }
+  .divider-hairline { padding: 1.4rem 1rem; }
+  .divider-double { padding: 1.6rem 1rem; }
+  .divider-ornament { padding: 2.2rem 1rem; }
+  .divider-compass { padding: 2.8rem 1rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .divider-bleed { transform: none; opacity: 1; }
+  }
+</style>
