@@ -218,29 +218,45 @@ const jsonLd = {
     <EditorialHeader category="À LA UNE CETTE SEMAINE" title="Observations de la rédaction" subtitle="Trois sujets que notre rédaction a jugés dignes d'être mis à la une cette semaine." />
 
     <div class="alaune-grid stagger-children">
-      {alaUne.map((item, i) => (
-        <article class={`alaune-card card-editorial curl ${i === 0 ? "alaune-card-hero" : ""}`}>
+      {alaUne.map((item, i) => {
+        const catClass = item.category.toLowerCase().replace(/[^a-z]/g, "");
+        return (
+        <article class={`alaune-card card-editorial curl alaune-cat-${catClass} ${i === 0 ? "alaune-card-hero" : ""}`}>
           <div class="alaune-visual" aria-hidden="true">
-            <span class="alaune-visual-initial">{item.category.charAt(0)}</span>
-            <svg width="100%" height="100%" viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-              <defs>
-                <pattern id={`grid-${i}`} width="24" height="24" patternUnits="userSpaceOnUse">
-                  <path d="M 24 0 L 0 0 0 24" fill="none" stroke="currentColor" stroke-width="0.4" />
-                </pattern>
-              </defs>
-              <rect width="400" height="260" fill="var(--paper-warm)" />
-              <rect width="400" height="260" fill={`url(#grid-${i})`} style="color: var(--ink-muted); opacity: 0.25" />
-              <text x="50%" y="50%" text-anchor="middle" font-family="Instrument Serif, Georgia, serif" font-size="148" font-weight="400" fill="var(--ink)" opacity="0.12" dy=".38em" font-style="italic">{String(i+1).padStart(2, "0")}</text>
+            <div class="alaune-grad"></div>
+            <span class="alaune-num">{String(i+1).padStart(2, "0")}</span>
+            <svg class="alaune-icon" viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              {catClass === "enquete" && (
+                <>
+                  <circle cx="22" cy="22" r="11" />
+                  <line x1="30" y1="30" x2="42" y2="42" />
+                </>
+              )}
+              {catClass === "methodologie" && (
+                <>
+                  <rect x="8" y="8" width="32" height="32" rx="4" />
+                  <line x1="8" y1="18" x2="40" y2="18" />
+                  <line x1="18" y1="18" x2="18" y2="40" />
+                  <circle cx="28" cy="28" r="3" fill="currentColor" />
+                </>
+              )}
+              {catClass === "portrait" && (
+                <>
+                  <circle cx="24" cy="19" r="7" />
+                  <path d="M10 40 C 10 32, 16 29, 24 29 C 32 29, 38 32, 38 40" />
+                </>
+              )}
             </svg>
           </div>
           <div class="alaune-body">
-            <p class="meta-label-or">{item.category}</p>
+            <p class="alaune-cat-label">{item.category}</p>
             <h3 class="alaune-title"><a href={`/observations/${item.slug}/`}>{item.title}</a></h3>
             <p class="alaune-excerpt">{item.excerpt}</p>
             <p class="byline folio">{item.author} &middot; {item.date} &middot; {item.readingTime} min</p>
           </div>
         </article>
-      ))}
+        );
+      })}
     </div>
   </section>
 
@@ -261,7 +277,7 @@ const jsonLd = {
           <!-- Left : identité + verdict + pills -->
           <div class="pcv3-body">
             <span class="meta-label-or pcv3-meta">Portrait Lauréat &middot; {siteConfig.editionMonth} {siteConfig.editionYear}</span>
-            <h2 class="heading-display pcv3-name italic-fraunces">{portraitVedette.name}</h2>
+            <h2 class="heading-display pcv3-name">{portraitVedette.name}</h2>
             <p class="lead pcv3-lead">
               La seule entreprise de plomberie générale de l'Yonne distinguée d'une médaille d'Or en {siteConfig.editionYear}.
             </p>
@@ -353,7 +369,7 @@ const jsonLd = {
       {classementsPopulaires.map((c) => (
         <a href={`/${c.slug}/${c.deptSlug}/`} class="classement-card card-editorial curl">
           <span class="meta-label">{c.dept}</span>
-          <h3 class="classement-title italic-fraunces">{c.metier}s</h3>
+          <h3 class="classement-title">{c.metier}s</h3>
           <p class="classement-count folio">{c.count} observations &middot; édition en cours</p>
           <span class="classement-arrow">&rarr;</span>
         </a>
@@ -484,7 +500,7 @@ const jsonLd = {
               <span class="obs-date folio">{o.date}</span>
               <span class="obs-reading folio">· {o.readingTime} min</span>
             </div>
-            <h3 class="obs-title italic-fraunces">{o.title}</h3>
+            <h3 class="obs-title">{o.title}</h3>
             <p class="obs-excerpt">{o.excerpt}</p>
             <div class="obs-footer">
               <span class="obs-author">
@@ -710,10 +726,86 @@ const jsonLd = {
     transition: opacity 420ms var(--ease-out-expo);
   }
   .alaune-card:hover::after { opacity: 1; }
-  .alaune-visual { position: relative; aspect-ratio: 4 / 3; background: var(--paper-warm); overflow: hidden; }
-  .alaune-visual-initial { display: none; }
+  .alaune-visual {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .alaune-card-hero .alaune-visual { aspect-ratio: 16 / 9; }
   .alaune-card-hero { border-radius: 4px 36px 4px 4px; }
+
+  /* Gradient background par categorie */
+  .alaune-grad {
+    position: absolute;
+    inset: 0;
+    background: var(--alaune-grad, linear-gradient(135deg, var(--paper-warm) 0%, var(--paper) 100%));
+    transition: transform 600ms var(--ease-out-expo);
+  }
+  .alaune-cat-enquete {
+    --alaune-grad: linear-gradient(135deg, rgba(139, 46, 42, 0.12) 0%, rgba(139, 46, 42, 0.04) 55%, var(--paper) 100%);
+    --alaune-color: #8B2E2A;
+    --alaune-color-soft: rgba(139, 46, 42, 0.85);
+  }
+  .alaune-cat-methodologie {
+    --alaune-grad: linear-gradient(135deg, rgba(30, 58, 82, 0.14) 0%, rgba(30, 58, 82, 0.04) 55%, var(--paper) 100%);
+    --alaune-color: var(--observatoire);
+    --alaune-color-soft: var(--observatoire);
+  }
+  .alaune-cat-portrait {
+    --alaune-grad: linear-gradient(135deg, rgba(184, 134, 61, 0.16) 0%, rgba(184, 134, 61, 0.04) 55%, var(--paper) 100%);
+    --alaune-color: var(--or-deep);
+    --alaune-color-soft: var(--or-deep);
+  }
+  .alaune-card:hover .alaune-grad { transform: scale(1.08); }
+
+  .alaune-num {
+    position: absolute;
+    top: 1rem;
+    left: 1.2rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: -0.035em;
+    color: var(--alaune-color, var(--ink));
+    opacity: 0.25;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .alaune-icon {
+    position: relative;
+    color: var(--alaune-color, var(--or-deep));
+    opacity: 0.55;
+    transition: opacity 400ms var(--ease-out-expo), transform 500ms var(--ease-out-expo);
+  }
+  .alaune-card:hover .alaune-icon { opacity: 0.85; transform: scale(1.08); }
+
+  .alaune-cat-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 0 0.5rem;
+    padding: 0.25rem 0.7rem 0.25rem 0.55rem;
+    background: var(--alaune-color, var(--or));
+    color: var(--paper);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+  .alaune-cat-label::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+  }
   .alaune-body { padding: 1.4rem 1.6rem 1.7rem; }
   .alaune-title {
     font-family: var(--font-display);

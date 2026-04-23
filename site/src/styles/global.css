@@ -23,9 +23,12 @@
   --color-cachet: #8B2E2A;
   --color-archive: #4A5D3A;
 
-  --font-display: "Fraunces", "Söhne Breit", Georgia, "Times New Roman", serif;
+  /* Token unique : tous les titres passent en Geist sans-serif (Apple/Vercel/Linear).
+     Le serif n'est utilise qu'en italic editorial ciblé via --font-editorial + .italic-fraunces. */
+  --font-display: "Geist", "Inter", -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
   --font-body: "Geist", "Inter", -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+  --font-editorial: "Fraunces", "Söhne Breit", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 
   --max-w-prose-editorial: 38rem;
   --max-w-editorial: 72rem;
@@ -103,34 +106,35 @@ body::before {
 /* ------------------------------------------------------------------
    Typographie éditoriale
    ------------------------------------------------------------------ */
+/* TITRES , sans-serif Geist, feel Apple/Vercel/Linear. Le serif est reserve
+   aux citations et aux accents italiques ciblés (.italic-fraunces). */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   color: var(--ink);
-  font-weight: 400;
-  line-height: 1.04;
-  letter-spacing: -0.025em;
-  font-feature-settings: "liga", "calt", "ss01";
-  font-variation-settings: "SOFT" 60, "opsz" 72;
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  font-feature-settings: "ss01", "ss02", "cv11", "calt";
   text-wrap: balance;
 }
 
 h1 {
-  font-size: clamp(2.5rem, 5.5vw, 4.8rem);
-  font-weight: 400;
-  font-variation-settings: "SOFT" 50, "opsz" 144, "wght" 450;
-  letter-spacing: -0.032em;
+  font-size: clamp(2.3rem, 5vw, 4.4rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
 }
 h2 {
-  font-size: clamp(1.85rem, 3.4vw, 2.7rem);
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-  font-variation-settings: "SOFT" 55, "opsz" 96, "wght" 440;
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  font-weight: 600;
 }
 h3 {
-  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
-  line-height: 1.16;
-  letter-spacing: -0.018em;
-  font-variation-settings: "SOFT" 60, "opsz" 48, "wght" 450;
+  font-size: clamp(1.3rem, 2.2vw, 1.75rem);
+  line-height: 1.18;
+  letter-spacing: -0.022em;
+  font-weight: 600;
 }
 h4 {
   font-family: var(--font-body);
@@ -139,24 +143,32 @@ h4 {
   letter-spacing: -0.012em;
 }
 
-/* Hero , H1 ultra grand , Fraunces en optical size display */
+/* Hero , H1 Geist sans-serif, tres grand, tight tracking */
 .heading-hero {
+  font-family: var(--font-body);
+  font-size: clamp(3rem, 8.5vw, 6.8rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  font-feature-settings: "ss01", "ss02", "cv11", "calt";
+  color: var(--ink);
+}
+.heading-hero em,
+.heading-hero .italic {
   font-family: var(--font-display);
-  font-size: clamp(3.6rem, 10vw, 8.4rem);
-  line-height: 0.92;
-  letter-spacing: -0.042em;
-  font-weight: 420;
-  font-feature-settings: "liga", "calt", "ss01";
-  font-variation-settings: "SOFT" 35, "opsz" 144, "wght" 420;
+  font-style: italic;
+  font-weight: 440;
+  font-variation-settings: "SOFT" 40, "opsz" 144;
+  letter-spacing: -0.035em;
 }
 
 .heading-display {
-  font-family: var(--font-display);
-  font-size: clamp(2.6rem, 5.5vw, 4.6rem);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
-  font-weight: 440;
-  font-variation-settings: "SOFT" 45, "opsz" 144, "wght" 440;
+  font-family: var(--font-body);
+  font-size: clamp(2.3rem, 4.6vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+  font-weight: 600;
+  font-feature-settings: "ss01", "ss02", "cv11";
 }
 
 /* Chapô , lead , passe en Geist sans-serif, plus moderne, plus lisible */
@@ -193,7 +205,7 @@ strong { font-weight: 600; color: var(--ink); }
 em { font-style: italic; }
 
 blockquote {
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
   font-style: italic;
   font-size: 1.35rem;
   line-height: 1.45;
@@ -838,10 +850,10 @@ a.link-fancy:hover::after { right: 0; }
 }
 
 .italic-fraunces {
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
   font-style: italic;
-  font-variation-settings: "SOFT" 50, "opsz" 48, "wght" 450;
-  letter-spacing: -0.015em;
+  font-variation-settings: "SOFT" 50, "opsz" 96, "wght" 450;
+  letter-spacing: -0.018em;
 }
 
 .shadow-seal { box-shadow: var(--shadow-seal); }

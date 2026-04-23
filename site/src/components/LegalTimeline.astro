@@ -1,0 +1,450 @@
+---
+/**
+ * LegalTimeline , timeline legale BODACC.
+ *
+ * Affiche les evenements legaux d'un pro (creation, depots comptes,
+ * modifications, procedures collectives, radiation) chronologiquement,
+ * avec un synthese en en-tete (regularite depots, ancrage).
+ *
+ * Couleurs par type :
+ *   - creation : or
+ *   - depot_comptes : vert (transparence)
+ *   - modification : bleu observatoire
+ *   - procedure_collective : cachet rouge (alerte)
+ *   - radiation : gris fonce
+ *
+ * Data source : table pro_evenements_legaux + champ pros.bodacc_synthese
+ */
+interface Event {
+  type_evenement: string;
+  nature_precise: string | null;
+  date_parution: string;
+  tribunal: string | null;
+  description: string | null;
+}
+
+interface Synthese {
+  total_annonces?: number;
+  nb_depots_comptes?: number;
+  dernier_depot_comptes?: string | null;
+  regularite_depots?: string;
+  has_procedure_collective_active?: boolean;
+  has_procedure_collective_passee?: boolean;
+  nb_modifications?: number;
+  nb_modifications_recentes?: number;
+  est_radie?: boolean;
+  date_creation_bodacc?: string | null;
+  ventilation?: Record<string, number>;
+}
+
+interface Props {
+  events?: Event[];
+  synthese?: Synthese | null;
+  nom: string;
+}
+
+const { events = [], synthese = null, nom } = Astro.props;
+
+// Si pas d'events du tout, on n'affiche rien
+const hasData = events.length > 0 || (synthese && (synthese.total_annonces || 0) > 0);
+
+const typeConfig: Record<string, { label: string; color: string; icon: string }> = {
+  creation: { label: "Immatriculation", color: "var(--or-deep)", icon: "dot" },
+  depot_comptes: { label: "Dépôt des comptes", color: "#3a6e30", icon: "doc" },
+  modification: { label: "Modification statutaire", color: "var(--observatoire)", icon: "edit" },
+  procedure_collective: { label: "Procédure collective", color: "var(--cachet)", icon: "alert" },
+  vente_cession: { label: "Cession de fonds", color: "var(--or-deep)", icon: "arrow" },
+  radiation: { label: "Radiation", color: "var(--ink-muted)", icon: "x" },
+  retablissement: { label: "Rétablissement professionnel", color: "var(--ink-muted)", icon: "renew" },
+  autre: { label: "Autre annonce", color: "var(--ink-muted)", icon: "dot" },
+};
+
+// Limite d'affichage : 12 plus recents + "voir plus"
+const visibleCount = 12;
+const sortedEvents = [...events].sort((a, b) => (b.date_parution || "").localeCompare(a.date_parution || ""));
+const shownEvents = sortedEvents.slice(0, visibleCount);
+const remainingCount = sortedEvents.length - shownEvents.length;
+
+const formatDate = (s: string) => {
+  if (!s) return "";
+  try {
+    return new Date(s).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return s;
+  }
+};
+
+const regulariteLabels: Record<string, { label: string; color: string; icon: string }> = {
+  excellente: { label: "Transparence comptable excellente", color: "#3a6e30", icon: "check" },
+  bonne: { label: "Transparence comptable bonne", color: "#3a6e30", icon: "check" },
+  irreguliere: { label: "Dépôts irréguliers", color: "var(--or-deep)", icon: "warn" },
+  aucune: { label: "Pas de dépôt public", color: "var(--ink-muted)", icon: "dash" },
+};
+const regInfo = synthese ? regulariteLabels[synthese.regularite_depots || "aucune"] : null;
+---
+
+{hasData && (
+  <section class="lt fade-up" aria-labelledby="lt-title">
+    <header class="lt-head">
+      <p class="lt-kicker">
+        <span class="lt-kicker-dot" aria-hidden="true"></span>
+        Source BODACC · Registre public
+      </p>
+      <h2 id="lt-title" class="lt-title">Historique légal &amp; transparence</h2>
+      <p class="lt-lead">
+        Tous les événements publiés au Bulletin Officiel des Annonces Civiles
+        et Commerciales depuis l'immatriculation de {nom}.
+      </p>
+    </header>
+
+    {synthese && (
+      <div class="lt-synthese">
+        {synthese.total_annonces !== undefined && synthese.total_annonces > 0 && (
+          <div class="lt-stat">
+            <span class="lt-stat-v">{synthese.total_annonces}</span>
+            <span class="lt-stat-l">annonces totales</span>
+          </div>
+        )}
+        {synthese.nb_depots_comptes !== undefined && (
+          <div class="lt-stat">
+            <span class="lt-stat-v">{synthese.nb_depots_comptes}</span>
+            <span class="lt-stat-l">dépôts de comptes</span>
+          </div>
+        )}
+        {synthese.nb_modifications !== undefined && (
+          <div class="lt-stat">
+            <span class="lt-stat-v">{synthese.nb_modifications}</span>
+            <span class="lt-stat-l">modifications</span>
+          </div>
+        )}
+        {regInfo && synthese.regularite_depots !== "aucune" && (
+          <div class={`lt-badge lt-badge-${synthese.regularite_depots}`}>
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 7.3 L 5.7 10 L 11 4.5" />
+            </svg>
+            <span>{regInfo.label}</span>
+          </div>
+        )}
+        {synthese.has_procedure_collective_active && (
+          <div class="lt-badge lt-badge-alert">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 1 L 13 12 H 1 Z" />
+              <path d="M7 5 V 8 M 7 10 V 10.2" />
+            </svg>
+            <span>Procédure collective en cours</span>
+          </div>
+        )}
+        {!synthese.has_procedure_collective_active && !synthese.est_radie && (
+          <div class="lt-badge lt-badge-ok">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="7" cy="7" r="5.6" />
+              <path d="M4.5 7.3 L 6.3 9 L 9.5 5.5" />
+            </svg>
+            <span>Aucune procédure collective</span>
+          </div>
+        )}
+      </div>
+    )}
+
+    {shownEvents.length > 0 && (
+      <ol class="lt-list">
+        {shownEvents.map((ev) => {
+          const cfg = typeConfig[ev.type_evenement] || typeConfig.autre;
+          return (
+            <li class={`lt-item lt-item-${ev.type_evenement}`} style={`--lt-color: ${cfg.color};`}>
+              <span class="lt-dot" aria-hidden="true"></span>
+              <div class="lt-card">
+                <div class="lt-card-head">
+                  <span class="lt-type">{cfg.label}</span>
+                  <time class="lt-date folio">{formatDate(ev.date_parution)}</time>
+                </div>
+                {ev.nature_precise && <p class="lt-nature">{ev.nature_precise}</p>}
+                {ev.description && <p class="lt-desc">{ev.description}</p>}
+                {ev.tribunal && (
+                  <p class="lt-tribunal folio">{ev.tribunal}</p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    )}
+
+    {remainingCount > 0 && (
+      <p class="lt-more folio">
+        + {remainingCount} autres annonces antérieures non affichées.
+      </p>
+    )}
+
+    <footer class="lt-foot">
+      <a class="lt-source-link" href="https://bodacc.fr" target="_blank" rel="noopener noreferrer">
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 9 V 11 H 11 V 5 H 9" />
+          <path d="M3 8 V 3 H 8 M 3 3 L 9 9" />
+        </svg>
+        <span>Source officielle · bodacc.fr</span>
+      </a>
+    </footer>
+  </section>
+)}
+
+<style>
+  .lt {
+    max-width: 50rem;
+    margin: 2rem 0;
+  }
+  .lt-head {
+    margin-bottom: 1.2rem;
+  }
+  .lt-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.5rem;
+    padding: 0.3rem 0.75rem 0.3rem 0.6rem;
+    background: rgba(247, 243, 236, 0.75);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--observatoire);
+  }
+  .lt-kicker-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--observatoire);
+  }
+  .lt-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+    line-height: 1.08;
+  }
+  .lt-lead {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0 0 1.4rem;
+    max-width: 38rem;
+  }
+
+  /* Synthese : 3 stats + 1 badge regularite + badge procedure */
+  .lt-synthese {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: stretch;
+    margin-bottom: 1.5rem;
+    padding: 0.9rem 1rem;
+    background: linear-gradient(135deg, rgba(30, 58, 82, 0.04) 0%, var(--paper) 100%);
+    border: 1px solid rgba(30, 58, 82, 0.12);
+    border-radius: 14px;
+  }
+  .lt-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.1rem 0.95rem 0.1rem 0.1rem;
+    border-right: 1px solid rgba(26, 22, 20, 0.08);
+    min-width: 90px;
+  }
+  .lt-stat:last-of-type { border-right: none; }
+  .lt-stat-v {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .lt-stat-l {
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    color: var(--ink-muted);
+    letter-spacing: -0.005em;
+  }
+
+  .lt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem 0.3rem 0.6rem;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    align-self: center;
+    margin-left: auto;
+  }
+  .lt-badge-excellente, .lt-badge-bonne, .lt-badge-ok {
+    background: rgba(74, 145, 58, 0.1);
+    color: #2d5424;
+    border: 1px solid rgba(74, 145, 58, 0.3);
+  }
+  .lt-badge-irreguliere {
+    background: rgba(184, 134, 61, 0.1);
+    color: var(--or-deep);
+    border: 1px solid rgba(184, 134, 61, 0.35);
+  }
+  .lt-badge-alert {
+    background: rgba(139, 46, 42, 0.12);
+    color: var(--cachet);
+    border: 1px solid rgba(139, 46, 42, 0.4);
+  }
+
+  /* Timeline list */
+  .lt-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    padding-left: 1.7rem;
+  }
+  .lt-list::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 12px;
+    bottom: 12px;
+    width: 1px;
+    background: linear-gradient(180deg,
+      rgba(30, 58, 82, 0.25) 0%,
+      rgba(30, 58, 82, 0.15) 50%,
+      rgba(30, 58, 82, 0.05) 100%);
+  }
+
+  .lt-item {
+    position: relative;
+    margin-bottom: 0.6rem;
+  }
+  .lt-dot {
+    position: absolute;
+    left: -1.56rem;
+    top: 1rem;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--lt-color, var(--observatoire));
+    box-shadow: 0 0 0 3px var(--paper);
+    z-index: 1;
+  }
+  .lt-item-procedure_collective .lt-dot {
+    background: var(--lt-color);
+    animation: lt-pulse-alert 2.4s ease-in-out infinite;
+  }
+  @keyframes lt-pulse-alert {
+    0%, 100% { box-shadow: 0 0 0 3px var(--paper), 0 0 0 0 rgba(139, 46, 42, 0.4); }
+    50% { box-shadow: 0 0 0 3px var(--paper), 0 0 0 8px rgba(139, 46, 42, 0); }
+  }
+
+  .lt-card {
+    padding: 0.85rem 1rem 0.9rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.07);
+    border-left: 2px solid var(--lt-color, rgba(26, 22, 20, 0.2));
+    border-radius: 2px 12px 12px 2px;
+    transition:
+      transform 240ms cubic-bezier(0.25, 1, 0.5, 1),
+      border-color 240ms,
+      box-shadow 240ms;
+  }
+  .lt-card:hover {
+    transform: translateX(3px);
+    box-shadow: 0 6px 14px -10px rgba(26, 22, 20, 0.15);
+  }
+  .lt-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+  .lt-type {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: -0.008em;
+    color: var(--lt-color, var(--ink));
+  }
+  .lt-date {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .lt-nature {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0.25rem 0 0.3rem;
+    letter-spacing: -0.012em;
+    line-height: 1.35;
+  }
+  .lt-desc {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0.2rem 0 0.3rem;
+  }
+  .lt-tribunal {
+    font-size: 0.68rem;
+    color: var(--ink-muted);
+    margin: 0.3rem 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .lt-more {
+    margin: 0.6rem 0 0 1.7rem;
+    font-size: 0.74rem;
+    color: var(--ink-muted);
+    padding: 0.6rem 0.9rem;
+    background: rgba(247, 243, 236, 0.5);
+    border-left: 1px dashed rgba(26, 22, 20, 0.18);
+    border-radius: 0 6px 6px 0;
+  }
+
+  .lt-foot {
+    margin-top: 1rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.08);
+  }
+  .lt-source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: var(--observatoire);
+    text-decoration: none;
+    letter-spacing: -0.005em;
+    transition: color 200ms;
+  }
+  .lt-source-link:hover { color: var(--observatoire-deep); }
+  .lt-source-link svg { flex-shrink: 0; }
+
+  @media (max-width: 560px) {
+    .lt-synthese { gap: 0.4rem; padding: 0.7rem 0.85rem; }
+    .lt-stat { padding: 0.1rem 0.65rem 0.1rem 0.1rem; min-width: 70px; }
+    .lt-badge { margin-left: 0; margin-top: 0.4rem; flex-basis: 100%; justify-content: center; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lt-item-procedure_collective .lt-dot { animation: none; }
+  }
+</style>

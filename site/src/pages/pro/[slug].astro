@@ -10,6 +10,8 @@ import EditorialCartouche from "../../components/EditorialCartouche.astro";
 import VerifiedStamp from "../../components/VerifiedStamp.astro";
 import SpeakableTLDR from "../../components/SpeakableTLDR.astro";
 import ProMap from "../../components/ProMap.astro";
+import ContactBlock from "../../components/ContactBlock.astro";
+import LegalTimeline from "../../components/LegalTimeline.astro";
 import InfoPill from "../../components/InfoPill.astro";
 import GlossaireTerm from "../../components/GlossaireTerm.astro";
 import SourceBadge from "../../components/SourceBadge.astro";
@@ -23,14 +25,33 @@ import { jsonLdBreadcrumbs, jsonLdLocalBusiness } from "../../utils/seo";
 export async function getStaticPaths() {
   const { data } = await supabase
     .from("pros")
-    .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, description, active, lat, lng")
+    .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance")
     .eq("active", true)
     .not("slug", "is", null);
   const pros = data || [];
-  return pros.map((p) => ({ params: { slug: p.slug }, props: { pro: p } }));
+
+  // Fetch tous les evenements legaux en un batch
+  const proIds = pros.map((p) => p.id);
+  const eventsByPro: Record<string, any[]> = {};
+  if (proIds.length) {
+    const { data: allEvents } = await supabase
+      .from("pro_evenements_legaux")
+      .select("pro_id, type_evenement, nature_precise, date_parution, tribunal, description")
+      .in("pro_id", proIds)
+      .order("date_parution", { ascending: false });
+    for (const ev of allEvents || []) {
+      if (!eventsByPro[ev.pro_id]) eventsByPro[ev.pro_id] = [];
+      eventsByPro[ev.pro_id].push(ev);
+    }
+  }
+
+  return pros.map((p) => ({
+    params: { slug: p.slug },
+    props: { pro: p, legalEvents: eventsByPro[p.id] || [] },
+  }));
 }
 
-const { pro } = Astro.props;
+const { pro, legalEvents = [] } = Astro.props;
 const p = pro;
 
 const { data: linkMetiers } = await supabase
@@ -279,6 +300,20 @@ const jsonLd = [
       <QualificationsBlock proId={p.id} siret={p.siret} />
     </section>
 
+    <!-- CONTACT , visible tôt dans la fiche -->
+    <section class="container-wide portrait-contact">
+      <ContactBlock
+        nom={p.nom_entreprise}
+        slug={p.slug}
+        telephone={p.telephone}
+        email={p.email}
+        siteWeb={p.site_web}
+        ville={p.ville}
+        codePostal={p.code_postal}
+        adresse={p.adresse}
+      />
+    </section>
+
     <!-- FICHE IDENTITÉ , mockup visuel 2 cols -->
     <section class="container-wide portrait-identite">
       <div class="id-card fade-up">
@@ -376,6 +411,17 @@ const jsonLd = [
         </div>
       </div>
     </section>
+
+    <!-- TIMELINE LEGALE BODACC , historique officiel + regularite depots -->
+    {(legalEvents.length > 0 || (p.bodacc_synthese && Object.keys(p.bodacc_synthese).length > 0)) && (
+      <section id="legal" class="container-wide portrait-legal">
+        <LegalTimeline
+          events={legalEvents}
+          synthese={p.bodacc_synthese}
+          nom={p.nom_entreprise}
+        />
+      </section>
+    )}
 
     <!-- ANTÉCÉDENTS , timeline verticale editoriale -->
     <section id="antecedents" class="container-wide portrait-antecedents">
@@ -1083,6 +1129,18 @@ const jsonLd = [
   .portrait-qualifs-top {
     max-width: 62rem;
     margin: 0.5rem auto 0.5rem;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+
+  .portrait-contact {
+    max-width: 62rem;
+    margin: 1rem auto 0.5rem;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+
+  .portrait-legal {
+    max-width: 62rem;
+    margin: 2rem auto;
     padding: 0 clamp(1.25rem, 5vw, 4rem);
   }
 
