@@ -32,25 +32,26 @@ const color = clamped >= 7.5 ? "#B8863D" : clamped >= 5 ? "#19376D" : "#7A6E63";
       </linearGradient>
     </defs>
     <!-- Track -->
-    <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(26, 22, 20, 0.08)" stroke-width="3" />
-    <!-- Progress -->
+    <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(26, 22, 20, 0.1)" stroke-width="3" />
+    <!-- Progress (initial : visible directement, animation du 0 au final via JS) -->
     <circle
       cx="50" cy="50" r="44"
       fill="none"
-      stroke={`url(#${uid}-grad)`}
+      stroke={color}
       stroke-width="3.2"
       stroke-linecap="round"
       transform="rotate(-90 50 50)"
       stroke-dasharray={circumference}
-      stroke-dashoffset={circumference}
+      stroke-dashoffset={offset}
       class="sc-progress"
       data-sc-offset-target={offset}
       data-sc-circumference={circumference}
+      style={`stroke-dashoffset: ${circumference};`}
     />
     <!-- Petit point au bout du ring -->
     <circle
       cx="50" cy="6"
-      r="2.4"
+      r="2.8"
       fill={color}
       class="sc-dot"
       style={`transform-origin: 50px 50px; transform: rotate(${(pct / 100) * 360}deg); opacity: 0;`}
@@ -85,11 +86,17 @@ const color = clamped >= 7.5 ? "#B8863D" : clamped >= 5 ? "#19376D" : "#7A6E63";
   }
   .sc-progress {
     transition: stroke-dashoffset 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+    filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--sc-color) 40%, transparent));
   }
   .sc-dot {
     transition: opacity 400ms ease 800ms;
+    filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--sc-color) 60%, transparent));
   }
   .score-circle-wrap.sc-visible .sc-dot { opacity: 1; }
+  /* Fallback , animation CSS si JS n'applique pas */
+  @keyframes sc-draw {
+    to { stroke-dashoffset: var(--sc-final-offset, 0); }
+  }
   .sc-center {
     position: absolute;
     top: 0;
@@ -129,38 +136,68 @@ const color = clamped >= 7.5 ? "#B8863D" : clamped >= 5 ? "#19376D" : "#7A6E63";
 </style>
 
 <script>
-  // Trigger ring draw + counter on scroll-in
+  // Trigger ring draw + counter (au scroll-in OU immediat si deja in view)
+  function animateScoreCircle(wrap: HTMLElement) {
+    wrap.classList.add("sc-visible");
+    const progress = wrap.querySelector(".sc-progress") as SVGCircleElement | null;
+    if (progress) {
+      const target = progress.getAttribute("data-sc-offset-target") || "0";
+      // Utiliser setAttribute pour forcer l'update SVG (style peut etre override)
+      requestAnimationFrame(() => {
+        progress.setAttribute("stroke-dashoffset", target);
+        (progress.style as any).strokeDashoffset = target;
+      });
+    }
+    const val = wrap.querySelector(".sc-value") as HTMLElement | null;
+    if (val) {
+      const targetScore = parseFloat(val.dataset.scScore || "0");
+      const duration = 1500;
+      const start = performance.now();
+      function tick(now: number) {
+        const elapsed = now - start;
+        const p = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 4);
+        val!.textContent = (eased * targetScore).toFixed(1);
+        if (p < 1) requestAnimationFrame(tick);
+        else val!.textContent = targetScore.toFixed(1);
+      }
+      requestAnimationFrame(tick);
+    }
+  }
+
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const wrap = entry.target as HTMLElement;
-          wrap.classList.add("sc-visible");
-          const progress = wrap.querySelector(".sc-progress") as SVGCircleElement | null;
-          if (progress) {
-            const target = parseFloat(progress.dataset.scOffsetTarget || "0");
-            progress.style.strokeDashoffset = String(target);
-          }
-          const val = wrap.querySelector(".sc-value") as HTMLElement | null;
-          if (val) {
-            const target = parseFloat(val.dataset.scScore || "0");
-            const duration = 1500;
-            const start = performance.now();
-            function tick(now: number) {
-              const elapsed = now - start;
-              const p = Math.min(elapsed / duration, 1);
-              const eased = 1 - Math.pow(1 - p, 4);
-              val!.textContent = (eased * target).toFixed(1);
-              if (p < 1) requestAnimationFrame(tick);
-              else val!.textContent = target.toFixed(1);
-            }
-            requestAnimationFrame(tick);
-          }
+          animateScoreCircle(entry.target as HTMLElement);
           observer.unobserve(entry.target);
         }
       });
     },
-    { threshold: 0.4 }
+    { threshold: 0.1 }
   );
-  document.querySelectorAll(".score-circle-wrap").forEach((el) => observer.observe(el));
+
+  function initScoreCircles() {
+    document.querySelectorAll<HTMLElement>(".score-circle-wrap").forEach((el) => {
+      // Fire immediat si deja dans le viewport (au-dessus de la fold)
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) {
+        setTimeout(() => animateScoreCircle(el), 200);
+      } else {
+        observer.observe(el);
+      }
+    });
+    // Filet de securite : 2.5s apres load, force visible
+    setTimeout(() => {
+      document.querySelectorAll<HTMLElement>(".score-circle-wrap:not(.sc-visible)").forEach((el) => {
+        animateScoreCircle(el);
+      });
+    }, 2500);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initScoreCircles);
+  } else {
+    initScoreCircles();
+  }
 </script>

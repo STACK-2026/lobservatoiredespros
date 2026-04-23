@@ -1,22 +1,76 @@
 ---
-interface Props {
-  items: Array<{ name: string; url: string }>;
+/**
+ * Breadcrumbs editorial , fil d'ariane.
+ * Accepte {label, href} ou {name, url} (compat).
+ */
+interface Item {
+  label?: string;
+  name?: string;
+  href?: string;
+  url?: string;
 }
-
+interface Props {
+  items: Item[];
+}
 const { items } = Astro.props;
+const normalized = items.map((it) => ({
+  label: it.label ?? it.name ?? "",
+  href: it.href ?? it.url ?? "",
+}));
 ---
 
-<nav aria-label="Fil d'ariane" class="mb-6 text-sm text-gray-500">
-  <ol class="flex flex-wrap items-center gap-1">
-    {items.map((item, i) => (
-      <li class="flex items-center gap-1">
-        {i > 0 && <span class="mx-1">/</span>}
-        {i < items.length - 1 ? (
-          <a href={item.url} class="hover:text-primary transition-colors">{item.name}</a>
+<nav aria-label="Fil d'ariane" class="breadcrumbs-nav">
+  <ol class="breadcrumbs-list">
+    {normalized.map((item, i) => (
+      <li class="breadcrumbs-item">
+        {i > 0 && <span class="breadcrumbs-sep" aria-hidden="true">/</span>}
+        {i < normalized.length - 1 && item.href ? (
+          <a href={item.href} class="breadcrumbs-link">{item.label}</a>
         ) : (
-          <span class="text-gray-900 font-medium">{item.name}</span>
+          <span class="breadcrumbs-current">{item.label}</span>
         )}
       </li>
     ))}
   </ol>
 </nav>
+
+<style>
+  .breadcrumbs-nav {
+    margin: 0.5rem 0 1.2rem;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+  }
+  .breadcrumbs-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .breadcrumbs-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .breadcrumbs-sep {
+    color: var(--ink-muted);
+    opacity: 0.55;
+  }
+  .breadcrumbs-link {
+    color: var(--ink-muted);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 200ms, border-color 200ms;
+  }
+  .breadcrumbs-link:hover {
+    color: var(--or-deep);
+    border-bottom-color: var(--or);
+  }
+  .breadcrumbs-current {
+    color: var(--ink);
+    font-weight: 500;
+  }
+</style>
