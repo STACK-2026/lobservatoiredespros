@@ -1,0 +1,105 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import ByLine from "../../components/ByLine.astro";
+import DropCap from "../../components/DropCap.astro";
+import PullQuote from "../../components/PullQuote.astro";
+import Seal from "../../components/Seal.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "A propos , L'Observatoire des Pros";
+const description = "Qui nous sommes, pourquoi nous existons, et comment nous nous finançons sans publicite ni conflit d'interet.";
+const url = `${siteConfig.url}/a-propos/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "A propos", url },
+  ]),
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="apropos-page">
+    <div class="container-prose apropos-content">
+      <Masthead category="A PROPOS" signature="Par la redaction" />
+
+      <h1 class="heading-display">Pourquoi cette publication existait-elle deja dans votre tete ?</h1>
+      <p class="lead">
+        L'Observatoire des Pros est nee d'un constat simple : aucun support editorial francais ne traite les artisans du quotidien avec le serieux qu'un Michelin reserve aux restaurants, ou qu'un Point reserve aux hopitaux.
+      </p>
+
+      <ByLine authors={[{ name: "La redaction" }]} date="15 avril 2026" readingTime={6} />
+
+      <section class="prose">
+        <DropCap>
+          Quand un particulier cherche un bon plombier dans l'Yonne, il tombe sur un annuaire, une marketplace, une pub. Il ne tombe jamais sur une selection editoriale motivee, datee, signee. C'est ce manque que L'Observatoire comble, edition apres edition, departement apres departement.
+        </DropCap>
+
+        <h2>Notre mission</h2>
+        <p>
+          Publier une selection annuelle des artisans et entreprises de services a domicile retenus par notre redaction, avec une methodologie publique, une pagination claire, et une frontiere etanche entre le journal et ses ressources.
+        </p>
+
+        <PullQuote cite="Camille Fabre, redactrice en chef">
+          Un media n'a qu'une chose a vendre : sa credibilite. Tout le reste decoule de la.
+        </PullQuote>
+
+        <h2>Notre independance</h2>
+        <p>
+          L'Observatoire ne touche aucune commission sur les commandes passees aux professionnels classes. Nous ne pratiquons pas la generation de leads. Nous ne cedons aucune place dans le classement contre paiement. Nos revenus proviennent exclusivement des abonnements professionnels aux Portraits Verifies et Laureats, lesquels ne modifient jamais la position ni le Score de Confiance.
+        </p>
+        <p>
+          Cette separation stricte entre le journal et la regie est la condition de notre existence editoriale. Elle est inscrite dans nos conditions generales et contestable devant n'importe quel lecteur.
+        </p>
+
+        <h2>Nos zones couvertes , Edition N°{siteConfig.editionNumber}</h2>
+        <ul>
+          {siteConfig.departementsPilote.map((d) => (
+            <li>
+              <strong>{d.nom}</strong> ({d.code}) , {d.region}
+            </li>
+          ))}
+        </ul>
+        <p>
+          Extension prevue : quinze departements par trimestre, priorite donnee aux regions en tension immobiliere et a celles dont les annuaires classiques sont les plus degrades.
+        </p>
+
+        <h2>Nos metiers couverts</h2>
+        <ul>
+          {siteConfig.metiersPilote.map((m) => (
+            <li>
+              <strong>{m.nomPluriel}</strong> , code NAF {m.naf}
+            </li>
+          ))}
+        </ul>
+
+        <h2>Une marque inspiree</h2>
+        <p>
+          L'Observatoire des Pros emprunte son nom aux <em>observatoires</em> scientifiques du XIXe siecle , des institutions neutres, financees par la collectivite, dont la mission etait d'<em>observer</em>, <em>cataloguer</em>, <em>publier</em>. La mission du XXIe siecle nous parait identique, seuls les objets changent : nous observons les artisans du batiment comme d'autres observaient les etoiles.
+        </p>
+
+        <hr />
+        <div class="apropos-seal-block">
+          <Seal size={120} variant="or" animated={true} />
+          <p class="italic-fraunces" style="font-size:1.1rem; color:var(--ink-soft);">
+            « Observer. Verifier. Recommander. »
+          </p>
+        </div>
+      </section>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .apropos-page { padding: 2rem 0 5rem; }
+  .apropos-content { max-width: 46rem; }
+  .apropos-seal-block {
+    text-align: center;
+    padding: 2rem 0 1rem;
+    display: grid;
+    justify-items: center;
+    gap: 0.8rem;
+  }
+</style>

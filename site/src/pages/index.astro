@@ -1,0 +1,722 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Seal from "../components/Seal.astro";
+import CounterLive from "../components/CounterLive.astro";
+import EditorialHeader from "../components/EditorialHeader.astro";
+import Medaille from "../components/Medaille.astro";
+import ProCard from "../components/ProCard.astro";
+import PullQuote from "../components/PullQuote.astro";
+import TelescopeWatermark from "../components/TelescopeWatermark.astro";
+import { siteConfig } from "../utils/config";
+
+// Classements populaires , 8 combinaisons métier × dept
+const classementsPopulaires = [
+  { metier: "Plombier", slug: "plombier", dept: "Paris", deptSlug: "paris-75", count: 142 },
+  { metier: "Électricien", slug: "electricien", dept: "Paris", deptSlug: "paris-75", count: 198 },
+  { metier: "Couvreur", slug: "couvreur", dept: "Yonne", deptSlug: "yonne-89", count: 38 },
+  { metier: "Menuisier", slug: "menuisier", dept: "Côte-d'Or", deptSlug: "cote-dor-21", count: 54 },
+  { metier: "Isolation", slug: "isolation", dept: "Yonne", deptSlug: "yonne-89", count: 29 },
+  { metier: "Plombier", slug: "plombier", dept: "Côte-d'Or", deptSlug: "cote-dor-21", count: 67 },
+  { metier: "Électricien", slug: "electricien", dept: "Yonne", deptSlug: "yonne-89", count: 41 },
+  { metier: "Couvreur", slug: "couvreur", dept: "Côte-d'Or", deptSlug: "cote-dor-21", count: 33 },
+];
+
+// "À la Une" , 3 observations vedettes
+const alaUne = [
+  {
+    category: "ENQUETE",
+    title: "Dans l'Yonne, la fin programmee des fausses mentions RGE",
+    excerpt: "Six entreprises referencees ont perdu leur label en six mois. Notre redaction a verifie les certifications affichees sur 412 sites web d'artisans.",
+    author: "Camille Fabre",
+    date: "19 avril 2026",
+    readingTime: 12,
+    slug: "enquete-rge-yonne-412-sites",
+  },
+  {
+    category: "METHODOLOGIE",
+    title: "Pourquoi le Score de Confiance ne compte pas les etoiles Google",
+    excerpt: "La moyenne d'etoiles est un indicateur fragile. Voici comment notre redaction croise quatre sources avant de retenir un pourcentage.",
+    author: "Antoine Delaunay",
+    date: "15 avril 2026",
+    readingTime: 7,
+    slug: "methodologie-score-confiance-etoiles",
+  },
+  {
+    category: "PORTRAIT",
+    title: "Atelier Maurel, menuiserie d'art a Dijon depuis 1974",
+    excerpt: "Quatre generations, deux compagnons du devoir, et l'une des trois medailles d'Or decernees cette annee en Cote-d'Or.",
+    author: "Sarah Poitevin",
+    date: "11 avril 2026",
+    readingTime: 9,
+    slug: "portrait-atelier-maurel-dijon",
+  },
+];
+
+// Portrait vedette (Lauréat du mois)
+const portraitVedette = {
+  name: "Dubois & Fils , Plomberie generale",
+  slug: "dubois-fils-plomberie-generale",
+  ville: "Auxerre (89)",
+  citation:
+    "Nous refusons un chantier sur trois. Cela etonne les clients. Mais refuser, c'est aussi proteger la reputation qu'on a mise quarante ans a construire.",
+  citationAuteur: "Jean-Paul Dubois, gerant",
+  score: 9.4,
+  fondation: 1984,
+  salaries: 12,
+  resume:
+    "Entreprise familiale de plomberie generale basee a Auxerre depuis 1984. Specialisee en renovation de reseaux anciens et depannage d'urgence dans l'Yonne. Deux plombiers compagnons du devoir, trois apprentis. Certifiee RGE et Qualibat depuis 2011. Portrait Laureat 2026.",
+};
+
+// Top 3 du classement mis en avant (Plomberie Yonne)
+const topClassementMisEnAvant = [
+  {
+    rank: 1, name: "Dubois & Fils", slug: "dubois-fils-plomberie-generale", score: 9.4,
+    tier: "or" as const, ville: "Auxerre (89)", zoneIntervention: "Yonne, Cote-d'Or",
+    ancienneteAnnees: 42, rge: true, qualibat: true,
+    specialites: ["Reseaux anciens", "Depannage urgence", "Salles de bain"],
+    resumeCourt: "Entreprise familiale plomberie generale Yonne, 4 generations, deux compagnons du devoir.",
+    previewImages: [],
+  },
+  {
+    rank: 2, name: "Lefevre Thermique", slug: "lefevre-thermique", score: 9.1,
+    tier: "argent" as const, ville: "Sens (89)", zoneIntervention: "Nord Yonne",
+    ancienneteAnnees: 22, rge: true, qualibat: false,
+    specialites: ["Chaudieres gaz", "Pompes a chaleur", "Sanitaires"],
+    resumeCourt: "Specialiste PAC et chaudieres gaz a condensation, certifie RGE depuis 2014.",
+  },
+  {
+    rank: 3, name: "SARL Martin", slug: "sarl-martin-plombier", score: 8.7,
+    tier: "gratuit" as const, ville: "Joigny (89)", zoneIntervention: "Joigny et alentours",
+    ancienneteAnnees: 18, rge: false, qualibat: true,
+    specialites: ["Depannage", "Pose sanitaires"],
+    resumeCourt: "Artisan installe depuis 2008, qualification Qualibat confirmee.",
+  },
+];
+
+const title = `${siteConfig.name} , ${siteConfig.baseline}`;
+const description = siteConfig.description;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: siteConfig.name,
+  description: siteConfig.description,
+  publisher: { "@type": "NewsMediaOrganization", name: siteConfig.name, url: siteConfig.url },
+  hasPart: classementsPopulaires.map((c) => ({
+    "@type": "ItemList",
+    name: `Classement ${c.metier} ${c.dept}`,
+    url: `${siteConfig.url}/${c.slug}/${c.deptSlug}/`,
+  })),
+  mainEntity: {
+    "@type": "FAQPage",
+    mainEntity: siteConfig.faq.map((q) => ({
+      "@type": "Question",
+      name: q.question,
+      acceptedAnswer: { "@type": "Answer", text: q.answer },
+    })),
+  },
+};
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <section class="hero-section" aria-label="Accueil editorial">
+    <TelescopeWatermark side="right" size={520} parallax={0.05} />
+
+    <div class="container-wide hero-inner">
+      <div class="hero-text">
+        <div class="hero-overline fade-up">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span class="meta-label-ink">Edition N°{siteConfig.editionNumber} &middot; {siteConfig.editionMonth} {siteConfig.editionYear}</span>
+        </div>
+
+        <h1 class="heading-hero hero-title" data-split-words>
+          {siteConfig.baseline}
+        </h1>
+
+        <p class="lead hero-lead fade-up">
+          Chaque mois, notre redaction observe, verifie et classe les meilleurs artisans de France. Sans algorithme opaque. Avec methode. Avec patience.
+        </p>
+
+        <div class="hero-counter fade-up">
+          <CounterLive initial={47382} label="professionnels sous observation" />
+        </div>
+
+        <div class="hero-cta-row fade-up">
+          <a href="/selection/" class="btn btn-primary magnetic">Explorer la selection</a>
+          <a href="/methode/" class="btn btn-ghost">Consulter la methode <span class="arrow">&rarr;</span></a>
+        </div>
+
+        <div class="hero-proof meta-label fade-up">
+          Sources: INSEE &middot; France Renov &middot; Qualibat &middot; Google Business &middot; DGCCRF
+        </div>
+      </div>
+
+      <div class="hero-seal scale-reveal">
+        <Seal size={280} variant="or" animated={true} stamp={true} />
+        <p class="hero-seal-caption meta-label-or">Sceau de la redaction 2026</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ À LA UNE ═══════════════════ -->
+  <section class="section-alaune container-wide">
+    <EditorialHeader category="A LA UNE CETTE SEMAINE" title="Observations de la redaction" subtitle="Trois sujets que notre redaction a jugé dignes d'etre mis a la une cette semaine." />
+
+    <div class="alaune-grid stagger-children">
+      {alaUne.map((item, i) => (
+        <article class={`alaune-card card-editorial curl ${i === 0 ? "alaune-card-hero" : ""}`}>
+          <div class="alaune-visual" aria-hidden="true">
+            <span class="alaune-visual-initial">{item.category.charAt(0)}</span>
+            <svg width="100%" height="100%" viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <pattern id={`grid-${i}`} width="24" height="24" patternUnits="userSpaceOnUse">
+                  <path d="M 24 0 L 0 0 0 24" fill="none" stroke="currentColor" stroke-width="0.4" />
+                </pattern>
+              </defs>
+              <rect width="400" height="260" fill="var(--paper-warm)" />
+              <rect width="400" height="260" fill={`url(#grid-${i})`} style="color: var(--ink-muted); opacity: 0.25" />
+              <text x="50%" y="50%" text-anchor="middle" font-family="Fraunces, serif" font-size="148" font-weight="500" fill="var(--ink)" opacity="0.12" dy=".38em" font-style="italic">{String(i+1).padStart(2, "0")}</text>
+            </svg>
+          </div>
+          <div class="alaune-body">
+            <p class="meta-label-or">{item.category}</p>
+            <h3 class="alaune-title"><a href={`/observations/${item.slug}/`}>{item.title}</a></h3>
+            <p class="alaune-excerpt">{item.excerpt}</p>
+            <p class="byline folio">{item.author} &middot; {item.date} &middot; {item.readingTime} min</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- ═══════════════════ PORTRAIT DE LA SEMAINE ═══════════════════ -->
+  <section class="section-portrait">
+    <div class="container-wide portrait-inner">
+      <div class="portrait-meta slide-left">
+        <span class="meta-label-or">Portrait Laureat &middot; Avril 2026</span>
+        <h2 class="heading-display portrait-title">
+          <span class="italic-fraunces">{portraitVedette.name}</span>
+        </h2>
+        <p class="lead portrait-lead">
+          Portrait long format de la seule entreprise de plomberie generale de l'Yonne distinguee d'une medaille d'Or cette annee.
+        </p>
+        <ul class="portrait-stats">
+          <li><span class="stat-val">{portraitVedette.score}</span><span class="stat-lbl">/ 10 Score de confiance</span></li>
+          <li><span class="stat-val">{new Date().getFullYear() - portraitVedette.fondation}</span><span class="stat-lbl">annees d'activite</span></li>
+          <li><span class="stat-val">{portraitVedette.salaries}</span><span class="stat-lbl">salaries et apprentis</span></li>
+        </ul>
+        <a href={`/pro/${portraitVedette.slug}/`} class="btn btn-observatoire magnetic">Lire le portrait complet</a>
+      </div>
+
+      <div class="portrait-citation slide-right">
+        <PullQuote cite={portraitVedette.citationAuteur} align="left">
+          {portraitVedette.citation}
+        </PullQuote>
+        <p class="portrait-resume prose">{portraitVedette.resume}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ LES 3 TEMPS DE LA MÉTHODE ═══════════════════ -->
+  <section class="section-methode container-wide">
+    <EditorialHeader category="LA METHODE" title="Observer. Verifier. Recommander." subtitle="Trois temps, six criteres, une methode publique, verifiable, decrite par ecrit." align="center" />
+
+    <ol class="methode-trois-temps stagger-children">
+      <li class="methode-temps card-editorial">
+        <span class="rank-num rank-outlined">01</span>
+        <h3>Observer</h3>
+        <p>Nous cartographions les 47 382 artisans referencés au Sirene sur nos zones pilotes. Donnees publiques uniquement. Sources citees.</p>
+      </li>
+      <li class="methode-temps card-editorial">
+        <span class="rank-num rank-outlined">02</span>
+        <h3>Verifier</h3>
+        <p>Chaque candidat est confronte a six criteres documentes : anciennete, RGE, avis, SIRET, site web, portfolio. Pas de score, pas de publication.</p>
+      </li>
+      <li class="methode-temps card-editorial">
+        <span class="rank-num rank-outlined">03</span>
+        <h3>Recommander</h3>
+        <p>La redaction classe. Medailles Or et Argent decernees apres examen editorial. Archivees chaque annee. Consultables indefiniment.</p>
+      </li>
+    </ol>
+
+    <p class="methode-foot-cta">
+      <a href="/methode/" class="btn-ghost">La methode complete en 2 500 mots <span class="arrow">&rarr;</span></a>
+    </p>
+  </section>
+
+  <!-- ═══════════════════ CLASSEMENTS POPULAIRES ═══════════════════ -->
+  <section class="section-classements container-wide">
+    <EditorialHeader category="LA SELECTION" title="Les classements les plus consultes" subtitle="Huit classements departementaux les plus consultés cette semaine par les lecteurs." />
+
+    <div class="classements-grid stagger-children">
+      {classementsPopulaires.map((c) => (
+        <a href={`/${c.slug}/${c.deptSlug}/`} class="classement-card card-editorial curl">
+          <span class="meta-label">{c.dept}</span>
+          <h3 class="classement-title italic-fraunces">{c.metier}s</h3>
+          <p class="classement-count folio">{c.count} observations &middot; edition en cours</p>
+          <span class="classement-arrow">&rarr;</span>
+        </a>
+      ))}
+    </div>
+
+    <p class="classements-tous">
+      <a href="/selection/" class="btn-ghost">Voir tous les classements <span class="arrow">&rarr;</span></a>
+    </p>
+  </section>
+
+  <!-- ═══════════════════ TOP 3 , EXTRAIT D'UN CLASSEMENT ═══════════════════ -->
+  <section class="section-top3 container-wide">
+    <EditorialHeader category="EXTRAIT DU CLASSEMENT" title="Plomberie generale dans l'Yonne" subtitle="Trois premieres places du classement 2026, extrait de l'edition mensuelle." />
+
+    <div class="top3-list">
+      {topClassementMisEnAvant.map((p) => (
+        <div data-rank-item={p.rank}>
+          <ProCard {...p} />
+        </div>
+      ))}
+    </div>
+
+    <p class="top3-link">
+      <a href="/plombier/yonne-89/" class="btn btn-outline">Consulter le classement integral <span class="arrow">&rarr;</span></a>
+    </p>
+  </section>
+
+  <!-- ═══════════════════ STATS MENSUELLES ═══════════════════ -->
+  <section class="section-stats">
+    <div class="container-wide stats-grid stagger-children">
+      <div class="stat-block">
+        <p class="stat-num" data-count="47382">47 382</p>
+        <p class="stat-label">professionnels sous observation</p>
+      </div>
+      <div class="stat-block">
+        <p class="stat-num" data-count="6">6</p>
+        <p class="stat-label">criteres objectifs de scoring</p>
+      </div>
+      <div class="stat-block">
+        <p class="stat-num" data-count="3">3</p>
+        <p class="stat-label">departements pilotes cette edition</p>
+      </div>
+      <div class="stat-block">
+        <p class="stat-num" data-count="128">128</p>
+        <p class="stat-label">dossiers candidats examines</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ ESPACE PRO ═══════════════════ -->
+  <section class="section-pro">
+    <div class="container-editorial pro-cta-inner blur-reveal">
+      <span class="meta-label-or">Candidater a l'edition 2026</span>
+      <h2 class="heading-display">Votre entreprise merite-t-elle de figurer dans notre guide ?</h2>
+      <p class="lead">
+        Chaque annee, notre redaction examine quelques milliers de dossiers. Les meilleurs recoivent la medaille d'Argent ou d'Or. Votre candidature est gratuite. Le passage en Portrait Verifie ou Laureat est optionnel, payant, et sans engagement de duree.
+      </p>
+      <div class="pro-cta-row">
+        <a href="/candidater/" class="btn btn-primary magnetic">Soumettre ma candidature</a>
+        <a href="/portraits/laureat/" class="btn btn-ghost">En savoir plus sur le Portrait Laureat <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ DERNIÈRES OBSERVATIONS ═══════════════════ -->
+  <section class="section-observations container-wide">
+    <EditorialHeader category="NOS OBSERVATIONS" title="Dernieres publications de la redaction" />
+    <div class="observations-list">
+      {alaUne.map((o) => (
+        <a class="observation-row curl" href={`/observations/${o.slug}/`}>
+          <div class="observation-meta">
+            <span class="meta-label-or">{o.category}</span>
+            <span class="folio">{o.date}</span>
+          </div>
+          <h3 class="observation-title">{o.title}</h3>
+          <p class="observation-excerpt">{o.excerpt}</p>
+          <span class="observation-arrow">&rarr;</span>
+        </a>
+      ))}
+    </div>
+    <p><a href="/observations/" class="btn-ghost">Toutes les observations <span class="arrow">&rarr;</span></a></p>
+  </section>
+
+  <!-- ═══════════════════ FAQ ═══════════════════ -->
+  <section class="section-faq">
+    <div class="container-editorial">
+      <EditorialHeader category="QUESTIONS FREQUENTES" title="Ce que nous repondons, publiquement" align="center" />
+      <div class="faq-list stagger-children">
+        {siteConfig.faq.map((q, i) => (
+          <details class="faq-item">
+            <summary>
+              <span class="folio faq-num">{String(i+1).padStart(2, "0")}</span>
+              <span class="faq-question">{q.question}</span>
+              <span class="faq-toggle" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer"><p>{q.answer}</p></div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ NEWSLETTER ═══════════════════ -->
+  <section class="section-newsletter">
+    <div class="container-editorial newsletter-inner">
+      <Seal size={72} variant="or" animated={true} />
+      <h2 class="heading-display newsletter-title">La lettre de L'Observatoire</h2>
+      <p class="lead">
+        Chaque mois, notre redaction adresse une lettre a ses lecteurs. Une observation majeure, un portrait, une question de methode. Pas de publicite, pas de tracking invasif. Desabonnement en un clic.
+      </p>
+      <form class="newsletter-form" method="post" action="#">
+        <label class="sr-only" for="nl-email">Adresse email</label>
+        <input id="nl-email" type="email" name="email" required placeholder="votre adresse email" />
+        <button type="submit" class="btn btn-observatoire">S'abonner</button>
+      </form>
+      <p class="meta-label newsletter-meta">Gratuit. Ouvert a tous. Archives consultables.</p>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  /* ═══════ HERO ═══════ */
+  .hero-section {
+    position: relative;
+    padding: clamp(3rem, 7vw, 7rem) 0 clamp(3rem, 6vw, 6rem);
+    overflow: hidden;
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+  }
+  @media (max-width: 960px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-seal { order: -1; justify-self: center; }
+  }
+  .hero-overline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.75rem 0.4rem 0.6rem;
+    border: 1px solid rgba(26, 22, 20, 0.15);
+    border-radius: 2px;
+    background: rgba(247, 243, 236, 0.75);
+    margin-bottom: 1.6rem;
+  }
+  .hero-title {
+    margin: 0.4rem 0 1.5rem;
+    max-width: 16ch;
+  }
+  .hero-lead {
+    max-width: 36rem;
+    margin: 0 0 1.8rem;
+  }
+  .hero-counter {
+    margin: 0 0 1.8rem;
+    padding: 1rem 1.2rem;
+    border-left: 2px solid var(--or);
+    background: rgba(239, 231, 214, 0.4);
+  }
+  .hero-cta-row {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .hero-proof {
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .hero-seal {
+    position: relative;
+    display: grid;
+    place-items: center;
+    gap: 0.8rem;
+  }
+  .hero-seal-caption {
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  /* ═══════ À LA UNE ═══════ */
+  .section-alaune { padding: clamp(2rem, 5vw, 4rem) 0 clamp(3rem, 5vw, 5rem); }
+  .alaune-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 1.8rem;
+    align-items: start;
+  }
+  @media (max-width: 960px) {
+    .alaune-grid { grid-template-columns: 1fr 1fr; }
+    .alaune-card-hero { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .alaune-grid { grid-template-columns: 1fr; }
+    .alaune-card-hero { grid-column: 1; }
+  }
+  .alaune-card { padding: 0; overflow: hidden; }
+  .alaune-visual { position: relative; aspect-ratio: 4 / 3; background: var(--paper-warm); overflow: hidden; }
+  .alaune-visual-initial { display: none; }
+  .alaune-card-hero .alaune-visual { aspect-ratio: 16 / 9; }
+  .alaune-body { padding: 1.4rem 1.6rem 1.7rem; }
+  .alaune-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin: 0.4rem 0 0.6rem;
+  }
+  .alaune-card-hero .alaune-title { font-size: clamp(1.6rem, 2.8vw, 2.1rem); }
+  .alaune-title a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 200ms; }
+  .alaune-title a:hover { border-color: var(--or); }
+  .alaune-excerpt { color: var(--ink-soft); font-size: 0.98rem; line-height: 1.55; margin-bottom: 0.7rem; }
+
+  /* ═══════ PORTRAIT VEDETTE ═══════ */
+  .section-portrait { padding: clamp(2rem, 5vw, 5rem) 0; background: var(--paper-warm); }
+  .portrait-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: start;
+  }
+  @media (max-width: 860px) { .portrait-inner { grid-template-columns: 1fr; } }
+  .portrait-title { margin: 0.5rem 0 1rem; }
+  .portrait-lead { margin-bottom: 1.4rem; }
+  .portrait-stats {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.8rem;
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .portrait-stats li { display: flex; flex-direction: column; gap: 0.1rem; }
+  .stat-val { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+  .stat-lbl { font-size: 0.78rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.12em; }
+  .portrait-resume { font-size: 0.98rem; }
+
+  /* ═══════ MÉTHODE 3 TEMPS ═══════ */
+  .section-methode { padding: clamp(3rem, 6vw, 6rem) 0 clamp(2rem, 4vw, 4rem); }
+  .methode-trois-temps {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.8rem;
+  }
+  @media (max-width: 860px) { .methode-trois-temps { grid-template-columns: 1fr; } }
+  .methode-temps {
+    padding: 1.8rem 1.8rem 2rem;
+    display: grid;
+    gap: 0.5rem;
+    background: var(--paper);
+  }
+  .methode-temps .rank-num { font-size: 3.5rem; line-height: 1; }
+  .methode-temps h3 { font-size: 1.5rem; margin: 0; font-weight: 500; }
+  .methode-temps p { font-size: 0.96rem; color: var(--ink-soft); margin: 0; }
+  .methode-foot-cta { text-align: center; margin-top: 1.5rem; }
+
+  /* ═══════ CLASSEMENTS POPULAIRES ═══════ */
+  .section-classements { padding: clamp(2rem, 4vw, 4rem) 0; }
+  .classements-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+  @media (max-width: 960px) { .classements-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .classements-grid { grid-template-columns: 1fr; } }
+  .classement-card {
+    padding: 1.3rem 1.3rem 1.4rem;
+    text-decoration: none;
+    color: var(--ink);
+    position: relative;
+    display: grid;
+    gap: 0.4rem;
+    border-radius: 2px;
+  }
+  .classement-card .classement-title {
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0.2rem 0 0.1rem;
+    letter-spacing: -0.012em;
+  }
+  .classement-count { color: var(--ink-muted); margin: 0; }
+  .classement-arrow { position: absolute; top: 1.3rem; right: 1.3rem; color: var(--or-deep); font-size: 1.1rem; transition: transform 240ms var(--ease-out-quart); }
+  .classement-card:hover .classement-arrow { transform: translate(4px, -2px); }
+  .classements-tous { text-align: center; margin-top: 1.6rem; }
+
+  /* ═══════ TOP 3 ═══════ */
+  .section-top3 { padding: clamp(2rem, 4vw, 3.5rem) 0 clamp(3rem, 5vw, 5rem); }
+  .top3-list { display: grid; gap: 1.1rem; }
+  .top3-link { text-align: center; margin-top: 2rem; }
+
+  /* ═══════ STATS ═══════ */
+  .section-stats {
+    background: var(--ink);
+    color: var(--paper);
+    padding: clamp(3rem, 5vw, 5rem) 0;
+    position: relative;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    text-align: center;
+  }
+  @media (max-width: 760px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 2rem 1rem; } }
+  .stat-block { display: grid; gap: 0.45rem; }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 5vw, 4.5rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--or-soft);
+    margin: 0;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-size: 0.86rem;
+    color: rgba(247, 243, 236, 0.78);
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+
+  /* ═══════ PRO CTA ═══════ */
+  .section-pro {
+    padding: clamp(4rem, 7vw, 7rem) 0;
+    background: var(--paper-warm);
+    position: relative;
+  }
+  .pro-cta-inner {
+    text-align: center;
+  }
+  .pro-cta-inner .heading-display { margin: 0.7rem auto 1rem; max-width: 22ch; }
+  .pro-cta-inner .lead { margin-inline: auto; }
+  .pro-cta-row {
+    display: flex;
+    gap: 1.2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.8rem;
+  }
+
+  /* ═══════ OBSERVATIONS LIST ═══════ */
+  .section-observations { padding: clamp(3rem, 5vw, 5rem) 0 clamp(2rem, 4vw, 4rem); }
+  .observations-list { display: grid; gap: 0; margin-top: 1rem; }
+  .observation-row {
+    display: block;
+    padding: 1.6rem 0 1.7rem;
+    border-top: 1px solid rgba(26, 22, 20, 0.1);
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    transition: padding-left 280ms var(--ease-out-quart), background 280ms;
+  }
+  .observation-row:last-child { border-bottom: 1px solid rgba(26, 22, 20, 0.1); }
+  .observation-row:hover { padding-left: 0.8rem; background: rgba(239, 231, 214, 0.3); }
+  .observation-meta { display: flex; gap: 1rem; align-items: baseline; margin-bottom: 0.35rem; }
+  .observation-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 2vw, 1.7rem);
+    font-weight: 500;
+    letter-spacing: -0.014em;
+    margin: 0 0 0.45rem;
+    color: var(--ink);
+  }
+  .observation-excerpt { color: var(--ink-soft); margin: 0 0 0.2rem; max-width: 54rem; }
+  .observation-arrow {
+    position: absolute; right: 0; top: 50%;
+    transform: translateY(-50%); color: var(--or-deep);
+    transition: transform 280ms var(--ease-out-quart);
+  }
+  .observation-row:hover .observation-arrow { transform: translate(6px, -50%); }
+
+  /* ═══════ FAQ ═══════ */
+  .section-faq { padding: clamp(3rem, 5vw, 5rem) 0; background: var(--paper-warm); }
+  .faq-list { display: grid; gap: 0.4rem; margin-top: 1.6rem; }
+  .faq-item {
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 2px;
+    padding: 0;
+    transition: border-color 240ms, box-shadow 240ms;
+  }
+  .faq-item[open] { border-color: rgba(184, 134, 61, 0.4); box-shadow: var(--shadow-paper); }
+  .faq-item summary {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.1rem 1.4rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-num { color: var(--or-deep); }
+  .faq-question {
+    font-family: var(--font-display);
+    font-size: 1.12rem;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+  }
+  .faq-toggle {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--or-deep);
+    transition: transform 240ms var(--ease-out-quart);
+  }
+  .faq-item[open] .faq-toggle { transform: rotate(45deg); }
+  .faq-answer { padding: 0 1.4rem 1.3rem 3.4rem; color: var(--ink-soft); font-size: 0.98rem; line-height: 1.6; }
+  .faq-answer p { margin: 0; }
+
+  /* ═══════ NEWSLETTER ═══════ */
+  .section-newsletter {
+    padding: clamp(4rem, 6vw, 6rem) 0;
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 100%);
+  }
+  .newsletter-inner {
+    text-align: center;
+    display: grid;
+    gap: 0.9rem;
+    place-items: center;
+  }
+  .newsletter-title { margin: 0.4rem 0 0.4rem; }
+  .newsletter-inner .lead { margin-inline: auto; }
+  .newsletter-form {
+    display: flex;
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 28rem;
+    margin: 1.2rem auto 0.6rem;
+    flex-wrap: wrap;
+  }
+  .newsletter-form input {
+    flex: 1 1 220px;
+    padding: 0.85rem 1.1rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    border: 1px solid rgba(26, 22, 20, 0.18);
+    background: var(--paper);
+    border-radius: 2px;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .newsletter-form input:focus { outline: 2px solid var(--or); outline-offset: 1px; }
+  .newsletter-meta { color: var(--ink-muted); font-size: 0.7rem; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+/**
+ * Sceau officiel de L'Observatoire des Pros.
+ * Cercle double + texte circulaire + monogramme OdP ou étoile au centre.
+ * Signature animation : rotation lente continue (26s) + effet wax-stamp à l'apparition.
+ */
+interface Props {
+  size?: number;
+  variant?: "ink" | "or" | "paper";
+  animated?: boolean;
+  stamp?: boolean;
+  text?: string;
+  center?: "monogram" | "star";
+  className?: string;
+}
+
+const {
+  size = 160,
+  variant = "or",
+  animated = true,
+  stamp = false,
+  text = "L'OBSERVATOIRE DES PROS ☆ EDITION 2026 ☆ ",
+  center = "monogram",
+  className = "",
+} = Astro.props;
+
+const colors = {
+  ink: "#1A1614",
+  or: "#B8863D",
+  paper: "#F7F3EC",
+};
+const stroke = colors[variant];
+const uid = `seal-${Math.random().toString(36).slice(2, 9)}`;
+const rotateClass = animated ? "seal-rotate" : "";
+const stampClass = stamp ? "seal-stamp" : "";
+---
+
+<span
+  class={`seal-wrapper ${stampClass} ${className}`}
+  style={`--seal-size: ${size}px; --seal-color: ${stroke};`}
+  aria-label="Sceau officiel de L'Observatoire des Pros"
+>
+  <svg
+    viewBox="0 0 200 200"
+    width={size}
+    height={size}
+    xmlns="http://www.w3.org/2000/svg"
+    class="seal-svg"
+    aria-hidden="true"
+  >
+    <defs>
+      <path
+        id={`${uid}-circle`}
+        d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"
+      />
+    </defs>
+    <g class={rotateClass} style="transform-origin: 100px 100px;">
+      <circle cx="100" cy="100" r="92" fill="none" stroke={stroke} stroke-width="0.8" />
+      <circle cx="100" cy="100" r="84" fill="none" stroke={stroke} stroke-width="0.6" />
+      <text fill={stroke} font-family="Fraunces, Georgia, serif" font-size="11" letter-spacing="4.8" font-weight="500">
+        <textPath href={`#${uid}-circle`} startOffset="0%">{text}{text}</textPath>
+      </text>
+    </g>
+    <circle cx="100" cy="100" r="58" fill="none" stroke={stroke} stroke-width="1" opacity="0.85" />
+    <circle cx="100" cy="100" r="52" fill="none" stroke={stroke} stroke-width="0.5" opacity="0.65" />
+    {center === "monogram" ? (
+      <text x="100" y="118" text-anchor="middle" fill={stroke} font-family="Fraunces, Georgia, serif" font-size="44" font-style="italic" font-weight="500" letter-spacing="-2">OdP</text>
+    ) : (
+      <g fill={stroke}>
+        <path d="M100 62 l7.2 22.3 23.4 0 -18.9 13.8 7.2 22.3 -18.9 -13.8 -18.9 13.8 7.2 -22.3 -18.9 -13.8 23.4 0 z" />
+      </g>
+    )}
+    <text x="100" y="156" text-anchor="middle" fill={stroke} font-family="Fraunces, Georgia, serif" font-size="7.4" letter-spacing="4" font-weight="500" opacity="0.9">EST. 2026</text>
+  </svg>
+</span>
+
+<style>
+  .seal-wrapper {
+    display: inline-flex;
+    width: var(--seal-size);
+    height: var(--seal-size);
+    filter: drop-shadow(0 6px 18px rgba(184, 134, 61, 0.18));
+  }
+  .seal-svg { width: 100%; height: 100%; display: block; }
+</style>

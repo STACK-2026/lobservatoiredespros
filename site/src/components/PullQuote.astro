@@ -1,0 +1,67 @@
+---
+/**
+ * Citation extraite , guillemets français ornementaux, Fraunces italique.
+ */
+interface Props {
+  cite?: string;
+  align?: "center" | "left";
+}
+const { cite, align = "center" } = Astro.props;
+---
+
+<figure class={`pull-quote pull-${align} blur-reveal`}>
+  <blockquote>
+    <span class="quote-open" aria-hidden="true">&laquo;</span>
+    <span class="quote-body">
+      <slot />
+    </span>
+    <span class="quote-close" aria-hidden="true">&raquo;</span>
+  </blockquote>
+  {cite && (
+    <figcaption>
+      <span class="meta-label">&mdash; {cite}</span>
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .pull-quote {
+    margin: 3.5rem auto;
+    max-width: 44rem;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(26, 22, 20, 0.15);
+    border-bottom: 1px solid rgba(26, 22, 20, 0.15);
+  }
+  .pull-quote blockquote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+    line-height: 1.25;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+    border: none;
+    padding: 0;
+    margin: 1rem 0;
+  }
+  .pull-center { text-align: center; }
+  .pull-left { text-align: left; }
+  .quote-open, .quote-close {
+    color: var(--or);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.4em;
+    line-height: 0;
+    vertical-align: -0.1em;
+    opacity: 0.85;
+  }
+  .quote-open { margin-right: 0.15em; }
+  .quote-close { margin-left: 0.15em; }
+  figcaption { margin-top: 1rem; }
+  figcaption .meta-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-muted);
+  }
+</style>

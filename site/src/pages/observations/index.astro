@@ -1,0 +1,81 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "Observations , L'Observatoire des Pros";
+const description = "Toutes les observations publiees par la redaction : enquetes, portraits, dossiers, guides pratiques. Archivees par edition.";
+const url = `${siteConfig.url}/observations/`;
+
+const categories = [
+  { slug: "portraits", nom: "Portraits", desc: "Long format sur les Laureats." },
+  { slug: "enquetes", nom: "Enquetes", desc: "Investigations sur le secteur." },
+  { slug: "dossiers", nom: "Dossiers", desc: "Analyses thematiques approfondies." },
+  { slug: "guide-pratique", nom: "Guide pratique", desc: "Methodes pour les particuliers." },
+  { slug: "entretiens", nom: "Entretiens", desc: "Conversations avec des artisans et experts." },
+  { slug: "methodologie", nom: "Methodologie", desc: "Explications et ajustements de la grille." },
+];
+
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Observations", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="observations-page">
+    <div class="container-editorial obs-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Observations" }]} />
+      <Masthead category="OBSERVATIONS" signature="Toutes les categories" />
+      <h1 class="heading-display">Nos observations.</h1>
+      <p class="lead">
+        La redaction publie chaque semaine. Enquetes longues, portraits soignes, dossiers documentes, guides pratiques pour les particuliers.
+      </p>
+    </div>
+
+    <section class="container-wide obs-categories">
+      <EditorialHeader category="PAR CATEGORIE" title="Six angles editoriaux" />
+      <div class="cats-grid stagger-children">
+        {categories.map((c) => (
+          <a class="cat-card card-editorial curl" href={`/observations/${c.slug}/`}>
+            <span class="meta-label-or">{c.slug.toUpperCase()}</span>
+            <h3 class="italic-fraunces">{c.nom}</h3>
+            <p class="cat-desc">{c.desc}</p>
+            <p class="folio">Consulter la categorie &rarr;</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="container-editorial" style="margin-top: 4rem; padding-bottom: 2rem;">
+      <div class="obs-placeholder">
+        <p class="italic-fraunces">Notre premiere serie d'observations arrive dans les prochains jours.</p>
+        <p class="folio">En attendant, consultez la methodologie, candidater a un portrait, ou nous contacter.</p>
+        <p>
+          <a class="btn btn-outline" href="/methode/">La methode</a>
+          &nbsp;
+          <a class="btn btn-outline" href="/candidater/">Candidater</a>
+        </p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .observations-page { padding: 2rem 0 4rem; }
+  .obs-head .heading-display { margin: 0.4rem 0 1rem; }
+  .obs-categories { padding: 2rem 0; max-width: 62rem; margin: 0 auto; }
+  .cats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.6rem; }
+  @media (max-width: 860px) { .cats-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 540px) { .cats-grid { grid-template-columns: 1fr; } }
+  .cat-card { padding: 1.3rem 1.4rem 1.5rem; display: grid; gap: 0.4rem; text-decoration: none; color: var(--ink); }
+  .cat-card h3 { font-size: 1.4rem; margin: 0.2rem 0 0.3rem; font-weight: 500; color: var(--ink); }
+  .cat-desc { color: var(--ink-soft); font-size: 0.92rem; margin: 0 0 0.5rem; }
+  .obs-placeholder {
+    text-align: center; padding: 2rem 1rem;
+    background: var(--paper-warm);
+    border-radius: 2px;
+  }
+  .obs-placeholder p { margin: 0.3rem 0; }
+  .obs-placeholder .italic-fraunces { font-size: 1.2rem; color: var(--ink-soft); }
+</style>

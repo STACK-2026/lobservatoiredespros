@@ -1,0 +1,123 @@
+---
+/**
+ * Encart méthodologie réutilisable , fond paper-warm, barre haute encre, sources citées.
+ */
+import { siteConfig } from "../utils/config";
+
+interface Props {
+  title?: string;
+  compact?: boolean;
+  showCriteres?: boolean;
+  appliedTo?: string;
+}
+const {
+  title = "La methode appliquee",
+  compact = false,
+  showCriteres = true,
+  appliedTo,
+} = Astro.props;
+---
+
+<aside class={`encart-methodologie method-block ${compact ? "is-compact" : ""}`} aria-labelledby="method-title">
+  <header class="method-head">
+    <span class="meta-label-ink">Methodologie</span>
+    <h3 id="method-title" class="method-title">{title}</h3>
+    {appliedTo && <p class="method-applied italic-fraunces">{appliedTo}</p>}
+  </header>
+
+  {showCriteres && (
+    <ol class="method-criteres">
+      {siteConfig.scoringCriteres.map((c, i) => (
+        <li class="method-critere">
+          <span class="method-critere-num">{String(i + 1).padStart(2, "0")}</span>
+          <div class="method-critere-body">
+            <p class="method-critere-nom">
+              {c.nom}
+              <span class="method-poids">{c.poids} pt{c.poids > 1 ? "s" : ""}</span>
+            </p>
+            {!compact && <p class="method-critere-desc">{c.description}</p>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  )}
+
+  <footer class="method-foot">
+    <a href="/methode/" class="btn-ghost">Consulter la methode complete <span class="arrow">&rarr;</span></a>
+  </footer>
+</aside>
+
+<style>
+  .method-block { margin: 3rem 0; padding: 2rem 2.2rem; }
+  .method-block.is-compact { padding: 1.2rem 1.5rem; }
+  .method-head { margin-bottom: 1.4rem; }
+  .method-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    margin: 0.35rem 0 0;
+    color: var(--ink);
+  }
+  .method-applied {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0.5rem 0 0;
+  }
+  .method-criteres {
+    list-style: none;
+    padding: 0;
+    margin: 0.6rem 0 1.2rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+  @media (min-width: 768px) {
+    .method-criteres { grid-template-columns: 1fr 1fr; gap: 1rem 2rem; }
+  }
+  .method-critere {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: baseline;
+  }
+  .method-critere-num {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--or-deep);
+    letter-spacing: 0.04em;
+    padding-top: 0.12rem;
+  }
+  .method-critere-nom {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.02rem;
+    color: var(--ink);
+    margin: 0;
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .method-poids {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--or-deep);
+    background: rgba(184, 134, 61, 0.12);
+    padding: 0.1rem 0.5rem;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+  }
+  .method-critere-desc {
+    font-size: 0.88rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+    margin: 0.25rem 0 0;
+    max-width: 32rem;
+  }
+  .method-foot {
+    border-top: 1px dashed rgba(26, 22, 20, 0.2);
+    padding-top: 0.9rem;
+    margin-top: 0.4rem;
+  }
+</style>

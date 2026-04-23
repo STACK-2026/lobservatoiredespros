@@ -1,0 +1,58 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { prosByMetier } from "../../data/seed-pros";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "Metiers couverts , L'Observatoire des Pros";
+const description = "Liste des metiers couverts par l'edition en cours : plombier, electricien, couvreur, menuisier, entreprise d'isolation. Extension a venir.";
+const url = `${siteConfig.url}/metiers/`;
+
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Metiers", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="container-wide" style="padding: 2rem 0 4rem;">
+    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Metiers" }]} />
+    <Masthead category="METIERS COUVERTS" signature={`Edition N°${siteConfig.editionNumber}`} />
+    <h1 class="heading-display">Les metiers sous observation</h1>
+    <p class="lead">
+      L'edition {siteConfig.editionNumber} couvre cinq metiers prioritaires du BTP et des services a domicile. Extension prevue trimestre apres trimestre.
+    </p>
+
+    <section style="margin-top: 3rem;">
+      <EditorialHeader category="EDITION EN COURS" title="Cinq metiers classes" />
+      <div class="metiers-list">
+        {siteConfig.metiersPilote.map((m) => {
+          const count = prosByMetier(m.slug).length;
+          return (
+            <a href={`/${m.slug}/`} class="metier-row card-editorial curl">
+              <div>
+                <span class="meta-label">Code NAF {m.naf}</span>
+                <h2 class="italic-fraunces">{m.nomPluriel}</h2>
+                <p class="folio">{count} professionnels observes dans nos zones pilotes</p>
+              </div>
+              <span class="metier-arrow">&rarr;</span>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .metiers-list { display: grid; gap: 0.8rem; margin-top: 1.6rem; max-width: 54rem; }
+  .metier-row {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem;
+    padding: 1.4rem 1.6rem; text-decoration: none; color: var(--ink);
+    transition: transform 300ms var(--ease-out-expo), border-color 300ms;
+  }
+  .metier-row h2 { font-size: 1.6rem; margin: 0.2rem 0; font-weight: 500; color: var(--ink); }
+  .metier-row p { margin: 0; color: var(--ink-muted); }
+  .metier-arrow { font-size: 1.4rem; color: var(--or-deep); transition: transform 280ms var(--ease-out-quart); }
+  .metier-row:hover .metier-arrow { transform: translateX(5px); }
+</style>

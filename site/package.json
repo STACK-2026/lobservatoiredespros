@@ -1,0 +1,26 @@
+{
+  "name": "lobservatoiredespros",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "L'Observatoire des Pros , Classement éditorial des professionnels du BTP et services en France",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "postinstall": "echo 'L-Observatoire-des-Pros install OK'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.45.4",
+    "astro": "6.1.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.1.4",
+    "tailwindcss": "4.1.4",
+    "typescript": "5.6.3"
+  }
+}

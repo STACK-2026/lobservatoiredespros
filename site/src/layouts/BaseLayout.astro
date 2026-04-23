@@ -1,0 +1,290 @@
+---
+import { siteConfig, fontsUrl } from "../utils/config";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import CookieBanner from "../components/CookieBanner.astro";
+import Analytics from "../components/Analytics.astro";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  publishedTime?: string;
+  jsonLd?: object | object[];
+  noIndex?: boolean;
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description,
+  canonicalUrl = Astro.url.href,
+  ogImage = siteConfig.ogImage,
+  ogType = "website",
+  publishedTime,
+  jsonLd,
+  noIndex = false,
+  bodyClass = "",
+} = Astro.props;
+
+const imageUrl = ogImage?.startsWith("http") ? ogImage : `${siteConfig.url}${ogImage}`;
+const jsonLdArray = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+
+const jsonLdBase = [
+  {
+    "@context": "https://schema.org",
+    "@type": "NewsMediaOrganization",
+    "@id": `${siteConfig.url}#organization`,
+    name: siteConfig.name,
+    alternateName: siteConfig.shortName,
+    url: siteConfig.url,
+    logo: `${siteConfig.url}/favicon.svg`,
+    foundingDate: String(siteConfig.foundedYear),
+    description: siteConfig.description,
+    sameAs: [],
+    publishingPrinciples: `${siteConfig.url}/methode/`,
+    diversityPolicy: `${siteConfig.url}/a-propos/`,
+    ethicsPolicy: `${siteConfig.url}/methode/`,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteConfig.url}#website`,
+    url: siteConfig.url,
+    name: siteConfig.name,
+    inLanguage: siteConfig.locale,
+    publisher: { "@id": `${siteConfig.url}#organization` },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteConfig.url}/recherche/?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
+];
+const allJsonLd = [...jsonLdBase, ...jsonLdArray];
+---
+
+<!doctype html>
+<html lang={siteConfig.language}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F7F3EC" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={fontsUrl()} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta name="author" content={siteConfig.author} />
+    <meta name="keywords" content={siteConfig.keywords.join(", ")} />
+    <meta name="publisher" content={siteConfig.name} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <link rel="alternate" hreflang={siteConfig.locale} href={canonicalUrl} />
+    <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:alt" content={`${siteConfig.name} , ${title}`} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content={siteConfig.locale} />
+    <meta property="og:site_name" content={siteConfig.name} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="mask-icon" href="/favicon.svg" color="#1E3A52" />
+
+    <link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} , Observations`} href="/rss.xml" />
+    <link rel="alternate" type="text/plain" href="/llms.txt" />
+
+    {allJsonLd.map((ld) => (
+      <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+    ))}
+  </head>
+  <body class={`body-observatoire ${bodyClass}`}>
+    <div id="cursor-glow" aria-hidden="true"></div>
+    <a class="skip-link" href="#main">Passer au contenu</a>
+
+    <Header />
+
+    <main id="main" class="site-main">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <CookieBanner />
+    <Analytics />
+
+    <script>
+      const revealObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: window.innerWidth < 640 ? 0.15 : 0.1,
+          rootMargin: window.innerWidth < 640 ? "0px 0px -80px 0px" : "0px 0px -60px 0px",
+        }
+      );
+      document.querySelectorAll(
+        ".fade-up, .blur-reveal, .scale-reveal, .clip-reveal, .slide-left, .slide-right, .stagger-children, .split-words"
+      ).forEach((el) => revealObserver.observe(el));
+
+      document.querySelectorAll("[data-split-words]").forEach((el) => {
+        const text = el.textContent || "";
+        el.innerHTML = text
+          .split(/\s+/)
+          .map((word, i) => `<span class="word" style="transition-delay:${i * 55}ms">${word}</span>`)
+          .join(" ");
+        el.classList.add("split-words");
+        revealObserver.observe(el);
+      });
+
+      const counterObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+              const target = parseInt(el.dataset.count || el.textContent || "0", 10);
+              const duration = 1500;
+              const start = performance.now();
+              function tick(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 4);
+                const current = Math.round(eased * target);
+                el.textContent = current.toLocaleString("fr-FR").replace(/\s/g, " ");
+                if (progress < 1) requestAnimationFrame(tick);
+              }
+              requestAnimationFrame(tick);
+              counterObserver.unobserve(el);
+            }
+          });
+        },
+        { threshold: 0.3 }
+      );
+      document.querySelectorAll("[data-count]").forEach((el) => counterObserver.observe(el));
+
+      const parallaxEls = document.querySelectorAll("[data-parallax]");
+      if (parallaxEls.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        let ticking = false;
+        window.addEventListener("scroll", () => {
+          if (!ticking) {
+            requestAnimationFrame(() => {
+              const scrollY = window.scrollY;
+              parallaxEls.forEach((el) => {
+                const speed = parseFloat(el.dataset.parallax || "0.08");
+                const rect = el.getBoundingClientRect();
+                const offset = (rect.top + scrollY - window.innerHeight / 2) * speed;
+                el.style.transform = `translate3d(0, ${offset}px, 0)`;
+              });
+              ticking = false;
+            });
+            ticking = true;
+          }
+        }, { passive: true });
+      }
+
+      const glow = document.getElementById("cursor-glow");
+      if (glow && window.matchMedia("(pointer: fine)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        let x = 0, y = 0, tx = 0, ty = 0, visible = false;
+        document.addEventListener("mousemove", (e) => {
+          tx = e.clientX; ty = e.clientY;
+          if (!visible) { glow.style.opacity = "1"; visible = true; }
+        });
+        document.addEventListener("mouseleave", () => { glow.style.opacity = "0"; visible = false; });
+        function loop() {
+          x += (tx - x) * 0.09;
+          y += (ty - y) * 0.09;
+          glow.style.left = x + "px";
+          glow.style.top = y + "px";
+          requestAnimationFrame(loop);
+        }
+        loop();
+      }
+
+      if (window.matchMedia("(pointer: fine)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.querySelectorAll(".magnetic").forEach((el) => {
+          const elem = el;
+          const strength = 0.28;
+          elem.addEventListener("mousemove", (e) => {
+            const rect = elem.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = (e.clientX - cx) * strength;
+            const dy = (e.clientY - cy) * strength;
+            elem.style.transform = `translate(${dx}px, ${dy}px)`;
+          });
+          elem.addEventListener("mouseleave", () => {
+            elem.style.transition = "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)";
+            elem.style.transform = "translate(0, 0)";
+            setTimeout(() => { elem.style.transition = ""; }, 460);
+          });
+        });
+      }
+
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", (e) => {
+          const href = anchor.getAttribute("href");
+          if (!href || href === "#") return;
+          const target = document.querySelector(href);
+          if (!target) return;
+          e.preventDefault();
+          const top = target.getBoundingClientRect().top + window.scrollY - 96;
+          window.scrollTo({ top, behavior: "smooth" });
+        });
+      });
+
+      const rankList = document.querySelectorAll("[data-rank-item]");
+      if (rankList.length > 0) {
+        const currentRankEl = document.querySelector("[data-rank-current]");
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting && currentRankEl) {
+                const r = entry.target.getAttribute("data-rank-item");
+                currentRankEl.textContent = String(r).padStart(2, "0");
+              }
+            });
+          },
+          { rootMargin: "-40% 0px -55% 0px", threshold: 0 }
+        );
+        rankList.forEach((el) => io.observe(el));
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .site-main { flex: 1; min-height: 50vh; }
+  body.body-observatoire {
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  .skip-link {
+    position: absolute; top: -60px; left: 0; padding: 0.6rem 1rem;
+    background: var(--ink); color: var(--paper); z-index: 200;
+    text-decoration: none; font-family: var(--font-body);
+    transition: top 200ms;
+  }
+  .skip-link:focus { top: 0; }
+</style>

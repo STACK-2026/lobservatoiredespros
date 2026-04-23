@@ -1,0 +1,53 @@
+---
+/**
+ * Signature éditoriale , auteur(s), date, temps de lecture.
+ */
+interface Props {
+  authors?: { name: string; role?: string; slug?: string }[];
+  date?: string;
+  readingTime?: number;
+  updated?: string;
+}
+
+const { authors = [{ name: "La rédaction" }], date, readingTime, updated } = Astro.props;
+---
+
+<p class="byline">
+  <span class="byline-label">Par</span>{" "}
+  {authors.map((a, i) => (
+    <span>
+      {a.slug ? <a href={`/redaction/${a.slug}/`}>{a.name}</a> : <span class="byline-name">{a.name}</span>}
+      {a.role && <span class="byline-role">, {a.role}</span>}
+      {i < authors.length - 1 && <span>, </span>}
+    </span>
+  ))}
+  {date && <span class="byline-sep">|</span>}
+  {date && <time class="byline-date folio">{date}</time>}
+  {readingTime && <span class="byline-sep">|</span>}
+  {readingTime && <span class="folio">{readingTime} min de lecture</span>}
+  {updated && <span class="byline-sep">|</span>}
+  {updated && <span class="folio">Mise a jour {updated}</span>}
+</p>
+
+<style>
+  .byline {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.01em;
+    margin: 0.75rem 0 1.5rem;
+    line-height: 1.5;
+  }
+  .byline-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+  .byline-name { color: var(--ink); font-weight: 500; }
+  .byline a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(26,22,20,0.3); }
+  .byline a:hover { border-color: var(--or); color: var(--or-deep); }
+  .byline-role { font-style: italic; color: var(--ink-muted); }
+  .byline-sep { margin: 0 0.6rem; opacity: 0.4; }
+</style>

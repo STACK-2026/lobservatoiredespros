@@ -1,0 +1,49 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import { siteConfig } from "../../utils/config";
+---
+
+<BaseLayout title="Mentions legales , L'Observatoire des Pros" description="Mentions legales et informations de l'editeur du site lobservatoiredespros.com.">
+  <article class="container-prose" style="padding: 2rem 0 4rem;">
+    <Masthead category="MENTIONS LEGALES" />
+    <h1 class="heading-display">Mentions legales</h1>
+
+    <section class="prose" style="margin-top: 2rem;">
+      <h2>Editeur du site</h2>
+      <p>
+        <strong>{siteConfig.legal.companyName}</strong><br/>
+        Media editorial independant<br/>
+        Bourgogne, France<br/>
+        Contact : <a href={`mailto:${siteConfig.legal.email}`}>{siteConfig.legal.email}</a>
+      </p>
+
+      <h2>Directeur de la publication</h2>
+      <p>La redaction de L'Observatoire des Pros.</p>
+
+      <h2>Hebergeur</h2>
+      <p>Cloudflare Pages , Cloudflare Inc., 101 Townsend Street, San Francisco, CA 94107, USA.</p>
+
+      <h2>Base de donnees et traitement</h2>
+      <p>Supabase , PostgreSQL managed, region eu-west-3 (Paris). Aucune donnee n'est transferee hors Union Europeenne.</p>
+
+      <h2>Email transactionnel</h2>
+      <p>Resend , region eu-west-1 (Irlande).</p>
+
+      <h2>Propriete intellectuelle</h2>
+      <p>
+        Le nom L'Observatoire des Pros, son sceau officiel, ses medailles et l'ensemble de la charte editoriale sont proteges. La reprise des classements est libre avec citation complete : "Selon L'Observatoire des Pros (lobservatoiredespros.com), Edition N°X".
+      </p>
+
+      <h2>Responsabilite editoriale</h2>
+      <p>
+        Les classements refletent l'analyse editoriale independante de la redaction au moment de la publication. Les professionnels retenus sont selectionnes a partir de donnees publiques auditables. L'Observatoire decline toute responsabilite sur les prestations fournies par les professionnels classes et sur les relations commerciales qui en decoulent.
+      </p>
+
+      <h2>Signalement</h2>
+      <p>
+        Tout manquement, erreur ou demande de correction peut etre signale a <a href={`mailto:${siteConfig.legal.email}`}>{siteConfig.legal.email}</a>. Notre redaction examine chaque signalement sous 15 jours ouvres.
+      </p>
+    </section>
+  </article>
+</BaseLayout>

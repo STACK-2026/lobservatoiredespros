@@ -1,0 +1,131 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Seal from "../../components/Seal.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "Contact , L'Observatoire des Pros";
+const description = "Contacter la redaction : piste, signalement, demande de rectification, candidature, partenariat editorial.";
+const url = `${siteConfig.url}/contact/`;
+
+const destinations = [
+  { label: "Redaction", email: siteConfig.legal.email, role: "Pistes, signalements, corrections" },
+  { label: "Candidatures", email: siteConfig.legal.emailPro, role: "Portrait Verifie ou Laureat" },
+  { label: "Presse", email: "presse@lobservatoiredespros.com", role: "Demandes d'interview, donnees pour citation" },
+];
+
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Contact", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="contact-page">
+    <div class="container-editorial contact-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Contact" }]} />
+      <Masthead category="CONTACT" />
+      <h1 class="heading-display">Nous ecrire.</h1>
+      <p class="lead">
+        La redaction lit tous ses messages. Elle repond sous quinze jours ouvres maximum. Voici les bonnes adresses selon votre objet.
+      </p>
+    </div>
+
+    <section class="container-editorial contact-grid-section">
+      <div class="contact-grid stagger-children">
+        {destinations.map((d) => (
+          <div class="contact-card card-editorial">
+            <span class="meta-label-or">{d.label.toUpperCase()}</span>
+            <h2 class="italic-fraunces">{d.label}</h2>
+            <p class="contact-role">{d.role}</p>
+            <p class="contact-email">
+              <a href={`mailto:${d.email}`}>{d.email}</a>
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="container-editorial contact-form-section">
+      <h2 class="heading-display" style="font-size: clamp(1.6rem, 3vw, 2.2rem);">Formulaire generique</h2>
+      <p class="lead">Si vous preferez ecrire en ligne, ce formulaire transmet votre message directement a la redaction.</p>
+
+      <form class="contact-form" method="post" action="/api/contact">
+        <div class="form-row">
+          <label for="nom">Votre nom *</label>
+          <input id="nom" name="nom" required type="text" autocomplete="name" />
+        </div>
+        <div class="form-row">
+          <label for="email">Email *</label>
+          <input id="email" name="email" required type="email" autocomplete="email" />
+        </div>
+        <div class="form-row">
+          <label for="objet">Objet *</label>
+          <select id="objet" name="objet" required>
+            <option value="">Selectionnez</option>
+            <option value="piste">Une piste a partager</option>
+            <option value="signalement">Signalement d'un pro classe</option>
+            <option value="correction">Demande de correction</option>
+            <option value="candidature">Question sur une candidature</option>
+            <option value="presse">Presse / interview</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="message">Message *</label>
+          <textarea id="message" name="message" required rows="7"></textarea>
+        </div>
+        <div class="form-row form-consent">
+          <label>
+            <input type="checkbox" name="rgpd" required />
+            <span>J'accepte que L'Observatoire conserve ces informations aux fins de traitement de ma demande, conformement a la <a href="/politique-confidentialite/">politique de confidentialite</a>.</span>
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary magnetic">Envoyer</button>
+      </form>
+    </section>
+
+    <section class="container-editorial contact-seal-section">
+      <div class="contact-seal-block">
+        <Seal size={110} variant="or" animated={true} />
+        <p class="italic-fraunces">« Nous repondons. Toujours. »</p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .contact-page { padding: 2rem 0 4rem; }
+  .contact-head .heading-display { margin: 0.4rem 0 1rem; }
+  .contact-grid-section { padding: 1rem 0 2rem; }
+  .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.8rem; }
+  @media (max-width: 860px) { .contact-grid { grid-template-columns: 1fr; } }
+  .contact-card { padding: 1.4rem 1.5rem 1.5rem; display: grid; gap: 0.3rem; }
+  .contact-card h2 { font-size: 1.4rem; margin: 0.2rem 0 0.3rem; font-weight: 500; color: var(--ink); }
+  .contact-role { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 0.6rem; }
+  .contact-email a { color: var(--or-deep); font-family: var(--font-mono); font-size: 0.88rem; text-decoration: none; border-bottom: 1px dotted var(--or); }
+
+  .contact-form-section { padding: 2.5rem 0 2rem; }
+  .contact-form { margin-top: 1.6rem; display: grid; gap: 1.2rem; max-width: 38rem; }
+  .form-row { display: grid; gap: 0.35rem; }
+  .form-row label { font-size: 0.82rem; color: var(--ink-soft); font-weight: 500; }
+  .form-row input, .form-row select, .form-row textarea {
+    padding: 0.7rem 0.9rem; font-family: var(--font-body); font-size: 0.96rem;
+    border: 1px solid rgba(26, 22, 20, 0.2); background: var(--paper);
+    border-radius: 2px; color: var(--ink);
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    outline: 2px solid var(--or); outline-offset: 1px; border-color: var(--or);
+  }
+  .form-consent label {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.6rem;
+    align-items: start; font-size: 0.86rem; color: var(--ink-soft);
+  }
+  .form-consent input { margin-top: 0.2rem; }
+
+  .contact-seal-section { padding: 3rem 0 1rem; }
+  .contact-seal-block {
+    text-align: center; display: grid; justify-items: center; gap: 0.8rem;
+    padding: 2rem 0;
+  }
+  .contact-seal-block p { font-size: 1.2rem; color: var(--ink-muted); margin: 0; }
+</style>

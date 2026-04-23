@@ -1,0 +1,96 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import DropCap from "../../components/DropCap.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import ProCard from "../../components/ProCard.astro";
+import MethodologyBlock from "../../components/MethodologyBlock.astro";
+import { siteConfig } from "../../utils/config";
+import { prosByMetier, countProsByMetierDept } from "../../data/seed-pros";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+export function getStaticPaths() {
+  return siteConfig.metiersPilote.map((m) => ({ params: { metier: m.slug } }));
+}
+
+const { metier } = Astro.params as { metier: string };
+const metierObj = siteConfig.metiersPilote.find((m) => m.slug === metier)!;
+const tous = prosByMetier(metier);
+const top10 = tous.slice(0, 10);
+
+const title = `${metierObj.nomPluriel} en France , Classement ${siteConfig.editionYear} , L'Observatoire des Pros`;
+const description = `Classement editorial des ${metierObj.nomPluriel.toLowerCase()} en France, par departement. ${tous.length} professionnels retenus dans notre selection ${siteConfig.editionYear}.`;
+const url = `${siteConfig.url}/${metier}/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: metierObj.nomPluriel, url },
+  ]),
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
+  <article class="metier-page">
+    <div class="container-wide metier-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: metierObj.nomPluriel }]} />
+      <Masthead category={`METIER , ${metierObj.nomPluriel.toUpperCase()}`} signature="France entiere" />
+      <h1 class="heading-display">Les meilleurs <span class="italic-fraunces">{metierObj.nomPluriel.toLowerCase()}</span> de France</h1>
+      <p class="lead">
+        {tous.length} professionnels retenus par notre redaction dans l'edition N°{siteConfig.editionNumber}. Classement departement par departement, score par score.
+      </p>
+    </div>
+
+    <section class="container-wide metier-depts">
+      <EditorialHeader category="PAR DEPARTEMENT" title={`${metierObj.nomPluriel} par zone geographique`} />
+      <div class="depts-grid stagger-children">
+        {siteConfig.departementsPilote.map((d) => (
+          <a class="dept-card card-editorial curl" href={`/${metier}/${d.slug}/`}>
+            <span class="meta-label">{d.region}</span>
+            <h3 class="italic-fraunces">{d.nom} ({d.code})</h3>
+            <p class="folio">{countProsByMetierDept(metier, d.slug)} observations &middot; consulter le classement &rarr;</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="container-wide metier-top">
+      <EditorialHeader category="TOP FRANCE" title={`Les ${Math.min(10, top10.length)} ${metierObj.nomPluriel.toLowerCase()} les mieux notes, toutes zones confondues`} subtitle={`Extrait transversal. Pour le classement complet departemental, choisissez une zone ci-dessus.`} />
+      <div class="top-list">
+        {top10.map((p, i) => (
+          <ProCard
+            rank={i + 1}
+            name={p.nom}
+            slug={p.slug}
+            score={p.score}
+            tier={p.tier}
+            ville={p.ville}
+            ancienneteAnnees={p.ancienneteAnnees}
+            rge={p.rge}
+            qualibat={p.qualibat}
+            specialites={p.specialites}
+            resumeCourt={p.resumeCourt}
+          />
+        ))}
+      </div>
+    </section>
+
+    <section class="container-wide"><MethodologyBlock /></section>
+  </article>
+</BaseLayout>
+
+<style>
+  .metier-page { padding: 2rem 0 4rem; }
+  .metier-head { max-width: 60rem; margin: 0 auto; padding-bottom: 2rem; }
+  .metier-head .heading-display { margin: 0.4rem 0 1rem; }
+
+  .metier-depts { padding: 2rem 0 3rem; max-width: 62rem; margin: 0 auto; }
+  .depts-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.6rem; }
+  @media (max-width: 760px) { .depts-grid { grid-template-columns: 1fr; } }
+  .dept-card { padding: 1.2rem 1.3rem; text-decoration: none; color: var(--ink); display: grid; gap: 0.3rem; }
+  .dept-card h3 { font-size: 1.25rem; margin: 0.2rem 0; font-weight: 500; color: var(--ink); }
+
+  .metier-top { padding: 2rem 0 3rem; max-width: 62rem; margin: 0 auto; }
+  .top-list { display: grid; gap: 1rem; }
+</style>

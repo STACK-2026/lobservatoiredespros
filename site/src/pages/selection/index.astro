@@ -1,0 +1,76 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import ProCard from "../../components/ProCard.astro";
+import { siteConfig } from "../../utils/config";
+import { prosSeed } from "../../data/seed-pros";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = `La selection ${siteConfig.editionYear} , L'Observatoire des Pros`;
+const description = "La selection editoriale de l'edition en cours. Tous les professionnels retenus, triés par Score de Confiance, toutes zones et tous metiers.";
+const url = `${siteConfig.url}/selection/`;
+
+const laureats = prosSeed.filter((p) => p.tier === "or").sort((a, b) => b.score - a.score);
+const verifies = prosSeed.filter((p) => p.tier === "argent").sort((a, b) => b.score - a.score);
+
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Selection", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
+  <div class="container-wide" style="padding: 2rem 0 4rem;">
+    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La selection" }]} />
+    <Masthead category="LA SELECTION" signature={`Edition N°${siteConfig.editionNumber} , ${siteConfig.editionMonth} ${siteConfig.editionYear}`} />
+    <h1 class="heading-display">La selection {siteConfig.editionYear}.</h1>
+    <p class="lead">
+      Les professionnels retenus par notre redaction, toutes zones couvertes, toutes distinctions confondues. {laureats.length} Portraits Laureats. {verifies.length} Portraits Verifies. {prosSeed.length - laureats.length - verifies.length} Portraits Recommandes.
+    </p>
+
+    <section style="margin-top: 3rem;">
+      <EditorialHeader category="MEDAILLES D'OR" title="Les Laureats de l'edition" subtitle="Distinctions reservees aux dossiers ayant fait l'objet d'un entretien approfondi et d'une verification terrain." />
+      <div class="selection-list">
+        {laureats.map((p, i) => (
+          <ProCard
+            rank={i + 1}
+            name={p.nom}
+            slug={p.slug}
+            score={p.score}
+            tier={p.tier}
+            ville={p.ville}
+            ancienneteAnnees={p.ancienneteAnnees}
+            rge={p.rge}
+            qualibat={p.qualibat}
+            specialites={p.specialites}
+            resumeCourt={p.resumeCourt}
+          />
+        ))}
+      </div>
+    </section>
+
+    <section style="margin-top: 4rem;">
+      <EditorialHeader category="MEDAILLES D'ARGENT" title="Les Verifies de l'edition" />
+      <div class="selection-list">
+        {verifies.map((p, i) => (
+          <ProCard
+            rank={i + 1}
+            name={p.nom}
+            slug={p.slug}
+            score={p.score}
+            tier={p.tier}
+            ville={p.ville}
+            ancienneteAnnees={p.ancienneteAnnees}
+            rge={p.rge}
+            qualibat={p.qualibat}
+            specialites={p.specialites}
+            resumeCourt={p.resumeCourt}
+          />
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .selection-list { display: grid; gap: 1rem; max-width: 62rem; margin: 1.6rem auto 0; }
+</style>

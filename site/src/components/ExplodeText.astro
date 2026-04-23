@@ -1,0 +1,85 @@
+---
+/**
+ * ExplodeText - Letters scatter then reform
+ * Triggered on scroll entry, letters explode outward then spring back
+ * Pure JS, overshoot bounce easing
+ */
+interface Props {
+  text: string;
+  class?: string;
+  scatter?: number;
+}
+
+const {
+  text,
+  class: className = "",
+  scatter = 200,
+} = Astro.props;
+---
+
+<span
+  class={`explode-text ${className}`}
+  data-explode-text={text}
+  data-explode-scatter={scatter}
+  aria-label={text}
+  style="display: inline-block; white-space: nowrap;"
+>
+  {text.split("").map((ch, i) => (
+    <span class="explode-char" aria-hidden="true" style="display: inline-block;" data-index={i}>
+      {ch === " " ? "\u00a0" : ch}
+    </span>
+  ))}
+</span>
+
+<script>
+  function initExplode() {
+    document.querySelectorAll(".explode-text:not([data-explode-init])").forEach((el) => {
+      const elem = el as HTMLElement;
+      elem.setAttribute("data-explode-init", "1");
+      const scatter = parseInt(elem.dataset.explodeScatter || "200");
+      const chars = elem.querySelectorAll(".explode-char") as NodeListOf<HTMLElement>;
+
+      // Pre-set scattered state (invisible)
+      chars.forEach((ch) => {
+        const rx = (Math.random() - 0.5) * scatter * 2;
+        const ry = (Math.random() - 0.5) * scatter;
+        const rr = (Math.random() - 0.5) * 90;
+        ch.style.transform = `translate(${rx}px, ${ry}px) rotate(${rr}deg)`;
+        ch.style.opacity = "0";
+      });
+
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Reform with overshoot bounce
+            chars.forEach((ch, i) => {
+              setTimeout(() => {
+                ch.style.transition = "transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease";
+                ch.style.transform = "translate(0, 0) rotate(0deg)";
+                ch.style.opacity = "1";
+              }, i * 25);
+            });
+            obs.unobserve(elem);
+          }
+        });
+      }, { threshold: 0.2 });
+      obs.observe(elem);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initExplode);
+  } else {
+    initExplode();
+  }
+</script>
+
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    .explode-char {
+      transform: none !important;
+      opacity: 1 !important;
+      transition: none !important;
+    }
+  }
+</style>

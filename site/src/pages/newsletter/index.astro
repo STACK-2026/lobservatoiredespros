@@ -1,0 +1,93 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Seal from "../../components/Seal.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "La lettre de L'Observatoire , Newsletter mensuelle";
+const description = "Chaque mois, la lettre de L'Observatoire : une observation majeure, un portrait, une question de methode. Gratuit, desabonnement en un clic.";
+const url = `${siteConfig.url}/newsletter/`;
+
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "La lettre", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="newsletter-page">
+    <div class="container-editorial nl-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La lettre" }]} />
+      <Masthead category="LETTRE MENSUELLE" signature="Par la redaction" />
+
+      <div class="nl-hero">
+        <Seal size={180} variant="or" animated={true} />
+        <h1 class="heading-display">La lettre de L'Observatoire.</h1>
+        <p class="lead">
+          Chaque mois, un numero epuré : une observation majeure, un portrait, une question de methode. Pas de pub. Pas de tracking invasif. Desabonnement en un clic.
+        </p>
+      </div>
+
+      <form class="nl-form" method="post" action="/api/newsletter">
+        <label class="sr-only" for="email">Adresse email</label>
+        <input id="email" type="email" name="email" required placeholder="votre adresse email" autocomplete="email" />
+        <button type="submit" class="btn btn-observatoire magnetic">Recevoir la lettre</button>
+      </form>
+
+      <p class="nl-meta meta-label">Gratuit &middot; mensuel &middot; archives consultables &middot; desabonnement en un clic</p>
+    </div>
+
+    <section class="container-editorial nl-details">
+      <h2>Ce que vous recevez</h2>
+      <ul class="nl-ul">
+        <li><strong>Une observation majeure</strong> , l'enquete ou le dossier du mois presente en un paragraphe, avec lien vers l'article integral.</li>
+        <li><strong>Un portrait</strong> , la rencontre marquante avec un artisan ou une entreprise.</li>
+        <li><strong>Une question de methode</strong> , un detail de la grille ou un ajustement editorial explique.</li>
+        <li><strong>Le calendrier des prochaines editions</strong> , dates et zones couvertes.</li>
+      </ul>
+      <h2>Nos engagements</h2>
+      <ul class="nl-ul">
+        <li>Aucune publicite, aucun lien affilie.</li>
+        <li>Aucun partage de vos donnees avec des tiers.</li>
+        <li>Un seul envoi par mois, pas d'email commercial intercalé.</li>
+        <li>Desabonnement en un clic depuis chaque email.</li>
+      </ul>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .newsletter-page { padding: 2rem 0 4rem; }
+  .nl-head { max-width: 42rem; margin: 0 auto; }
+  .nl-hero {
+    text-align: center;
+    display: grid; justify-items: center; gap: 1rem;
+    padding: 2rem 0 1rem;
+  }
+  .nl-hero .heading-display { margin: 0.4rem 0 0.7rem; }
+  .nl-form {
+    display: flex; gap: 0.7rem; flex-wrap: wrap;
+    max-width: 28rem; margin: 1.5rem auto 0.5rem;
+    width: 100%;
+  }
+  .nl-form input {
+    flex: 1 1 220px; padding: 0.9rem 1.1rem;
+    font-family: var(--font-body); font-size: 0.96rem;
+    border: 1px solid rgba(26, 22, 20, 0.2);
+    background: var(--paper); border-radius: 2px; color: var(--ink); min-width: 0;
+  }
+  .nl-form input:focus { outline: 2px solid var(--or); outline-offset: 1px; }
+  .nl-meta { text-align: center; color: var(--ink-muted); font-size: 0.72rem; margin-top: 0.9rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+
+  .nl-details { padding: 3rem 0; }
+  .nl-details h2 { margin-top: 2rem; font-size: 1.4rem; font-weight: 500; }
+  .nl-ul { list-style: none; padding: 0; margin: 0 0 1.5rem; display: grid; gap: 0.55rem; }
+  .nl-ul li {
+    padding: 0.75rem 1rem;
+    background: var(--paper-warm);
+    border-left: 2px solid var(--or);
+    border-radius: 0 2px 2px 0;
+    color: var(--ink-soft);
+  }
+  .nl-ul strong { color: var(--ink); font-weight: 600; }
+</style>

@@ -1,0 +1,55 @@
+---
+/**
+ * Masthead , en-tête éditorial fin (ligne + date + numéro édition + catégorie).
+ * Placé en haut des pages éditoriales, sous le Header principal.
+ */
+import { siteConfig, dateFR, editionLabel } from "../utils/config";
+
+interface Props {
+  category?: string;
+  edition?: number;
+  date?: string;
+  signature?: string;
+}
+
+const {
+  category,
+  edition = siteConfig.editionNumber,
+  date = dateFR(),
+  signature,
+} = Astro.props;
+---
+
+<header class="masthead">
+  <div class="hairline"></div>
+  <div class="masthead-row">
+    <div class="masthead-left">
+      {category && <span class="meta-label-ink">{category}</span>}
+    </div>
+    <div class="masthead-center">
+      <span class="folio">{editionLabel(edition)} &middot; {date}</span>
+    </div>
+    <div class="masthead-right">
+      {signature && <span class="meta-label italic-fraunces" style="font-style: italic; text-transform: none; letter-spacing: 0.03em;">{signature}</span>}
+    </div>
+  </div>
+  <div class="hairline"></div>
+</header>
+
+<style>
+  .masthead { padding: 0; margin: 2rem 0 2.5rem; }
+  .masthead-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.72rem 0;
+  }
+  .masthead-left { justify-self: start; }
+  .masthead-right { justify-self: end; }
+  .masthead-center { justify-self: center; text-align: center; }
+  @media (max-width: 720px) {
+    .masthead-row { grid-template-columns: 1fr; gap: 0.3rem; text-align: center; }
+    .masthead-left, .masthead-right { justify-self: center; }
+  }
+</style>

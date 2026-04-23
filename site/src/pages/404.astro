@@ -1,0 +1,98 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TelescopeWatermark from "../components/TelescopeWatermark.astro";
+import Seal from "../components/Seal.astro";
+import { siteConfig } from "../utils/config";
+---
+
+<BaseLayout
+  title={`Page introuvable , ${siteConfig.name}`}
+  description="Cette page n'existe pas dans nos archives. Notre redaction n'a pas observe cette adresse."
+  noIndex
+>
+  <section class="notfound-section">
+    <TelescopeWatermark side="right" size={440} parallax={0.1} />
+    <div class="container-editorial notfound-inner">
+      <div class="hairline"></div>
+      <p class="meta-label-or">Archives &middot; 404</p>
+
+      <h1 class="heading-display notfound-title blur-reveal">
+        <span class="italic-fraunces">Hors-champ.</span>
+      </h1>
+
+      <p class="lead fade-up">
+        Notre redaction n'a pas observe cette adresse. La page demandee est soit introuvable, soit deplacee dans les archives.
+      </p>
+
+      <div class="notfound-seal fade-up">
+        <Seal size={140} variant="or" animated={true} />
+      </div>
+
+      <div class="notfound-links stagger-children">
+        <a class="notfound-link" href="/">
+          <span class="meta-label-or">Accueil</span>
+          <span>Consulter l'edition en cours</span>
+        </a>
+        <a class="notfound-link" href="/selection/">
+          <span class="meta-label-or">La selection</span>
+          <span>Parcourir les classements</span>
+        </a>
+        <a class="notfound-link" href="/methode/">
+          <span class="meta-label-or">La methode</span>
+          <span>Comprendre notre demarche</span>
+        </a>
+        <a class="notfound-link" href="/candidater/">
+          <span class="meta-label-or">Candidater</span>
+          <span>Postuler a l'edition 2026</span>
+        </a>
+      </div>
+
+      <p class="notfound-signature italic-fraunces">
+        « Ce qu'on n'observe pas n'existe pas encore. »
+      </p>
+      <p class="folio">La redaction &middot; Edition N°{siteConfig.editionNumber}</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .notfound-section { padding: 6rem 0; min-height: 70vh; position: relative; overflow: hidden; }
+  .notfound-inner { text-align: center; position: relative; z-index: 1; }
+  .notfound-inner .hairline { margin: 0 auto 1.2rem; width: 4rem; }
+  .notfound-title { margin: 1rem 0 1.8rem; font-size: clamp(3rem, 7vw, 5.5rem); }
+  .notfound-seal { margin: 2rem auto 2.4rem; display: inline-block; }
+  .notfound-links {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    max-width: 36rem;
+    margin: 2rem auto 2.4rem;
+  }
+  @media (max-width: 540px) { .notfound-links { grid-template-columns: 1fr; } }
+  .notfound-link {
+    display: grid;
+    gap: 0.3rem;
+    padding: 1rem 1.2rem;
+    text-align: left;
+    text-decoration: none;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.1);
+    border-radius: 2px;
+    color: var(--ink);
+    transition: border-color 240ms, transform 240ms var(--ease-out-quart);
+  }
+  .notfound-link:hover {
+    border-color: var(--or);
+    transform: translateY(-2px);
+  }
+  .notfound-link span:last-child {
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .notfound-signature {
+    margin: 2rem auto 0.5rem;
+    font-size: 1.2rem;
+    color: var(--ink-muted);
+  }
+</style>

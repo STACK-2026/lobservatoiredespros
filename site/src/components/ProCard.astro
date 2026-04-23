@@ -1,0 +1,215 @@
+---
+/**
+ * ProCard , entrée dans un classement, 3 variantes selon tier.
+ * Tier "or" (Lauréat) = papier warm + médaille + photos preview
+ * Tier "argent" (Vérifié) = card normale + médaille + petits accents
+ * Tier "gratuit" (Recommandé) = card sobre
+ */
+import Medaille from "./Medaille.astro";
+
+interface Props {
+  rank: number;
+  name: string;
+  slug: string;
+  score: number;
+  tier?: "or" | "argent" | "gratuit";
+  specialites?: string[];
+  zoneIntervention?: string;
+  ville?: string;
+  ancienneteAnnees?: number;
+  rge?: boolean;
+  qualibat?: boolean;
+  resumeCourt?: string;
+  previewImages?: string[];
+}
+
+const {
+  rank,
+  name,
+  slug,
+  score,
+  tier = "gratuit",
+  specialites = [],
+  zoneIntervention,
+  ville,
+  ancienneteAnnees,
+  rge = false,
+  qualibat = false,
+  resumeCourt,
+  previewImages = [],
+} = Astro.props;
+
+const scorePct = Math.min(100, Math.max(0, (score / 10) * 100));
+const tierClass = `pro-${tier}`;
+const rankStr = String(rank).padStart(2, "0");
+---
+
+<article class={`pro-card fade-up curl ${tierClass}`} data-tier={tier}>
+  <div class="pro-rank-col">
+    <span class="rank-num rank-ink">{rankStr}</span>
+  </div>
+  <div class="pro-body">
+    <div class="pro-head">
+      <div class="pro-head-titles">
+        <h3 class="pro-name">
+          <a href={`/pro/${slug}/`}>{name}</a>
+        </h3>
+        {(ville || zoneIntervention) && (
+          <p class="pro-loc meta-label">{ville}{ville && zoneIntervention && " · "}{zoneIntervention}</p>
+        )}
+      </div>
+      {tier !== "gratuit" && <div class="pro-medaille-slot"><Medaille tier={tier} /></div>}
+    </div>
+
+    {resumeCourt && <p class="pro-resume italic-fraunces">{resumeCourt}</p>}
+
+    <div class="pro-meta-row">
+      <div class="score-bar" title="Score de Confiance">
+        <span class="score-value">{score.toFixed(1)}</span>
+        <span class="score-max">/ 10</span>
+        <span class="score-track" aria-hidden="true">
+          <span class="score-fill" style={`width: ${scorePct}%;`}></span>
+        </span>
+      </div>
+      <div class="pro-badges">
+        {rge && <span class="pro-badge">RGE</span>}
+        {qualibat && <span class="pro-badge">Qualibat</span>}
+        {ancienneteAnnees && <span class="pro-badge pro-badge-soft">{ancienneteAnnees} ans</span>}
+      </div>
+    </div>
+
+    {specialites.length > 0 && (
+      <ul class="pro-specialites">
+        {specialites.slice(0, 4).map((s) => <li>{s}</li>)}
+      </ul>
+    )}
+
+    {tier === "or" && previewImages.length > 0 && (
+      <div class="pro-preview-row">
+        {previewImages.slice(0, 3).map((src) => (
+          <div class="pro-preview-cell" style={`background-image: url(${src});`} aria-hidden="true"></div>
+        ))}
+      </div>
+    )}
+
+    <footer class="pro-foot">
+      <a class="btn-ghost" href={`/pro/${slug}/`}>Lire le portrait complet <span class="arrow">&rarr;</span></a>
+    </footer>
+  </div>
+</article>
+
+<style>
+  .pro-card {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 1.2rem;
+    padding: 1.8rem 1.6rem 1.9rem;
+    border: 1px solid rgba(26, 22, 20, 0.1);
+    background: var(--paper);
+    border-radius: 4px;
+    position: relative;
+    transition: transform 380ms var(--ease-out-expo), box-shadow 380ms var(--ease-out-expo), border-color 380ms var(--ease-out-expo);
+  }
+  .pro-card.pro-or {
+    background: linear-gradient(180deg, var(--paper-warm) 0%, var(--paper) 55%);
+    border-color: rgba(184, 134, 61, 0.45);
+  }
+  .pro-card.pro-argent {
+    border-color: rgba(26, 22, 20, 0.14);
+  }
+  .pro-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+    border-color: rgba(184, 134, 61, 0.55);
+  }
+  .pro-rank-col { padding-top: 0.25rem; }
+  @media (max-width: 640px) {
+    .pro-card { grid-template-columns: 1fr; }
+    .pro-rank-col .rank-num { font-size: 3rem; }
+  }
+  .pro-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .pro-name {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.3rem, 2vw, 1.7rem);
+    letter-spacing: -0.015em;
+    margin: 0;
+    line-height: 1.15;
+  }
+  .pro-name a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 220ms ease; }
+  .pro-name a:hover { border-color: var(--or); }
+  .pro-loc { margin-top: 0.35rem; }
+  .pro-medaille-slot { flex-shrink: 0; }
+  .pro-resume {
+    font-size: 1rem;
+    color: var(--ink-soft);
+    margin: 0.9rem 0 1rem;
+    line-height: 1.5;
+    max-width: 44rem;
+  }
+  .pro-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+  }
+  .pro-badges {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+  .pro-badge {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.22rem 0.55rem;
+    border: 1px solid var(--or-deep);
+    color: var(--or-deep);
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pro-badge-soft {
+    color: var(--ink-muted);
+    border-color: rgba(26, 22, 20, 0.18);
+    font-weight: 500;
+  }
+  .pro-specialites {
+    list-style: none;
+    padding: 0;
+    margin: 0.9rem 0 0;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .pro-specialites li {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    padding: 0.2rem 0.55rem;
+    background: rgba(26, 22, 20, 0.04);
+    border-radius: 2px;
+    border: 1px solid rgba(26, 22, 20, 0.08);
+  }
+  .pro-preview-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+    margin-top: 1rem;
+    height: 92px;
+  }
+  .pro-preview-cell {
+    background: var(--paper-deep);
+    background-size: cover;
+    background-position: center;
+    border-radius: 2px;
+    border: 1px solid rgba(26, 22, 20, 0.1);
+  }
+  .pro-foot { margin-top: 1.1rem; }
+</style>

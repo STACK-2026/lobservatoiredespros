@@ -1,0 +1,237 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import ByLine from "../../components/ByLine.astro";
+import DropCap from "../../components/DropCap.astro";
+import PullQuote from "../../components/PullQuote.astro";
+import Medaille from "../../components/Medaille.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { prosSeed, proBySlug } from "../../data/seed-pros";
+import { jsonLdBreadcrumbs, jsonLdLocalBusiness } from "../../utils/seo";
+
+export function getStaticPaths() {
+  return prosSeed.map((p) => ({ params: { slug: p.slug }, props: { pro: p } }));
+}
+
+const { pro } = Astro.props as { pro: ReturnType<typeof proBySlug> };
+const p = pro!;
+const metierObj = siteConfig.metiersPilote.find((m) => m.slug === p.metier);
+const deptObj = siteConfig.departementsPilote.find((d) => d.slug === p.departement);
+
+const title = `${p.nom} , ${metierObj?.nom} a ${p.ville} (${deptObj?.code}) , L'Observatoire des Pros`;
+const description = `Portrait ${p.tier === "or" ? "Laureat" : p.tier === "argent" ? "Verifie" : "Recommande"} de ${p.nom}, ${metierObj?.nom?.toLowerCase()} a ${p.ville}. Score de Confiance ${p.score}/10. ${p.resumeCourt}`;
+const url = `${siteConfig.url}/pro/${p.slug}/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: metierObj?.nomPluriel || "", url: `${siteConfig.url}/${p.metier}/` },
+    { name: deptObj?.nom || "", url: `${siteConfig.url}/${p.metier}/${p.departement}/` },
+    { name: p.nom, url },
+  ]),
+  jsonLdLocalBusiness({
+    name: p.nom,
+    url,
+    description: p.resumeCourt,
+    address: {
+      addressLocality: p.ville,
+      postalCode: p.codePostal,
+      addressCountry: "FR",
+    },
+    aggregateRating: p.avisMoyen ? { ratingValue: p.score, ratingCount: p.avisNombre } : undefined,
+  }),
+];
+
+const tierLabel = p.tier === "or" ? "Portrait Laureat" : p.tier === "argent" ? "Portrait Verifie" : "Portrait Recommande";
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
+  <article class={`portrait-page portrait-${p.tier}`}>
+    <div class="container-wide portrait-head">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: metierObj?.nomPluriel || "", href: `/${p.metier}/` },
+          { label: deptObj?.nom || "", href: `/${p.metier}/${p.departement}/` },
+          { label: p.nom },
+        ]}
+      />
+
+      <Masthead category={tierLabel.toUpperCase()} signature={`${p.ville} (${p.codePostal})`} />
+
+      <div class="portrait-head-row">
+        <div>
+          <h1 class="heading-display">{p.nom}</h1>
+          <p class="lead italic-fraunces" style="margin-top: 0.4rem;">
+            {metierObj?.nom} a {p.ville} ({deptObj?.code}) &middot; {p.ancienneteAnnees} annees d'activite
+          </p>
+        </div>
+        <div class="portrait-head-medaille">
+          {p.tier !== "gratuit" && <Medaille tier={p.tier} />}
+        </div>
+      </div>
+
+      <ByLine
+        authors={[{ name: "La redaction" }]}
+        date={`${siteConfig.editionMonth} ${siteConfig.editionYear}`}
+        readingTime={p.tier === "or" ? 8 : 3}
+      />
+
+      <div class="portrait-stats">
+        <div>
+          <p class="stat-val" style="color: var(--or-deep);">{p.score}</p>
+          <p class="stat-lbl">Score de Confiance / 10</p>
+        </div>
+        <div>
+          <p class="stat-val">{p.ancienneteAnnees}</p>
+          <p class="stat-lbl">Annees d'activite</p>
+        </div>
+        {p.salaries && (
+          <div>
+            <p class="stat-val">{p.salaries}</p>
+            <p class="stat-lbl">Salaries</p>
+          </div>
+        )}
+        {p.avisNombre && (
+          <div>
+            <p class="stat-val">{p.avisMoyen?.toFixed(1)}</p>
+            <p class="stat-lbl">Moyenne avis ({p.avisNombre})</p>
+          </div>
+        )}
+      </div>
+
+      <div class="portrait-badges">
+        {p.rge && <span class="pro-badge">RGE</span>}
+        {p.qualibat && <span class="pro-badge">Qualibat</span>}
+        {p.siretMasque && <span class="pro-badge pro-badge-soft">SIRET verifie</span>}
+        {p.specialites.map((s) => <span class="pro-badge pro-badge-soft">{s}</span>)}
+      </div>
+    </div>
+
+    <div class="container-prose portrait-prose">
+      {p.tier === "or" && p.portrait && (
+        <section class="prose">
+          <DropCap>{p.portrait}</DropCap>
+          {p.citation && (
+            <PullQuote cite={p.citation.auteur} align="center">
+              {p.citation.text}
+            </PullQuote>
+          )}
+          <h2>Demarche editoriale</h2>
+          <p>
+            Notre redaction a rencontre {p.nom.split(" ")[0]} en avril {siteConfig.editionYear}. Trois clients finaux references ont ete contactes pour verification. Deux realisations recentes ont ete visitees. La presence des certifications {p.rge ? "RGE" : ""}{p.rge && p.qualibat ? " et " : ""}{p.qualibat ? "Qualibat" : ""} a ete confirmee sur les bases officielles.
+          </p>
+          <h2>Le verdict</h2>
+          <p>
+            {p.nom} obtient la <strong>medaille d'Or</strong> de cette edition. Ce choix editorial repose sur la coherence entre le Score de Confiance ({p.score}/10), la regularite des avis clients, la precision des realisations observees, et la clarte du discours du dirigeant.
+          </p>
+        </section>
+      )}
+
+      {p.tier === "argent" && (
+        <section class="prose">
+          <DropCap>
+            Ce portrait a ete complete par {p.nom} apres examen de son dossier par notre redaction. Le contenu factuel ci-dessous a ete verifie avec les sources publiques. Les declarations commerciales relevent de la responsabilite du candidat.
+          </DropCap>
+          <h2>Activite et specialites</h2>
+          <p>{p.resumeCourt}</p>
+          <p>
+            Specialites revendiquees : {p.specialites.join(", ")}. {p.rge && "Entreprise certifiee RGE."} {p.qualibat && "Qualification Qualibat confirmee."}
+          </p>
+        </section>
+      )}
+
+      {p.tier === "gratuit" && (
+        <section class="prose">
+          <p class="lead">
+            Ce portrait est un <strong>Portrait Recommande</strong> , listing automatique base sur les donnees publiques. Il n'a pas ete complete par le professionnel.
+          </p>
+          <div class="portrait-enrichir">
+            <h3>Vous etes {p.nom} ?</h3>
+            <p>
+              Candidater a un Portrait Verifie ou Laureat vous permet d'enrichir ce portrait avec photos, description detaillee, lien vers votre site, numero de telephone direct. Votre Score de Confiance et votre position dans le classement ne sont pas modifies.
+            </p>
+            <a class="btn btn-observatoire magnetic" href="/candidater/">Candidater</a>
+          </div>
+        </section>
+      )}
+
+      <section class="prose portrait-sources">
+        <h2>Sources verifiees</h2>
+        <ul>
+          <li><strong>INSEE Sirene</strong> , entreprise active, code NAF {metierObj?.naf}</li>
+          {p.rge && <li><strong>France Renov</strong> , certification RGE confirmee sur france-renov.gouv.fr</li>}
+          {p.qualibat && <li><strong>Qualibat</strong> , qualification confirmee sur qualibat.com</li>}
+          {p.siteWeb && <li><strong>Site web professionnel</strong> , <a href={p.siteWeb} rel="nofollow noopener">{p.siteWeb.replace(/^https?:\/\//, "")}</a></li>}
+          {p.avisMoyen && <li><strong>Avis publics</strong> , moyenne {p.avisMoyen.toFixed(1)}/5 sur {p.avisNombre} avis (Google Business)</li>}
+        </ul>
+      </section>
+    </div>
+
+    <div class="container-wide portrait-foot">
+      <hr class="hairline" />
+      <p class="folio" style="text-align: center;">
+        Portrait publie dans {siteConfig.name} , Edition N°{siteConfig.editionNumber} &middot; {siteConfig.editionMonth} {siteConfig.editionYear}
+      </p>
+      <p style="text-align: center; margin-top: 1rem;">
+        <a class="btn-ghost" href={`/${p.metier}/${p.departement}/`}>Retour au classement {metierObj?.nomPluriel} {deptObj?.nom} <span class="arrow">&larr;</span></a>
+      </p>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .portrait-page { padding: 2rem 0 4rem; }
+  .portrait-head { max-width: 62rem; margin: 0 auto; padding: 0 clamp(1.25rem, 5vw, 5rem); }
+  .portrait-head-row {
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 1.5rem; align-items: start; margin-top: 0.5rem;
+  }
+  .portrait-head-medaille { padding-top: 0.4rem; }
+  @media (max-width: 640px) { .portrait-head-row { grid-template-columns: 1fr; } }
+
+  .portrait-stats {
+    display: flex; gap: 2.2rem; flex-wrap: wrap;
+    margin: 1.8rem 0 1.4rem;
+    padding: 1.2rem 0;
+    border-top: 1px solid rgba(26, 22, 20, 0.1);
+    border-bottom: 1px solid rgba(26, 22, 20, 0.1);
+  }
+  .portrait-stats .stat-val {
+    font-family: var(--font-display); font-size: 2rem; font-weight: 500;
+    color: var(--ink); letter-spacing: -0.02em; margin: 0; line-height: 1;
+  }
+  .portrait-stats .stat-lbl {
+    font-size: 0.72rem; color: var(--ink-muted);
+    text-transform: uppercase; letter-spacing: 0.12em; margin: 0.25rem 0 0;
+  }
+
+  .portrait-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .pro-badge {
+    font-family: var(--font-body); font-size: 0.7rem; font-weight: 600;
+    padding: 0.22rem 0.55rem; border: 1px solid var(--or-deep);
+    color: var(--or-deep); border-radius: 2px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .pro-badge-soft {
+    color: var(--ink-muted); border-color: rgba(26, 22, 20, 0.18);
+    font-weight: 500; text-transform: none; letter-spacing: 0.02em;
+  }
+
+  .portrait-prose { max-width: 44rem; padding: 2rem clamp(1.25rem, 5vw, 2rem) 1rem; }
+  .portrait-enrichir {
+    background: var(--paper-warm);
+    padding: 1.6rem 1.8rem;
+    border-left: 2px solid var(--or);
+    border-radius: 0 2px 2px 0;
+    margin: 2rem 0;
+  }
+  .portrait-enrichir h3 { margin: 0 0 0.6rem; font-size: 1.3rem; color: var(--ink); }
+  .portrait-enrichir p { color: var(--ink-soft); }
+  .portrait-sources { background: var(--paper-warm); padding: 1.6rem 1.8rem; margin-top: 2rem; border-radius: 2px; }
+
+  .portrait-foot { max-width: 62rem; margin: 3rem auto 0; padding: 0 clamp(1.25rem, 5vw, 5rem); }
+
+  .portrait-or .portrait-head { background: linear-gradient(180deg, var(--paper-warm) 0%, transparent 100%); padding-block: 1.6rem 1.4rem; border-radius: 2px; }
+</style>

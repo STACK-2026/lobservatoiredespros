@@ -1,0 +1,99 @@
+---
+/**
+ * WaveText - Sine wave animation on letters
+ * Continuous scale + opacity wave, Apple Dynamic Island style
+ * Pure JS, no React needed
+ */
+interface Props {
+  text: string;
+  class?: string;
+  waveSpeed?: number;
+  waveSpacing?: number;
+  amplitude?: number;
+}
+
+const {
+  text,
+  class: className = "",
+  waveSpeed = 0.12,
+  waveSpacing = 0.35,
+  amplitude = 0.2,
+} = Astro.props;
+---
+
+<span
+  class={`wave-text ${className}`}
+  data-wave-text={text}
+  data-wave-speed={waveSpeed}
+  data-wave-spacing={waveSpacing}
+  data-wave-amplitude={amplitude}
+  aria-label={text}
+  style="display: inline-block;"
+>
+  {text.split(" ").map((word, wi, arr) => (
+    <span style="display: inline-block; white-space: nowrap;">
+      {word.split("").map((ch) => (
+        <span class="wave-char" aria-hidden="true" style="display: inline-block; will-change: transform, opacity;">
+          {ch}
+        </span>
+      ))}
+      {wi < arr.length - 1 && <span aria-hidden="true" style="display: inline-block; width: 0.25em;">&nbsp;</span>}
+    </span>
+  ))}
+</span>
+
+<script>
+  function initWave() {
+    document.querySelectorAll(".wave-text:not([data-wave-init])").forEach((el) => {
+      const elem = el as HTMLElement;
+      elem.setAttribute("data-wave-init", "1");
+      const speed = parseFloat(elem.dataset.waveSpeed || "0.12");
+      const spacing = parseFloat(elem.dataset.waveSpacing || "0.35");
+      const amp = parseFloat(elem.dataset.waveAmplitude || "0.2");
+      const chars = elem.querySelectorAll(".wave-char") as NodeListOf<HTMLElement>;
+
+      let tick = 0;
+      let running = false;
+
+      function animate() {
+        tick++;
+        chars.forEach((ch, i) => {
+          const wave = Math.sin(tick * speed - i * spacing);
+          const scale = 1 + wave * amp;
+          const opacity = 0.55 + wave * 0.45;
+          ch.style.transform = `scale(${scale})`;
+          ch.style.opacity = String(opacity);
+        });
+        if (running) requestAnimationFrame(animate);
+      }
+
+      // Only animate when visible
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !running) {
+            running = true;
+            animate();
+          } else if (!entry.isIntersecting) {
+            running = false;
+          }
+        });
+      }, { threshold: 0.1 });
+      obs.observe(elem);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWave);
+  } else {
+    initWave();
+  }
+</script>
+
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    .wave-char {
+      transform: none !important;
+      opacity: 1 !important;
+    }
+  }
+</style>

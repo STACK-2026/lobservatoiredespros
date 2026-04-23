@@ -1,0 +1,14 @@
+---
+/**
+ * Paragraphe de chapô avec lettrine (drop cap) animée.
+ * Premier <p> d'un article long format.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className = "" } = Astro.props;
+---
+
+<p class={`drop-cap ${className}`}>
+  <slot />
+</p>

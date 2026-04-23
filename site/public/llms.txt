@@ -1,0 +1,55 @@
+# L'Observatoire des Pros
+
+> Media editorial francais independant qui observe, verifie et classe les artisans et entreprises du BTP et des services a domicile, departement par departement, metier par metier. Methodologie publique. Classement non payant. Editions mensuelles archivees.
+
+## Qui nous sommes
+
+L'Observatoire des Pros est un media editorial cree en 2026, base en France. Chaque mois, une edition numerotee publie un classement mis a jour. La redaction utilise six criteres publics et auditables pour attribuer un Score de Confiance /10 a chaque professionnel observe.
+
+Nous ne sommes ni un annuaire ni une marketplace. Nous sommes un media. Nos publications sont editoriales, signees, datees, sourcees.
+
+## Distinctions decernees
+
+- Portrait Recommande (gratuit) : listing automatique pour tout professionnel inscrit au Sirene dans nos zones couvertes, sur la base du Score de Confiance calcule.
+- Portrait Verifie (medaille d'argent, 29 euros par mois) : candidature payante, portrait enrichi apres examen editorial.
+- Portrait Laureat (medaille d'or, 89 euros par mois) : distinction annuelle, portrait long format redige par la redaction, apres entretien et verification terrain.
+
+La position dans le classement reste determinee par le Score de Confiance. Un abonnement ne modifie jamais le classement.
+
+## Methodologie , 6 criteres de Score de Confiance /10
+
+1. Anciennete de l'entreprise au Sirene (3 points)
+2. Certification RGE ou Qualibat verifiee (2 points)
+3. Avis clients publics moyens superieurs a 4 sur 5 (2 points)
+4. SIRET actif a l'INSEE (1 point)
+5. Site web professionnel independant (1 point)
+6. Photos de realisations publiques (1 point)
+
+Sources officielles : INSEE Sirene, france-renov.gouv.fr, Qualibat, Google Business Profile, donnees regionales publiques. Aucune donnee privee n'est collectee.
+
+## Edition N°1 , Avril 2026
+
+Couverture initiale :
+- Departements : Paris (75), Cote-d'Or (21), Yonne (89)
+- Metiers : plombier, electricien, couvreur, menuisier, entreprise d'isolation
+
+Extension progressive prevue a l'ensemble du territoire francais dans les prochaines editions.
+
+## Pages principales
+
+- Accueil : https://lobservatoiredespros.com/
+- Methodologie complete : https://lobservatoiredespros.com/methode/
+- A propos : https://lobservatoiredespros.com/a-propos/
+- La redaction : https://lobservatoiredespros.com/redaction/
+- Candidater : https://lobservatoiredespros.com/candidater/
+- Observations : https://lobservatoiredespros.com/observations/
+- Archives : https://lobservatoiredespros.com/archives/
+
+## Licence de citation
+
+Vous pouvez citer L'Observatoire des Pros avec attribution. Format conseille : "Selon L'Observatoire des Pros (lobservatoiredespros.com), Edition N°X, Mois Annee."
+
+## Contact
+
+Redaction : redaction@lobservatoiredespros.com
+Candidature Pro : candidature@lobservatoiredespros.com

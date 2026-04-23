@@ -1,0 +1,141 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { glossaire } from "../../data/glossaire";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "Glossaire , L'Observatoire des Pros";
+const description = "Glossaire editorial des termes du BTP et des services a domicile : RGE, Qualibat, Sirene, MaPrimeRenov', CEE, ITE, pompe a chaleur, Score de Confiance. Definitions auditables, sources officielles.";
+const url = `${siteConfig.url}/glossaire/`;
+
+const categories = [
+  { key: "certification", label: "Certifications" },
+  { key: "reglementation", label: "Reglementation editoriale" },
+  { key: "financement", label: "Aides et financement" },
+  { key: "technique", label: "Techniques" },
+  { key: "juridique", label: "Juridique et administratif" },
+] as const;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Glossaire", url }]),
+  {
+    "@context": "https://schema.org",
+    "@type": "DefinedTermSet",
+    name: "Glossaire L'Observatoire des Pros",
+    description,
+    url,
+    hasDefinedTerm: glossaire.map((t) => ({
+      "@type": "DefinedTerm",
+      name: t.terme,
+      url: `${url}#${t.slug}`,
+      description: t.definition,
+      ...(t.acronyme && { alternateName: t.acronyme }),
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="glossaire-page">
+    <div class="container-editorial glossaire-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Glossaire" }]} />
+      <Masthead category="GLOSSAIRE" signature="Par la redaction" />
+      <h1 class="heading-display">Glossaire editorial.</h1>
+      <p class="lead">
+        Les termes que nous utilisons dans nos observations, classements et portraits. Definitions verifiees, sources officielles citees. Ce glossaire est vivant : il s'enrichit a chaque edition.
+      </p>
+    </div>
+
+    <nav class="glossaire-tableau" aria-label="Index alphabetique">
+      <div class="container-wide glossaire-tableau-inner">
+        {glossaire.sort((a,b)=>a.terme.localeCompare(b.terme,"fr")).map((t) => (
+          <a href={`#${t.slug}`}>{t.terme}</a>
+        ))}
+      </div>
+    </nav>
+
+    {categories.map((cat) => {
+      const termes = glossaire.filter((t) => t.categorie === cat.key).sort((a,b)=>a.terme.localeCompare(b.terme,"fr"));
+      if (termes.length === 0) return null;
+      return (
+        <section class="glossaire-section container-editorial">
+          <EditorialHeader category={cat.label.toUpperCase()} title={cat.label} />
+          <div class="glossaire-liste">
+            {termes.map((t) => (
+              <article id={t.slug} class="terme-card card-editorial">
+                <header class="terme-head">
+                  <h2 class="italic-fraunces">
+                    {t.terme}
+                    {t.acronyme && <span class="terme-acronyme">, {t.acronyme}</span>}
+                  </h2>
+                </header>
+                <p class="terme-definition"><strong>{t.definition}</strong></p>
+                <p class="terme-developpement">{t.developpement}</p>
+                {t.source && (
+                  <p class="terme-source folio">
+                    Source : <a href={t.source.url} rel="noopener">{t.source.label}</a>
+                  </p>
+                )}
+                {t.voirAussi && t.voirAussi.length > 0 && (
+                  <p class="terme-voir">
+                    <span class="meta-label">Voir aussi :</span>
+                    {t.voirAussi.map((slug, i) => {
+                      const ref = glossaire.find((x) => x.slug === slug);
+                      return ref ? (
+                        <>
+                          <a href={`#${ref.slug}`}>{ref.terme}</a>{i < t.voirAussi!.length - 1 ? ", " : ""}
+                        </>
+                      ) : null;
+                    })}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      );
+    })}
+  </article>
+</BaseLayout>
+
+<style>
+  .glossaire-page { padding: 2rem 0 5rem; }
+  .glossaire-head .heading-display { margin: 0.4rem 0 1rem; }
+  .glossaire-tableau {
+    border-top: 1px solid rgba(26, 22, 20, 0.1);
+    border-bottom: 1px solid rgba(26, 22, 20, 0.1);
+    margin: 2rem 0 3rem;
+    background: var(--paper-warm);
+  }
+  .glossaire-tableau-inner {
+    display: flex; flex-wrap: wrap; gap: 0.3rem 1.4rem;
+    padding: 0.9rem 0;
+  }
+  .glossaire-tableau a {
+    font-family: var(--font-body); font-size: 0.86rem;
+    color: var(--ink-soft); text-decoration: none;
+    padding: 0.2rem 0; border-bottom: 1px solid transparent;
+    transition: color 200ms, border-color 200ms;
+  }
+  .glossaire-tableau a:hover { color: var(--or-deep); border-bottom-color: var(--or); }
+
+  .glossaire-section { padding: 2rem 0 1.5rem; }
+  .glossaire-liste { display: grid; gap: 1.2rem; margin-top: 1.6rem; }
+
+  .terme-card { padding: 1.8rem 1.8rem 2rem; scroll-margin-top: 7rem; }
+  .terme-head h2 {
+    font-family: var(--font-display); font-size: 1.7rem;
+    font-weight: 500; margin: 0; letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .terme-acronyme { font-style: italic; font-size: 0.7em; color: var(--ink-muted); font-weight: 400; letter-spacing: 0.005em; }
+  .terme-definition { margin: 0.9rem 0 0.5rem; font-size: 1.05rem; color: var(--ink); line-height: 1.55; }
+  .terme-developpement { color: var(--ink-soft); line-height: 1.65; font-size: 0.98rem; margin: 0 0 1rem; max-width: 46rem; }
+  .terme-source { margin: 0.4rem 0; }
+  .terme-voir { margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--ink-soft); }
+  .terme-voir .meta-label { margin-right: 0.5rem; }
+  .terme-voir a { color: var(--or-deep); text-decoration: none; border-bottom: 1px dotted var(--or); }
+</style>

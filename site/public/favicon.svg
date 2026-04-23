@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <style>
+      @keyframes odp-rotate { to { transform: rotate(360deg); } }
+      .ring { animation: odp-rotate 22s linear infinite; transform-origin: 32px 32px; }
+      @media (prefers-reduced-motion: reduce) { .ring { animation: none; } }
+    </style>
+  </defs>
+  <rect width="64" height="64" fill="#F7F3EC" rx="8"/>
+  <g class="ring">
+    <circle cx="32" cy="32" r="28" fill="none" stroke="#1E3A52" stroke-width="1"/>
+    <circle cx="32" cy="32" r="24" fill="none" stroke="#B8863D" stroke-width="0.8"/>
+  </g>
+  <text x="32" y="41" text-anchor="middle" font-family="Georgia, 'Fraunces', serif" font-size="20" font-weight="600" font-style="italic" fill="#1A1614" letter-spacing="-0.5">OdP</text>
+</svg>

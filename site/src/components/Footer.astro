@@ -1,0 +1,109 @@
+---
+import { siteConfig, editionLabel } from "../utils/config";
+import Seal from "./Seal.astro";
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container-wide footer-grid">
+    <div class="footer-brand">
+      <Seal size={92} variant="or" animated={true} text="L'OBSERVATOIRE DES PROS ☆ EDITION 2026 ☆ " />
+      <p class="footer-name">{siteConfig.name}</p>
+      <p class="footer-tag italic-fraunces">« {siteConfig.tagline} »</p>
+    </div>
+
+    <div class="footer-col">
+      <h4 class="meta-label-or">La publication</h4>
+      <ul>
+        <li><a href="/selection/">La selection</a></li>
+        <li><a href="/observations/">Observations</a></li>
+        <li><a href="/portraits/">Portraits</a></li>
+        <li><a href="/archives/">Archives</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4 class="meta-label-or">Institution</h4>
+      <ul>
+        <li><a href="/methode/">Methode</a></li>
+        <li><a href="/a-propos/">A propos</a></li>
+        <li><a href="/redaction/">La redaction</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4 class="meta-label-or">Professionnels</h4>
+      <ul>
+        <li><a href="/candidater/">Candidater</a></li>
+        <li><a href="/portraits/laureat/">Portrait Laureat</a></li>
+        <li><a href="/portraits/verifie/">Portrait Verifie</a></li>
+        <li><a href={`mailto:${siteConfig.legal.emailPro}`}>{siteConfig.legal.emailPro}</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4 class="meta-label-or">Legales</h4>
+      <ul>
+        <li><a href="/mentions-legales/">Mentions legales</a></li>
+        <li><a href="/politique-confidentialite/">Confidentialite</a></li>
+        <li><a href="/cgu/">CGU</a></li>
+        <li><a href="#" id="cookie-settings">Gerer les cookies</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container-wide footer-base">
+    <div class="hairline"></div>
+    <div class="footer-base-row">
+      <p class="folio">&copy; {currentYear} {siteConfig.legal.companyName}. Tous droits reserves.</p>
+      <p class="folio">{editionLabel()} &middot; {siteConfig.editionMonth} {siteConfig.editionYear} &middot; ISSN en cours</p>
+      <p class="folio footer-signature italic-fraunces">« Observer. Verifier. Recommander. »</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--paper); border-top: 1px solid rgba(26, 22, 20, 0.1);
+    margin-top: 5rem; padding: 4rem 0 2rem; position: relative; overflow: hidden;
+  }
+  .site-footer::before {
+    content: ""; position: absolute; top: -1px; left: 50%;
+    transform: translateX(-50%); width: 60px; height: 2px; background: var(--or);
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+    gap: 2.6rem; align-items: flex-start;
+  }
+  @media (max-width: 960px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 2.2rem 1.8rem; }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  .footer-brand { display: grid; gap: 0.7rem; }
+  .footer-name {
+    font-family: var(--font-display); font-weight: 500; font-size: 1.2rem;
+    color: var(--ink); margin: 0.4rem 0 0; letter-spacing: -0.01em;
+  }
+  .footer-tag { font-size: 0.95rem; color: var(--ink-muted); margin: 0; max-width: 22rem; }
+  .footer-col h4 { margin: 0 0 0.7rem; }
+  .footer-col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.55rem; }
+  .footer-col a {
+    font-family: var(--font-body); font-size: 0.92rem; color: var(--ink-soft);
+    text-decoration: none; transition: color 200ms;
+  }
+  .footer-col a:hover { color: var(--or-deep); }
+
+  .footer-base { margin-top: 3rem; }
+  .footer-base-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 1.2rem; padding-top: 1.2rem; flex-wrap: wrap;
+  }
+  .footer-signature { color: var(--ink-muted); font-size: 0.82rem; }
+  @media (max-width: 640px) {
+    .footer-base-row { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  }
+</style>

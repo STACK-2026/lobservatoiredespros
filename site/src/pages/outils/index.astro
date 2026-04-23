@@ -1,0 +1,120 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const outils = [
+  {
+    slug: "grille-devis",
+    nom: "Grille de lecture d'un devis",
+    description: "Les douze mentions obligatoires qu'un devis doit comporter, a cocher point par point. Imprimable, distribuable.",
+    accroche: "Decryptez un devis en 3 minutes",
+    statut: "disponible",
+    href: "/outils/grille-devis/",
+  },
+  {
+    slug: "verifier-siret",
+    nom: "Verifier un SIRET",
+    description: "Connectee au registre Sirene officiel. Colle le SIRET, obtiens la fiche officielle (date creation, etat actif, adresse, NAF).",
+    accroche: "Entreprise active, depuis quand, a quelle adresse",
+    statut: "prochaine-edition",
+  },
+  {
+    slug: "verifier-rge",
+    nom: "Verifier une certification RGE",
+    description: "Connectee a l'annuaire officiel France Renov. Confirme qu'une entreprise est bien certifiee RGE a la date du jour.",
+    accroche: "Le RGE est-il reel et en cours ?",
+    statut: "prochaine-edition",
+  },
+  {
+    slug: "calculateur-maprimerenov",
+    nom: "Simulateur MaPrimeRenov'",
+    description: "Estime le montant de l'aide MaPrimeRenov' selon revenus, travaux, zone climatique. Sortie chiffree avec hypotheses.",
+    accroche: "Combien l'Etat finance-t-il vos travaux ?",
+    statut: "prochaine-edition",
+  },
+  {
+    slug: "comparateur-devis",
+    nom: "Comparer trois devis",
+    description: "Formulaire guide pour entrer trois devis ligne par ligne et visualiser les ecarts sur chaque poste. Revele les devis fantaisistes.",
+    accroche: "Trois devis sur la table, un tableau comparatif",
+    statut: "prochaine-edition",
+  },
+];
+
+const title = "Outils , L'Observatoire des Pros";
+const description = "Les outils editoriaux de L'Observatoire pour verifier un SIRET, un RGE, lire un devis, simuler MaPrimeRenov', comparer trois devis. Gratuits, sans inscription.";
+const url = `${siteConfig.url}/outils/`;
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Outils", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="outils-page">
+    <div class="container-editorial outils-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Outils" }]} />
+      <Masthead category="OUTILS" signature="Par la redaction" />
+      <h1 class="heading-display">Cinq outils pour ne pas se tromper.</h1>
+      <p class="lead">
+        Verifier un SIRET, confirmer un label RGE, comparer trois devis, lire un devis ligne par ligne, simuler MaPrimeRenov'. Cinq outils editoriaux, gratuits, sans inscription, connectes aux sources officielles.
+      </p>
+    </div>
+
+    <section class="container-wide outils-section">
+      <EditorialHeader category="EDITION EN COURS" title="Les outils de notre redaction" subtitle="Un premier outil est deja en ligne. Les quatre autres arrivent dans les prochaines editions." />
+
+      <div class="outils-grid stagger-children">
+        {outils.map((o) => (
+          <article class={`outil-card card-editorial ${o.statut}`}>
+            <header class="outil-head">
+              <span class="meta-label-or">{o.statut === "disponible" ? "DISPONIBLE" : "PROCHAINE EDITION"}</span>
+              <h3 class="italic-fraunces">{o.nom}</h3>
+              <p class="outil-accroche">{o.accroche}</p>
+            </header>
+            <p class="outil-desc">{o.description}</p>
+            <footer class="outil-foot">
+              {o.statut === "disponible" ? (
+                <a class="btn btn-outline" href={o.href}>Utiliser l'outil <span class="arrow">&rarr;</span></a>
+              ) : (
+                <span class="outil-pending meta-label">En preparation</span>
+              )}
+            </footer>
+          </article>
+        ))}
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .outils-page { padding: 2rem 0 5rem; }
+  .outils-head { margin-bottom: 2rem; }
+  .outils-head .heading-display { margin: 0.4rem 0 1rem; }
+  .outils-section { padding-top: 1rem; }
+
+  .outils-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+    margin-top: 2rem;
+  }
+  @media (max-width: 760px) { .outils-grid { grid-template-columns: 1fr; } }
+
+  .outil-card {
+    padding: 1.8rem 1.8rem 1.8rem;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 1rem;
+  }
+  .outil-card.disponible { border-color: rgba(184, 134, 61, 0.4); }
+  .outil-card.prochaine-edition { opacity: 0.8; background: var(--paper-warm); }
+
+  .outil-head { display: grid; gap: 0.3rem; }
+  .outil-head h3 { font-size: 1.55rem; margin: 0.3rem 0; font-weight: 500; color: var(--ink); letter-spacing: -0.012em; }
+  .outil-accroche { font-family: var(--font-display); font-style: italic; color: var(--ink-soft); margin: 0; font-size: 1.05rem; }
+  .outil-desc { color: var(--ink-soft); font-size: 0.96rem; line-height: 1.55; margin: 0; }
+  .outil-foot { padding-top: 0.6rem; }
+  .outil-pending { color: var(--ink-muted); }
+</style>

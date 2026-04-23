@@ -1,0 +1,47 @@
+---
+// Analytics tracker , Supabase page_views + bot detection
+// Projet : lobservatoiredespros (Supabase ref apuyeakgxjgdcfssrtek)
+// Pattern STACK-2026 , no GA/Plausible
+const SB_URL = "https://apuyeakgxjgdcfssrtek.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwdXllYWtneGpnZGNmc3NydGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDEwNTcsImV4cCI6MjA5MjUxNzA1N30.C7cw3T5Yj8W3LaYlLgWULlJlsP6iijxRKQvueA6WKOY";
+---
+
+<script define:vars={{ SB_URL, SB_ANON }}>
+(function() {
+  function isBot() {
+    const ua = navigator.userAgent || "";
+    const bots = /bot|crawl|spider|slurp|facebookexternalhit|linkedinbot|twitterbot|whatsapp|telegram|googlebot|bingbot|yandex|baidu|duckduckbot|sogou|exabot|ia_archiver|semrush|ahrefs|mj12bot|dotbot|petalbot|bytespider|gptbot|claudebot|perplexitybot|amazonbot|applebot|ccbot|HeadlessChrome/i;
+    return bots.test(ua);
+  }
+
+  // Consent , si rejected explicite, on ne track pas
+  var consentRaw;
+  try { consentRaw = localStorage.getItem("ls_cookie_consent"); } catch(e) {}
+  if (consentRaw) {
+    try {
+      var c = JSON.parse(consentRaw);
+      if (c && c.status === "rejected" && c.expires && Date.now() < c.expires) return;
+    } catch(e) {}
+  }
+
+  var bot = isBot();
+  var path = window.location.pathname;
+  var ref = document.referrer || null;
+
+  fetch(SB_URL + "/rest/v1/page_views", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SB_ANON,
+      "Authorization": "Bearer " + SB_ANON,
+      "Prefer": "return=minimal",
+    },
+    body: JSON.stringify({
+      path: path,
+      referrer: ref,
+      user_agent: navigator.userAgent,
+      is_bot: bot,
+    }),
+  }).catch(function() {});
+})();
+</script>

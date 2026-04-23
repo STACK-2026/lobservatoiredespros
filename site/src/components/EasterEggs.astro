@@ -1,0 +1,214 @@
+---
+/**
+ * Easter Eggs - Konami-style keyboard listener
+ * Type secret words to trigger effects
+ * adaptetoi -> confetti | matrix -> matrix rain | disco -> hue rotate | gravity -> elements fall | signal -> chromatic
+ */
+---
+
+<script>
+  // Console ASCII Art
+  console.log(`
+  ╔═══════════════════════════════════════╗
+  ║                                       ║
+  ║     █████╗ ██████╗  █████╗ ██████╗    ║
+  ║    ██╔══██╗██╔══██╗██╔══██╗██╔══██╗   ║
+  ║    ███████║██║  ██║███████║██████╔╝   ║
+  ║    ██╔══██║██║  ██║██╔══██║██╔═══╝    ║
+  ║    ██║  ██║██████╔╝██║  ██║██║        ║
+  ║    ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝        ║
+  ║                                       ║
+  ║    ████████╗███████╗                  ║
+  ║    ╚══██╔══╝██╔════╝                  ║
+  ║       ██║   █████╗  ═ TOI            ║
+  ║       ██║   ██╔══╝                    ║
+  ║       ██║   ███████╗                  ║
+  ║       ╚═╝   ╚══════╝                  ║
+  ║                                       ║
+  ║   Le média qui te prépare au monde    ║
+  ║   du travail de demain.               ║
+  ║                                       ║
+  ║   https://adapte-toi.com              ║
+  ║                                       ║
+  ║   Easter eggs ? Tape : adaptetoi,     ║
+  ║   matrix, disco, gravity, signal 😉   ║
+  ║                                       ║
+  ╚═══════════════════════════════════════╝
+  `);
+
+  // TikTok/Instagram in-app browser detection
+  (function detectInApp() {
+    const ua = navigator.userAgent || "";
+    const isInApp = /musical_ly|BytedanceWebview|TikTok|FBAN|FBAV|Instagram/i.test(ua);
+    if (isInApp && !sessionStorage.getItem("inapp_dismissed")) {
+      const banner = document.createElement("div");
+      banner.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:100000;padding:12px 16px;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);color:white;font-size:13px;text-align:center;animation:slideInDown 0.4s ease;display:flex;align-items:center;justify-content:center;gap:8px;";
+      banner.innerHTML = `
+        <span style="flex:1">Pour une meilleure expérience, ouvre dans ton navigateur (les 3 points en haut à droite)</span>
+        <button id="dismiss-inapp" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:4px 10px;border-radius:20px;font-size:12px;cursor:pointer;">OK</button>
+      `;
+      document.body.prepend(banner);
+      document.getElementById("dismiss-inapp")?.addEventListener("click", () => {
+        banner.remove();
+        sessionStorage.setItem("inapp_dismissed", "1");
+      });
+    }
+  })();
+
+  // Easter egg listener
+  let buffer = "";
+  const maxLen = 9; // "adaptetoi" = 9 chars
+
+  window.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+    if (key.length !== 1) return;
+    buffer = (buffer + key).slice(-maxLen);
+
+    if (buffer.endsWith("adaptetoi")) triggerConfetti();
+    if (buffer.endsWith("matrix")) triggerMatrix();
+    if (buffer.endsWith("disco")) triggerDisco();
+    if (buffer.endsWith("gravity")) triggerGravity();
+    if (buffer.endsWith("signal")) triggerSignal();
+  });
+
+  // === CONFETTI (adaptetoi) ===
+  function triggerConfetti() {
+    const canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;";
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const colors = ["#E63946", "#F77F00", "#1D3557", "#FFFFFF", "#FFD700"];
+    const particles: { x: number; y: number; vx: number; vy: number; size: number; color: string; rotation: number; vr: number; life: number }[] = [];
+
+    // Burst
+    for (let i = 0; i < 150; i++) {
+      const angle = (Math.random() * Math.PI * 2);
+      const speed = 4 + Math.random() * 8;
+      particles.push({
+        x: canvas.width / 2,
+        y: canvas.height * 0.5,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 4,
+        size: 4 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        vr: (Math.random() - 0.5) * 10,
+        life: 1,
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      for (const p of particles) {
+        if (p.life <= 0) continue;
+        alive = true;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15; // gravity
+        p.rotation += p.vr;
+        p.life -= 0.008;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.restore();
+      }
+      if (alive) requestAnimationFrame(animate);
+      else canvas.remove();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // === MATRIX RAIN (matrix) ===
+  function triggerMatrix() {
+    const canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;";
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const chars = "ADAPTETOI01IA27%93%47%RECONVERSION";
+    const fontSize = 14;
+    const columns = Array(Math.floor(canvas.width / fontSize)).fill(1);
+
+    const interval = setInterval(() => {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#E63946"; // brand red instead of green
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < columns.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, fontSize * i, fontSize * columns[i]);
+        if (fontSize * columns[i] > canvas.height && Math.random() > 0.975) columns[i] = 0;
+        columns[i]++;
+      }
+    }, 33);
+
+    setTimeout(() => { clearInterval(interval); canvas.remove(); }, 8000);
+  }
+
+  // === DISCO (disco) ===
+  function triggerDisco() {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes ee-disco {
+        0%   { filter: hue-rotate(0deg) saturate(2); }
+        25%  { filter: hue-rotate(90deg) saturate(2); }
+        50%  { filter: hue-rotate(180deg) saturate(2); }
+        75%  { filter: hue-rotate(270deg) saturate(2); }
+        100% { filter: hue-rotate(360deg) saturate(2); }
+      }
+      body { animation: ee-disco 0.5s linear infinite !important; }
+    `;
+    document.head.appendChild(style);
+    setTimeout(() => style.remove(), 5000);
+  }
+
+  // === GRAVITY (gravity) ===
+  function triggerGravity() {
+    const els = document.querySelectorAll("h1, h2, h3, p, button, a, img, section > div") as NodeListOf<HTMLElement>;
+    const originals = new Map<HTMLElement, string>();
+
+    els.forEach((el, i) => {
+      originals.set(el, el.style.cssText);
+      el.style.transition = "transform 2s cubic-bezier(0.55, 0, 1, 0.45)";
+
+      setTimeout(() => {
+        const rx = (Math.random() - 0.5) * 100;
+        const rr = (Math.random() - 0.5) * 45;
+        el.style.transform = `translateY(${window.innerHeight + 200}px) translateX(${rx}px) rotate(${rr}deg)`;
+      }, i * 15);
+    });
+
+    setTimeout(() => {
+      els.forEach((el) => {
+        el.style.cssText = originals.get(el) || "";
+      });
+    }, 3500);
+  }
+
+  // === SIGNAL / CHROMATIC ABERRATION (signal) ===
+  function triggerSignal() {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes ee-chromatic {
+        0%   { filter: drop-shadow(rgba(230,57,70,0) 0 0) drop-shadow(rgba(29,53,87,0) 0 0); }
+        25%  { filter: drop-shadow(rgba(230,57,70,0.8) 8px 0) drop-shadow(rgba(29,53,87,0.8) -8px 0); }
+        50%  { filter: drop-shadow(rgba(247,127,0,0.8) 0 8px) drop-shadow(rgba(230,57,70,0.8) 0 -8px); }
+        75%  { filter: drop-shadow(rgba(29,53,87,0.8) -8px 0) drop-shadow(rgba(247,127,0,0.8) 8px 0); }
+        100% { filter: drop-shadow(rgba(230,57,70,0) 0 0) drop-shadow(rgba(29,53,87,0) 0 0); }
+      }
+      body { animation: ee-chromatic 0.4s ease-in-out 3 !important; }
+    `;
+    document.head.appendChild(style);
+    setTimeout(() => style.remove(), 2000);
+  }
+</script>

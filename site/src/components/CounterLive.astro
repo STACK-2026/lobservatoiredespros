@@ -1,0 +1,94 @@
+---
+/**
+ * Compteur live , "X professionnels sous observation".
+ * Le chiffre s'incrémente très lentement (une fois par minute, +1 puis +random 1-3 sur 15-45s).
+ * Point or qui pulse à côté.
+ */
+interface Props {
+  initial?: number;
+  label?: string;
+  minIncrementMs?: number;
+  maxIncrementMs?: number;
+}
+const {
+  initial = 47382,
+  label = "professionnels sous observation",
+  minIncrementMs = 22000,
+  maxIncrementMs = 65000,
+} = Astro.props;
+---
+
+<div class="counter-live" aria-live="polite" aria-atomic="true">
+  <span class="live-dot" aria-hidden="true"></span>
+  <span
+    class="counter-value"
+    data-counter-live
+    data-initial={initial}
+    data-min-ms={minIncrementMs}
+    data-max-ms={maxIncrementMs}
+  >
+    {initial.toLocaleString("fr-FR").replace(/,/g, " ")}
+  </span>
+  <span class="counter-label">{label}</span>
+</div>
+
+<script>
+  (function () {
+    const els = document.querySelectorAll<HTMLElement>("[data-counter-live]");
+    els.forEach((el) => {
+      let n = parseInt(el.dataset.initial || "0", 10);
+      const minMs = parseInt(el.dataset.minMs || "22000", 10);
+      const maxMs = parseInt(el.dataset.maxMs || "65000", 10);
+      function format(x: number) {
+        return x.toLocaleString("fr-FR").replace(/\s/g, " ").replace(/,/g, " ");
+      }
+      function schedule() {
+        const delay = minMs + Math.random() * (maxMs - minMs);
+        setTimeout(() => {
+          n += 1 + Math.floor(Math.random() * 2);
+          el.style.transition = "opacity 280ms ease";
+          el.style.opacity = "0.55";
+          setTimeout(() => {
+            el.textContent = format(n);
+            el.style.opacity = "1";
+          }, 140);
+          schedule();
+        }, delay);
+      }
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        schedule();
+      }
+    });
+  })();
+</script>
+
+<style>
+  .counter-live {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    font-family: var(--font-body);
+    color: var(--ink);
+    flex-wrap: wrap;
+    padding: 0.55rem 0;
+  }
+  .counter-live .live-dot {
+    align-self: center;
+    transform: translateY(-0.2em);
+    margin-right: 0.1rem;
+  }
+  .counter-value {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 280ms ease;
+  }
+  .counter-label {
+    font-size: 0.95rem;
+    color: var(--ink-muted);
+    letter-spacing: -0.003em;
+  }
+</style>

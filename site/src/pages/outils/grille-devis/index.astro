@@ -1,0 +1,191 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs } from "../../../utils/seo";
+
+const title = "Grille de lecture d'un devis , Outil de L'Observatoire des Pros";
+const description = "Les douze mentions obligatoires qu'un devis doit comporter, a cocher point par point. Base sur l'article L. 111-1 du Code de la consommation.";
+const url = `${siteConfig.url}/outils/grille-devis/`;
+
+const mentions = [
+  { nom: "Identite complete du prestataire", details: "Raison sociale, adresse, SIRET, numero de TVA intra-communautaire.", critique: true },
+  { nom: "Identite du client", details: "Nom, prenom, adresse de facturation et adresse de chantier si differente." },
+  { nom: "Date d'emission du devis", details: "Doit etre visible et non raturee.", critique: true },
+  { nom: "Duree de validite de l'offre", details: "Generalement entre 1 et 3 mois, a confirmer par le prestataire." },
+  { nom: "Description detaillee des prestations", details: "Chaque poste, materiaux, main d'oeuvre, avec quantites et unites. Pas de formulations floues type 'divers travaux'.", critique: true },
+  { nom: "Prix unitaire HT pour chaque poste", details: "Obligatoire pour les travaux superieurs a 150€ TTC.", critique: true },
+  { nom: "Taux de TVA applicable", details: "5.5% pour la renovation energetique par un pro RGE, 10% pour l'amelioration de l'habitat, 20% sinon. A justifier." },
+  { nom: "Total HT, TVA, Total TTC", details: "Trois lignes distinctes. Toute difference avec la somme des postes doit etre expliquee.", critique: true },
+  { nom: "Conditions de paiement", details: "Acompte demande (le legal maximum est 30%), echelonnement, mode (virement, cheque, CB)." },
+  { nom: "Numero d'assurance decennale", details: "Obligatoire pour les travaux de batiment. Verifiable sur simple demande d'attestation.", critique: true },
+  { nom: "Date de debut et duree estimee des travaux", details: "Engage le prestataire. Retard non justifie ouvre droit a penalites." },
+  { nom: "Mention 'bon pour accord'", details: "Signature du client sous cette mention manuscrite = engagement contractuel." },
+];
+
+const drapeauxRouges = [
+  "Devis emis verbalement ou non ecrit pour des travaux superieurs a 150€ TTC",
+  "Absence de SIRET ou SIRET dont la date de creation est recente (moins de 6 mois) sans experience attestee",
+  "Formulations vagues : 'divers travaux', 'fournitures', 'forfait' sans detail",
+  "Acompte demande superieur a 30% avant debut des travaux",
+  "TVA a 5.5% sans certification RGE de l'entreprise , la TVA applicable est alors 20% et l'economie est un mirage",
+  "Absence d'attestation d'assurance decennale , ou refus de la fournir",
+  "Duree de validite tres courte (moins de 15 jours) qui incite a la precipitation",
+  "Demarchage a domicile non sollicite + signature immediate demandee (droit de retractation 14 jours : non respecte)",
+];
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Outils", url: `${siteConfig.url}/outils/` },
+    { name: "Grille de lecture d'un devis", url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: "Lire un devis d'artisan",
+    description,
+    step: mentions.map((m, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: m.nom,
+      text: m.details,
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="outil-page">
+    <div class="container-editorial outil-content">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Outils", href: "/outils/" }, { label: "Grille de lecture d'un devis" }]} />
+      <Masthead category="OUTIL , DEVIS" signature="Par la redaction" />
+      <h1 class="heading-display">Grille de lecture d'un devis.</h1>
+      <p class="lead">
+        Douze mentions obligatoires, huit drapeaux rouges. Cette grille est a imprimer ou a cocher directement en ligne. Elle repose sur l'article L. 111-1 du Code de la consommation.
+      </p>
+
+      <aside class="encart-methodologie" data-speakable>
+        <strong>En resume.</strong> Un devis de plus de <strong>150 euros TTC</strong> est obligatoirement ecrit et doit comporter douze mentions legales. Son absence ou son inexactitude est une infraction. Un devis honnete est <strong>detaille, signe, date</strong>. Un acompte superieur a <strong>30 %</strong> avant debut de travaux est illicite.
+      </aside>
+
+      <section class="mentions-section">
+        <h2>Les douze mentions obligatoires</h2>
+        <p class="meta-label">COCHEZ AU FUR ET A MESURE DE VOTRE LECTURE</p>
+        <ol class="mentions-list">
+          {mentions.map((m, i) => (
+            <li class={`mention-item ${m.critique ? "is-critique" : ""}`}>
+              <label>
+                <input type="checkbox" />
+                <div class="mention-body">
+                  <span class="mention-num">{String(i+1).padStart(2, "0")}</span>
+                  <div>
+                    <p class="mention-nom">{m.nom} {m.critique && <span class="mention-critique-flag">CRITIQUE</span>}</p>
+                    <p class="mention-details">{m.details}</p>
+                  </div>
+                </div>
+              </label>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="drapeaux-section">
+        <h2>Les huit drapeaux rouges</h2>
+        <p class="meta-label">SI UN SEUL DE CES SIGNAUX EST PRESENT, NE SIGNEZ PAS</p>
+        <ul class="drapeaux-list">
+          {drapeauxRouges.map((d) => (
+            <li class="drapeau-item">
+              <span class="drapeau-icone" aria-hidden="true">!</span>
+              <span>{d}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="recours-section">
+        <h2>Vos recours</h2>
+        <p>
+          Si un devis ne respecte pas les mentions obligatoires ou si l'entreprise refuse de fournir son attestation d'assurance decennale, signalez-la a la <strong>DGCCRF</strong> via le portail <a href="https://signal.conso.gouv.fr" rel="noopener">SignalConso</a>. Si le litige survient apres travaux, saisissez le <strong>mediateur de la consommation</strong> designe par l'entreprise dans ses CGV.
+        </p>
+      </section>
+
+      <div class="outil-foot">
+        <a class="btn btn-outline" href="javascript:window.print()">Imprimer cette grille &middot; Ctrl+P</a>
+        <a class="btn btn-ghost" href="/outils/">Voir les autres outils <span class="arrow">&rarr;</span></a>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .outil-page { padding: 2rem 0 4rem; }
+  .outil-content { max-width: 46rem; }
+  .outil-content .heading-display { margin: 0.4rem 0 1rem; }
+
+  .mentions-section, .drapeaux-section, .recours-section { margin-top: 3rem; }
+
+  .mentions-list { list-style: none; padding: 0; margin: 1.2rem 0; display: grid; gap: 0.6rem; }
+  .mention-item label {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 1rem 1.2rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.1);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 200ms, background 200ms;
+  }
+  .mention-item.is-critique label { border-left: 3px solid var(--or); }
+  .mention-item label:hover { border-color: var(--or); background: rgba(239, 231, 214, 0.4); }
+  .mention-item label:has(input:checked) { background: rgba(74, 93, 58, 0.08); border-color: var(--archive); }
+  .mention-item input[type="checkbox"] { margin-top: 0.3rem; width: 16px; height: 16px; accent-color: var(--archive); }
+  .mention-body { display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; align-items: baseline; }
+  .mention-num { font-family: var(--font-mono); font-size: 0.8rem; color: var(--or-deep); letter-spacing: 0.04em; padding-top: 0.15rem; }
+  .mention-nom { font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; color: var(--ink); margin: 0 0 0.2rem; letter-spacing: -0.008em; }
+  .mention-details { font-size: 0.9rem; color: var(--ink-soft); margin: 0; line-height: 1.55; }
+  .mention-critique-flag {
+    font-family: var(--font-body); font-size: 0.64rem; font-weight: 700;
+    color: var(--cachet); padding: 0.1rem 0.45rem;
+    border: 1px solid var(--cachet);
+    border-radius: 2px; letter-spacing: 0.1em; margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .drapeaux-list { list-style: none; padding: 0; margin: 1.2rem 0; display: grid; gap: 0.55rem; }
+  .drapeau-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: baseline;
+    padding: 0.75rem 1rem;
+    background: rgba(139, 46, 42, 0.05);
+    border-left: 2px solid var(--cachet);
+    border-radius: 0 2px 2px 0;
+  }
+  .drapeau-icone {
+    width: 24px; height: 24px;
+    background: var(--cachet); color: var(--paper);
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 600; font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .recours-section p { max-width: 42rem; }
+
+  .outil-foot {
+    margin-top: 3rem; padding-top: 1.4rem;
+    border-top: 1px solid rgba(26, 22, 20, 0.1);
+    display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
+  }
+
+  @media print {
+    header, footer, nav, .outil-foot { display: none !important; }
+    body { background: white !important; }
+    .mention-item label { page-break-inside: avoid; }
+  }
+</style>

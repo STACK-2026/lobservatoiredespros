@@ -1,0 +1,140 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import PullQuote from "../../components/PullQuote.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "La redaction , L'Observatoire des Pros";
+const description = "Les membres de la redaction de L'Observatoire des Pros, leurs parcours, leurs specialites, leurs contributions.";
+const url = `${siteConfig.url}/redaction/`;
+
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "La redaction", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="redaction-page">
+    <div class="container-editorial redaction-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La redaction" }]} />
+      <Masthead category="LA REDACTION" signature={`Edition N°${siteConfig.editionNumber}`} />
+      <h1 class="heading-display">La redaction.</h1>
+      <p class="lead">
+        Trois journalistes et analystes independants composent la redaction de L'Observatoire. Voici leurs parcours, leurs specialites et les articles qui leur sont confies.
+      </p>
+    </div>
+
+    <section class="container-editorial">
+      <PullQuote cite="Charte editoriale de L'Observatoire">
+        Un media n'est serieux que si ses auteurs sont visibles, ses angles assumes, ses sources citees. Nous nous tenons a cette regle.
+      </PullQuote>
+    </section>
+
+    <section class="container-wide redaction-liste-section">
+      <EditorialHeader category="NOS JOURNALISTES ET ANALYSTES" title={`Equipe editoriale ${siteConfig.editionYear}`} />
+      <div class="redaction-grid stagger-children">
+        {siteConfig.blog.authors.map((a) => (
+          <article class="author-card card-editorial" id={a.slug}>
+            <div class="author-avatar" aria-hidden="true">
+              <span class="author-initial">{a.name.split(" ").map(n => n[0]).join("")}</span>
+            </div>
+            <div class="author-body">
+              <h2 class="italic-fraunces">{a.name}</h2>
+              <p class="author-role meta-label-or">{a.role}</p>
+              <p class="author-bio">{a.bio}</p>
+              <p class="author-link">
+                <a class="btn-ghost" href={`/redaction/${a.slug}/`}>Articles signes {a.name.split(" ")[0]} <span class="arrow">&rarr;</span></a>
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="container-editorial redaction-principes">
+      <EditorialHeader category="NOS PRINCIPES EDITORIAUX" title="Ce qui guide la redaction" />
+      <ol class="principes-list">
+        <li>
+          <span class="rank-num rank-outlined">01</span>
+          <div>
+            <h3>Verification prealable</h3>
+            <p>Aucune affirmation publiee sans avoir ete verifiee aupres d'une source publique, officielle, traceable. Cite.</p>
+          </div>
+        </li>
+        <li>
+          <span class="rank-num rank-outlined">02</span>
+          <div>
+            <h3>Independance economique</h3>
+            <p>Aucun auteur ne percoit de commission, cadeau ou avantage des professionnels cites. Les relations sont encadrees par charte ecrite.</p>
+          </div>
+        </li>
+        <li>
+          <span class="rank-num rank-outlined">03</span>
+          <div>
+            <h3>Droit de reponse</h3>
+            <p>Tout professionnel mis en cause dispose d'un delai de quinze jours pour faire valoir son point de vue avant publication. Ce principe est inscrit dans nos conditions.</p>
+          </div>
+        </li>
+        <li>
+          <span class="rank-num rank-outlined">04</span>
+          <div>
+            <h3>Correction publique</h3>
+            <p>Une erreur reconnue est corrigee et signalee en pied d'article avec date et nature de la modification. L'archive conserve les versions anterieures.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="section-cta-page" style="margin-top: 3rem; background: var(--paper-warm); padding: 4rem 0;">
+      <div class="container-editorial" style="text-align: center;">
+        <p class="meta-label-or">Contacter la redaction</p>
+        <h2 class="heading-display" style="font-size: clamp(1.8rem, 3.5vw, 2.6rem); margin: 0.6rem 0 1rem;">Une piste, un signalement, une demande de rectification.</h2>
+        <p class="lead" style="margin-inline: auto; margin-bottom: 1.5rem;">
+          La redaction lit tous ses messages. Elle repond sous quinze jours ouvres maximum, moins en cas d'urgence editoriale.
+        </p>
+        <a href={`mailto:${siteConfig.legal.email}`} class="btn btn-primary magnetic">{siteConfig.legal.email}</a>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .redaction-page { padding: 2rem 0 0; }
+  .redaction-head { margin-bottom: 2.5rem; }
+  .redaction-head .heading-display { margin: 0.4rem 0 1rem; }
+
+  .redaction-liste-section { padding: 3rem 0 1rem; max-width: 62rem; margin: 0 auto; }
+  .redaction-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.4rem; margin-top: 2rem; }
+  @media (max-width: 860px) { .redaction-grid { grid-template-columns: 1fr; } }
+
+  .author-card { padding: 1.8rem 1.8rem 2rem; display: grid; grid-template-columns: auto 1fr; gap: 1.3rem; scroll-margin-top: 7rem; }
+  @media (max-width: 620px) {
+    .author-card { grid-template-columns: 1fr; text-align: center; }
+    .author-card .author-avatar { justify-self: center; }
+  }
+  .author-avatar {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: var(--paper-warm);
+    border: 1px solid rgba(184, 134, 61, 0.5);
+    display: grid; place-items: center;
+  }
+  .author-initial {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 1.5rem; color: var(--or-deep); font-weight: 500;
+    letter-spacing: -0.5px;
+  }
+  .author-body h2 { font-size: 1.5rem; margin: 0 0 0.3rem; font-weight: 500; color: var(--ink); }
+  .author-role { margin: 0 0 0.6rem; }
+  .author-bio { color: var(--ink-soft); font-size: 0.96rem; line-height: 1.6; margin: 0 0 0.9rem; }
+
+  .redaction-principes { padding: 4rem 0 2rem; }
+  .principes-list { list-style: none; padding: 0; margin: 2rem 0; display: grid; gap: 1.5rem; }
+  .principes-list li {
+    display: grid; grid-template-columns: auto 1fr; gap: 1.3rem;
+    align-items: baseline;
+  }
+  .principes-list h3 { margin: 0 0 0.3rem; font-size: 1.3rem; font-weight: 500; color: var(--ink); }
+  .principes-list p { color: var(--ink-soft); margin: 0; max-width: 44rem; }
+  .principes-list .rank-num { font-size: 2.5rem; line-height: 1; }
+</style>

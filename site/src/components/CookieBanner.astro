@@ -1,0 +1,60 @@
+---
+---
+
+<div
+  id="cookie-banner"
+  class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-4 hidden"
+  role="dialog"
+  aria-label="Consentement cookies"
+>
+  <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-4">
+    <p class="text-sm text-gray-600 flex-1">
+      On utilise des cookies pour mesurer l'audience du site. Rien de plus, rien de louche. Pas de tracking publicitaire.
+    </p>
+    <div class="flex gap-3">
+      <button
+        id="cookie-decline"
+        class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2 transition-colors"
+      >
+        Refuser
+      </button>
+      <button
+        id="cookie-accept"
+        class="text-sm font-semibold text-white bg-secondary px-5 py-2 rounded-lg hover:bg-secondary/90 transition-colors"
+      >
+        Accepter
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const banner = document.getElementById("cookie-banner");
+  const accept = document.getElementById("cookie-accept");
+  const decline = document.getElementById("cookie-decline");
+
+  function getCookie(name: string) {
+    const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
+    return v ? v.pop() : null;
+  }
+
+  function setCookie(name: string, value: string, days: number) {
+    const d = new Date();
+    d.setTime(d.getTime() + days * 864e5);
+    document.cookie = `${name}=${value};path=/;expires=${d.toUTCString()};SameSite=Lax;domain=.adapte-toi.com`;
+  }
+
+  if (!getCookie("adaptetoi_consent")) {
+    banner?.classList.remove("hidden");
+  }
+
+  accept?.addEventListener("click", () => {
+    setCookie("adaptetoi_consent", "accepted", 365);
+    banner?.classList.add("hidden");
+  });
+
+  decline?.addEventListener("click", () => {
+    setCookie("adaptetoi_consent", "declined", 365);
+    banner?.classList.add("hidden");
+  });
+</script>

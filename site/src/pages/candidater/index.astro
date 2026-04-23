@@ -1,0 +1,311 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Seal from "../../components/Seal.astro";
+import Medaille from "../../components/Medaille.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "Candidater a l'edition 2026 , L'Observatoire des Pros";
+const description = "Soumettez la candidature de votre entreprise a l'edition annuelle de L'Observatoire. Recommandation, Verifie, Laureat : trois niveaux de distinction.";
+const url = `${siteConfig.url}/candidater/`;
+
+const processus = [
+  { n: 1, nom: "Soumission", desc: "Vous remplissez le formulaire de candidature avec SIRET, spécialités, années d'activité, pièces justificatives." },
+  { n: 2, nom: "Examen", desc: "Notre redaction examine le dossier, croise avec les sources publiques, verifie la coherence des declarations." },
+  { n: 3, nom: "Verification", desc: "Pour les Laureats, entretien avec le dirigeant et verification terrain d'au moins une realisation recente." },
+  { n: 4, nom: "Publication", desc: "Le portrait est publie a la prochaine edition mensuelle, avec medaille si elle a ete attribuee." },
+];
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Candidater", url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "Portrait editorial d'entreprise",
+    provider: { "@type": "NewsMediaOrganization", name: siteConfig.name, url: siteConfig.url },
+    offers: siteConfig.candidature.offres.map((o) => ({
+      "@type": "Offer",
+      name: o.nom,
+      price: o.prix,
+      priceCurrency: "EUR",
+      description: o.description,
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <section class="cand-hero">
+    <div class="container-wide cand-hero-inner">
+      <div class="cand-hero-text">
+        <Masthead category="CANDIDATURE 2026" signature="Guide a l'attention des professionnels" />
+        <h1 class="heading-display">Candidatez a l'edition 2026 de L'Observatoire.</h1>
+        <p class="lead">
+          Chaque annee, notre redaction selectionne les entreprises dignes de figurer dans notre guide. Voici comment soumettre votre candidature, et ce que votre dossier apporte a nos lecteurs.
+        </p>
+        <div class="cand-hero-cta">
+          <a href="#formulaire" class="btn btn-primary magnetic">Soumettre mon dossier</a>
+          <a href="#offres" class="btn btn-ghost">Voir les formules <span class="arrow">&rarr;</span></a>
+        </div>
+      </div>
+      <div class="cand-hero-seal">
+        <Seal size={240} variant="or" animated={true} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section-processus container-wide">
+    <EditorialHeader category="PROCESSUS" title="Quatre temps, quinze jours ouvres." subtitle="Votre dossier suit un parcours editorial identique pour toutes les candidatures, quelle que soit la formule." align="center" />
+    <ol class="processus-list stagger-children">
+      {processus.map((p) => (
+        <li class="processus-item card-editorial">
+          <span class="rank-num rank-outlined">{String(p.n).padStart(2, "0")}</span>
+          <h3>{p.nom}</h3>
+          <p>{p.desc}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section id="offres" class="section-offres">
+    <div class="container-wide">
+      <EditorialHeader category="TROIS FORMULES" title="Recommande. Verifie. Laureat." subtitle="Tous les professionnels eligibles figurent gratuitement dans nos classements. Deux formules optionnelles enrichissent le portrait." align="center" />
+
+      <div class="offres-grid stagger-children">
+        {siteConfig.candidature.offres.map((o) => (
+          <article class={`offre-card card-editorial ${o.highlight ? "is-highlight" : ""} ${o.slug === "laureat" ? "is-laureat" : ""}`}>
+            <header class="offre-head">
+              {o.slug === "laureat" && <Medaille tier="or" />}
+              {o.slug === "verifie" && <Medaille tier="argent" />}
+              {o.slug === "recommande" && <span class="meta-label-or">Automatique</span>}
+              <h3 class="offre-nom italic-fraunces">{o.nom}</h3>
+              <p class="offre-prix">
+                {o.prix === 0 ? (
+                  <span class="offre-prix-gratuit">Gratuit</span>
+                ) : (
+                  <>
+                    <span class="offre-prix-val">{o.prix}</span>
+                    <span class="offre-prix-suffix">€ par mois</span>
+                  </>
+                )}
+              </p>
+              <p class="offre-desc">{o.description}</p>
+            </header>
+            <ul class="offre-features">
+              {o.features.map((f) => (
+                <li>
+                  <span class="offre-feature-bullet" aria-hidden="true">·</span>
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+            <footer class="offre-foot">
+              {o.slug === "recommande" ? (
+                <a class="btn btn-outline" href="/selection/">Voir la selection</a>
+              ) : (
+                <a class="btn btn-observatoire magnetic" href="#formulaire">Candidater , {o.nom}</a>
+              )}
+            </footer>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="formulaire" class="section-formulaire">
+    <div class="container-prose cand-form-inner">
+      <EditorialHeader category="FORMULAIRE" title="Soumettez votre dossier." align="center" />
+      <p class="lead" style="text-align:center;">
+        Champs ci-dessous. Notre redaction revient vers vous dans un delai maximum de quinze jours ouvres.
+      </p>
+
+      <form class="cand-form" method="post" action="/api/candidature">
+        <div class="form-row">
+          <label for="nom">Nom de l'entreprise *</label>
+          <input id="nom" name="nom" required type="text" autocomplete="organization" />
+        </div>
+        <div class="form-row form-row-2">
+          <div>
+            <label for="siret">SIRET *</label>
+            <input id="siret" name="siret" required type="text" inputmode="numeric" pattern="[0-9 ]{14,18}" autocomplete="off" />
+          </div>
+          <div>
+            <label for="naf">Code NAF</label>
+            <input id="naf" name="naf" type="text" autocomplete="off" />
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div>
+            <label for="dirigeant">Nom du dirigeant *</label>
+            <input id="dirigeant" name="dirigeant" required type="text" autocomplete="name" />
+          </div>
+          <div>
+            <label for="email">Email *</label>
+            <input id="email" name="email" required type="email" autocomplete="email" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="metier">Metier *</label>
+          <select id="metier" name="metier" required>
+            <option value="">Selectionnez un metier</option>
+            {siteConfig.metiersPilote.map((m) => <option value={m.slug}>{m.nom}</option>)}
+            <option value="autre">Autre (preciser dans les specialites)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="departement">Departement principal *</label>
+          <select id="departement" name="departement" required>
+            <option value="">Selectionnez un departement</option>
+            {siteConfig.departementsPilote.map((d) => <option value={d.code}>{d.nom} ({d.code})</option>)}
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="specialites">Specialites (separees par des virgules)</label>
+          <input id="specialites" name="specialites" type="text" placeholder="ex : renovation reseau ancien, depannage 24h, salles de bain..." />
+        </div>
+        <div class="form-row">
+          <label for="anciennete">Annee de creation *</label>
+          <input id="anciennete" name="anciennete" required type="number" min="1900" max="2026" />
+        </div>
+        <div class="form-row">
+          <label for="formule">Formule souhaitee *</label>
+          <select id="formule" name="formule" required>
+            <option value="">Selectionnez une formule</option>
+            {siteConfig.candidature.offres.map((o) => <option value={o.slug}>{o.nom} , {o.prixLabel}</option>)}
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="motivation">Pourquoi candidater ?</label>
+          <textarea id="motivation" name="motivation" rows="5"></textarea>
+        </div>
+
+        <div class="form-row form-consent">
+          <label>
+            <input type="checkbox" name="rgpd" required />
+            <span>J'accepte que L'Observatoire utilise ces informations pour l'examen de ma candidature, conformement a la <a href="/politique-confidentialite/">politique de confidentialite</a>.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary magnetic">Envoyer le dossier</button>
+      </form>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .cand-hero { padding: clamp(2rem, 5vw, 5rem) 0 clamp(2rem, 4vw, 4rem); }
+  .cand-hero-inner { display: grid; grid-template-columns: 1fr auto; gap: 3rem; align-items: center; }
+  @media (max-width: 860px) {
+    .cand-hero-inner { grid-template-columns: 1fr; }
+    .cand-hero-seal { order: -1; justify-self: center; }
+  }
+  .cand-hero-text .heading-display { margin: 0.3rem 0 1.2rem; }
+  .cand-hero-cta { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: 1.2rem; }
+
+  .section-processus { padding: clamp(2rem, 4vw, 4rem) 0 clamp(3rem, 5vw, 5rem); }
+  .processus-list {
+    list-style: none; padding: 0; margin: 2rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  @media (max-width: 860px) { .processus-list { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 540px) { .processus-list { grid-template-columns: 1fr; } }
+  .processus-item {
+    padding: 1.4rem 1.4rem 1.6rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .processus-item .rank-num { font-size: 2.6rem; line-height: 1; }
+  .processus-item h3 { margin: 0; font-size: 1.2rem; font-weight: 500; }
+  .processus-item p { margin: 0.1rem 0 0; color: var(--ink-soft); font-size: 0.94rem; }
+
+  .section-offres { padding: clamp(3rem, 5vw, 5rem) 0; background: var(--paper-warm); }
+  .offres-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+    margin-top: 2rem;
+  }
+  @media (max-width: 860px) { .offres-grid { grid-template-columns: 1fr; max-width: 32rem; margin-inline: auto; } }
+
+  .offre-card {
+    padding: 1.8rem 1.6rem 2rem;
+    background: var(--paper);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 1rem;
+  }
+  .offre-card.is-highlight {
+    border-color: rgba(26, 22, 20, 0.6);
+    box-shadow: 0 0 0 3px rgba(26, 22, 20, 0.05);
+  }
+  .offre-card.is-laureat {
+    background: linear-gradient(180deg, var(--paper-warm) 0%, var(--paper) 60%);
+    border-color: rgba(184, 134, 61, 0.5);
+    box-shadow: 0 0 0 3px rgba(184, 134, 61, 0.08);
+  }
+  .offre-head { display: grid; gap: 0.45rem; }
+  .offre-nom { font-size: 1.6rem; margin: 0.4rem 0 0.3rem; font-weight: 500; color: var(--ink); letter-spacing: -0.012em; }
+  .offre-prix {
+    display: inline-flex; align-items: baseline; gap: 0.3rem; margin: 0.2rem 0 0.4rem;
+    font-family: var(--font-display);
+  }
+  .offre-prix-val { font-size: 2.4rem; font-weight: 500; color: var(--ink); letter-spacing: -0.02em; line-height: 1; }
+  .offre-prix-suffix { font-size: 0.9rem; color: var(--ink-muted); }
+  .offre-prix-gratuit {
+    font-size: 1.6rem; font-weight: 500; color: var(--or-deep); letter-spacing: -0.012em;
+  }
+  .offre-desc { color: var(--ink-soft); font-size: 0.95rem; margin: 0; line-height: 1.5; }
+
+  .offre-features {
+    list-style: none; padding: 0; margin: 0.4rem 0;
+    display: grid; gap: 0.45rem;
+  }
+  .offre-features li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.55rem;
+    align-items: baseline;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  .offre-feature-bullet { color: var(--or); font-weight: 700; font-size: 1.2rem; line-height: 1; padding-top: 0.1rem; }
+  .offre-foot { padding-top: 0.5rem; }
+  .offre-foot .btn { width: 100%; justify-content: center; }
+
+  .section-formulaire { padding: clamp(3rem, 5vw, 5rem) 0; }
+  .cand-form-inner { max-width: 42rem; }
+  .cand-form { margin-top: 2rem; display: grid; gap: 1.2rem; }
+  .form-row { display: grid; gap: 0.35rem; }
+  .form-row-2 { grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 640px) { .form-row-2 { grid-template-columns: 1fr; } }
+  .form-row label { font-size: 0.82rem; color: var(--ink-soft); font-weight: 500; }
+  .form-row input, .form-row select, .form-row textarea {
+    padding: 0.7rem 0.9rem;
+    font-family: var(--font-body);
+    font-size: 0.96rem;
+    border: 1px solid rgba(26, 22, 20, 0.2);
+    background: var(--paper);
+    border-radius: 2px;
+    color: var(--ink);
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    outline: 2px solid var(--or); outline-offset: 1px;
+    border-color: var(--or);
+  }
+  .form-consent label {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.6rem;
+    align-items: start;
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+  }
+  .form-consent input { margin-top: 0.2rem; }
+</style>

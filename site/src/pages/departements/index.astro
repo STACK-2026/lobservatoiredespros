@@ -1,0 +1,63 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+import { prosSeed } from "../../data/seed-pros";
+
+const title = "Departements couverts , L'Observatoire des Pros";
+const description = "Departements francais couverts par l'edition en cours. Extension progressive a l'ensemble du territoire national.";
+const url = `${siteConfig.url}/departements/`;
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Departements", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="container-wide" style="padding: 2rem 0 4rem;">
+    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Departements" }]} />
+    <Masthead category="COUVERTURE NATIONALE" signature={`Edition N°${siteConfig.editionNumber}`} />
+    <h1 class="heading-display">Trois departements pilotes, deux regions.</h1>
+    <p class="lead">
+      L'edition {siteConfig.editionNumber} de L'Observatoire couvre Paris (75), la Cote-d'Or (21) et l'Yonne (89). Extension a 15 departements supplementaires prevue chaque trimestre.
+    </p>
+
+    <section style="margin-top: 3rem;">
+      <EditorialHeader category="EDITION EN COURS" title="Nos zones d'observation" />
+      <div class="depts-national">
+        {siteConfig.departementsPilote.map((d) => {
+          const count = prosSeed.filter((p) => p.departement === d.slug).length;
+          return (
+            <article class="dept-national card-editorial curl">
+              <span class="meta-label-or">{d.region}</span>
+              <h2 class="italic-fraunces">{d.nom}</h2>
+              <p class="folio">Code {d.code} &middot; {count} professionnels observes</p>
+              <div class="dept-links">
+                {siteConfig.metiersPilote.map((m) => (
+                  <a href={`/${m.slug}/${d.slug}/`}>{m.nomPluriel} {d.nom}</a>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <p class="meta-label" style="margin-top: 3rem; text-align: center; max-width: 32rem; margin-inline: auto;">
+        Prochaine edition : extension prevue aux departements 69 Rhone, 33 Gironde, 13 Bouches-du-Rhone et 44 Loire-Atlantique.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .depts-national { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.3rem; margin-top: 1.6rem; }
+  @media (max-width: 860px) { .depts-national { grid-template-columns: 1fr; } }
+  .dept-national { padding: 1.6rem 1.7rem 1.8rem; display: grid; gap: 0.4rem; }
+  .dept-national h2 { font-size: 1.7rem; margin: 0.2rem 0; font-weight: 500; color: var(--ink); }
+  .dept-links { display: grid; gap: 0.4rem; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid rgba(26, 22, 20, 0.08); }
+  .dept-links a {
+    font-family: var(--font-body); font-size: 0.88rem; color: var(--ink-soft);
+    text-decoration: none; padding: 0.2rem 0; transition: color 200ms;
+  }
+  .dept-links a:hover { color: var(--or-deep); }
+</style>

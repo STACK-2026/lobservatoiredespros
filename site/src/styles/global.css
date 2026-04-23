@@ -1,0 +1,757 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   L'Observatoire des Pros , design system éditorial
+   Inspiration : Guide Michelin, Monocle, Les Échos, The New York Times Magazine
+   ========================================================================== */
+
+/* ------------------------------------------------------------------
+   Tokens Tailwind v4 (disponibles comme bg-paper, text-ink, font-display…)
+   ------------------------------------------------------------------ */
+@theme {
+  --color-paper: #F7F3EC;
+  --color-paper-warm: #EFE7D6;
+  --color-paper-deep: #E7DFCD;
+  --color-ink: #1A1614;
+  --color-ink-soft: #3D342E;
+  --color-ink-muted: #7A6E63;
+  --color-observatoire: #1E3A52;
+  --color-observatoire-deep: #0F2335;
+  --color-or: #B8863D;
+  --color-or-soft: #D4A55C;
+  --color-or-deep: #8E6828;
+  --color-cachet: #8B2E2A;
+  --color-archive: #4A5D3A;
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Instrument Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+  --max-w-prose-editorial: 38rem;
+  --max-w-editorial: 72rem;
+}
+
+/* ------------------------------------------------------------------
+   Variables globales + reset léger
+   ------------------------------------------------------------------ */
+:root {
+  --paper: #F7F3EC;
+  --paper-warm: #EFE7D6;
+  --paper-deep: #E7DFCD;
+  --ink: #1A1614;
+  --ink-soft: #3D342E;
+  --ink-muted: #7A6E63;
+  --observatoire: #1E3A52;
+  --observatoire-deep: #0F2335;
+  --or: #B8863D;
+  --or-soft: #D4A55C;
+  --or-deep: #8E6828;
+  --cachet: #8B2E2A;
+  --archive: #4A5D3A;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --shadow-paper: 0 1px 0 rgba(26, 22, 20, 0.04), 0 8px 32px rgba(26, 22, 20, 0.06);
+  --shadow-lift: 0 6px 18px rgba(15, 35, 53, 0.08), 0 24px 48px rgba(15, 35, 53, 0.10);
+  --shadow-seal: 0 2px 6px rgba(139, 104, 40, 0.25), 0 12px 36px rgba(139, 104, 40, 0.20);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background: var(--paper);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.65;
+  font-size: 1.0625rem;
+  letter-spacing: -0.005em;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+::selection {
+  background: rgba(184, 134, 61, 0.25);
+  color: var(--ink);
+}
+
+/* Papier , grain subtil sur le fond */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(26, 22, 20, 0.025) 0.6px, transparent 1px),
+    radial-gradient(circle at 68% 72%, rgba(26, 22, 20, 0.02) 0.5px, transparent 1px),
+    radial-gradient(circle at 34% 56%, rgba(26, 22, 20, 0.022) 0.4px, transparent 0.8px);
+  background-size: 180px 180px, 220px 220px, 140px 140px;
+  opacity: 0.85;
+}
+
+/* ------------------------------------------------------------------
+   Typographie éditoriale
+   ------------------------------------------------------------------ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  font-feature-settings: "ss01", "ss02", "liga", "calt";
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+  font-weight: 600;
+}
+h2 {
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  letter-spacing: -0.018em;
+  line-height: 1.15;
+}
+h3 {
+  font-size: clamp(1.35rem, 2.3vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+}
+
+/* Hero , H1 ultra grand */
+.heading-hero {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+  font-feature-settings: "ss01", "liga", "calt";
+}
+
+.heading-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  font-weight: 500;
+}
+
+/* Chapô éditorial , lead */
+.lead, .chapo {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+  line-height: 1.55;
+  color: var(--ink-soft);
+  font-weight: 400;
+  letter-spacing: -0.008em;
+  max-width: 40rem;
+}
+
+p {
+  margin: 0 0 1.15rem;
+  max-width: 42rem;
+}
+
+a {
+  color: var(--observatoire);
+  text-decoration: underline;
+  text-decoration-color: rgba(30, 58, 82, 0.35);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 180ms var(--ease-out-quart), text-decoration-color 180ms var(--ease-out-quart);
+}
+a:hover {
+  color: var(--observatoire-deep);
+  text-decoration-color: rgba(184, 134, 61, 0.6);
+}
+
+strong { font-weight: 600; color: var(--ink); }
+em { font-style: italic; }
+
+blockquote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.35rem;
+  line-height: 1.45;
+  padding: 1rem 0 1rem 1.5rem;
+  border-left: 2px solid var(--or);
+  color: var(--ink-soft);
+  margin: 2rem 0;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgba(26, 22, 20, 0.15);
+  margin: 2.5rem 0;
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+/* Méta-label type magazine , CAPS spaced */
+.meta-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.meta-label-ink {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.meta-label-or {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--or-deep);
+  font-weight: 600;
+}
+
+/* Numéro d'édition folio mono */
+.folio {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+}
+
+/* Guillemets français ornementaux */
+.guillemets-fr::before { content: "\00AB\00A0"; }
+.guillemets-fr::after { content: "\00A0\00BB"; }
+
+/* ------------------------------------------------------------------
+   Prose éditoriale (articles, portraits longs)
+   ------------------------------------------------------------------ */
+.prose {
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.prose > * + * { margin-top: 1.15rem; }
+.prose h2 {
+  font-size: clamp(1.6rem, 2.5vw, 2rem);
+  margin: 3rem 0 1rem;
+  color: var(--ink);
+}
+.prose h3 {
+  font-size: 1.3rem;
+  margin: 2.25rem 0 0.75rem;
+  color: var(--ink);
+}
+.prose p { color: var(--ink-soft); max-width: 38rem; }
+.prose ul, .prose ol { padding-left: 1.4rem; margin: 1rem 0 1.25rem; }
+.prose li { margin-bottom: 0.4rem; }
+.prose ul li::marker { color: var(--or); }
+.prose a { color: var(--observatoire); }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose hr { margin: 3rem auto; width: 3rem; border-top: 1px solid var(--or); }
+
+/* Drop cap , lettrine */
+.drop-cap::first-letter {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 4.5em;
+  line-height: 0.82;
+  float: left;
+  margin: 0.22rem 0.6rem 0 -0.05rem;
+  color: var(--ink);
+  font-feature-settings: "ss01";
+  animation: dropcap-in 900ms var(--ease-out-expo) both;
+}
+
+@keyframes dropcap-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ------------------------------------------------------------------
+   Boutons , style éditorial (pas gadget SaaS)
+   ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.78rem 1.45rem;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 240ms var(--ease-out-quart);
+  position: relative;
+  overflow: hidden;
+  line-height: 1;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.btn-primary:hover {
+  background: var(--observatoire-deep);
+  border-color: var(--observatoire-deep);
+  color: var(--paper);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+}
+.btn-observatoire {
+  background: var(--observatoire);
+  color: var(--paper);
+  border-color: var(--observatoire);
+}
+.btn-observatoire:hover {
+  background: var(--observatoire-deep);
+  color: var(--paper);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.btn-outline:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  padding-left: 0;
+  padding-right: 0;
+}
+.btn-ghost .arrow { transition: transform 240ms var(--ease-out-quart); }
+.btn-ghost:hover .arrow { transform: translateX(4px); }
+.btn-ghost:hover { color: var(--or-deep); }
+
+.btn-or {
+  background: var(--or);
+  color: var(--ink);
+  border-color: var(--or);
+  font-weight: 600;
+}
+.btn-or:hover {
+  background: var(--or-deep);
+  color: var(--paper);
+  border-color: var(--or-deep);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--or);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------
+   Sceau , rotation continue très lente
+   ------------------------------------------------------------------ */
+.seal-rotate {
+  animation: seal-rotate 26s linear infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes seal-rotate {
+  to { transform: rotate(360deg); }
+}
+
+.seal-stamp {
+  animation: seal-stamp 1100ms var(--ease-out-expo) both;
+}
+@keyframes seal-stamp {
+  0% { opacity: 0; transform: scale(1.4) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(0.95) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+/* ------------------------------------------------------------------
+   Compteur live , dot qui pulse
+   ------------------------------------------------------------------ */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--or);
+  box-shadow: 0 0 0 0 rgba(184, 134, 61, 0.55);
+  animation: live-pulse 2.2s ease-out infinite;
+  display: inline-block;
+}
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(184, 134, 61, 0.55); }
+  70% { box-shadow: 0 0 0 14px rgba(184, 134, 61, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(184, 134, 61, 0); }
+}
+
+/* ------------------------------------------------------------------
+   Reveal animations (Intersection Observer dans BaseLayout)
+   ------------------------------------------------------------------ */
+.fade-up {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+
+.blur-reveal {
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(14px);
+  transition: opacity 1100ms var(--ease-out-expo), filter 1100ms var(--ease-out-expo), transform 1100ms var(--ease-out-expo);
+}
+.blur-reveal.visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+.scale-reveal {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+}
+.scale-reveal.visible { opacity: 1; transform: scale(1); }
+
+.clip-reveal {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1200ms var(--ease-out-expo);
+}
+.clip-reveal.visible { clip-path: inset(0 0 0 0); }
+
+.slide-left {
+  opacity: 0;
+  transform: translateX(-28px);
+  transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+}
+.slide-left.visible { opacity: 1; transform: translateX(0); }
+
+.slide-right {
+  opacity: 0;
+  transform: translateX(28px);
+  transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+}
+.slide-right.visible { opacity: 1; transform: translateX(0); }
+
+/* Split words (BaseLayout split dynamiquement sur data-split-words) */
+.split-words .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 700ms var(--ease-out-expo), transform 700ms var(--ease-out-expo);
+}
+.split-words.visible .word {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 700ms var(--ease-out-expo), transform 700ms var(--ease-out-expo);
+}
+.stagger-children.visible > *:nth-child(1) { transition-delay: 0ms; }
+.stagger-children.visible > *:nth-child(2) { transition-delay: 80ms; }
+.stagger-children.visible > *:nth-child(3) { transition-delay: 160ms; }
+.stagger-children.visible > *:nth-child(4) { transition-delay: 240ms; }
+.stagger-children.visible > *:nth-child(5) { transition-delay: 320ms; }
+.stagger-children.visible > *:nth-child(6) { transition-delay: 400ms; }
+.stagger-children.visible > *:nth-child(7) { transition-delay: 480ms; }
+.stagger-children.visible > *:nth-child(8) { transition-delay: 560ms; }
+.stagger-children.visible > * { opacity: 1; transform: translateY(0); }
+
+/* ------------------------------------------------------------------
+   Cursor glow (desktop only)
+   ------------------------------------------------------------------ */
+#cursor-glow {
+  position: fixed;
+  top: 0; left: 0;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(184, 134, 61, 0.09) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 480ms ease;
+  mix-blend-mode: multiply;
+}
+@media (pointer: coarse) { #cursor-glow { display: none; } }
+
+/* ------------------------------------------------------------------
+   Cards éditoriales
+   ------------------------------------------------------------------ */
+.card-editorial {
+  background: var(--paper);
+  border: 1px solid rgba(26, 22, 20, 0.08);
+  border-radius: 4px;
+  padding: 1.6rem 1.6rem 1.8rem;
+  transition: transform 400ms var(--ease-out-expo), box-shadow 400ms var(--ease-out-expo), border-color 400ms var(--ease-out-expo);
+  position: relative;
+}
+.card-editorial:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+  border-color: rgba(184, 134, 61, 0.5);
+}
+/* Page curl hover , corner triangle subtle */
+.card-editorial::after {
+  content: "";
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 0 14px 14px;
+  border-color: transparent transparent rgba(26, 22, 20, 0.08) transparent;
+  opacity: 0;
+  transition: opacity 360ms var(--ease-out-expo), border-width 360ms var(--ease-out-expo);
+}
+.card-editorial:hover::after {
+  opacity: 1;
+  border-width: 0 0 22px 22px;
+  border-color: transparent transparent rgba(184, 134, 61, 0.4) transparent;
+}
+
+.card-lauréat {
+  background: var(--paper-warm);
+  border: 1px solid rgba(184, 134, 61, 0.4);
+  padding: 1.8rem;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------
+   Rank numbers , gros numéros de classement
+   ------------------------------------------------------------------ */
+.rank-num {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 8vw, 6.5rem);
+  font-weight: 500;
+  line-height: 0.9;
+  color: var(--ink);
+  letter-spacing: -0.04em;
+  font-feature-settings: "ss01", "tnum";
+  display: inline-block;
+}
+.rank-num.sticky-rank {
+  position: sticky;
+  top: 6rem;
+}
+
+/* ------------------------------------------------------------------
+   Score bar (petit indicateur /10)
+   ------------------------------------------------------------------ */
+.score-bar {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.score-bar .score-value {
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+.score-bar .score-max {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+.score-track {
+  width: 80px;
+  height: 3px;
+  background: rgba(26, 22, 20, 0.12);
+  border-radius: 1px;
+  position: relative;
+  overflow: hidden;
+}
+.score-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--or);
+  transform-origin: left;
+}
+
+/* ------------------------------------------------------------------
+   Medaille (Or / Argent / Bronze)
+   ------------------------------------------------------------------ */
+.medaille {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.medaille-or {
+  background: rgba(184, 134, 61, 0.12);
+  color: var(--or-deep);
+  border-color: rgba(184, 134, 61, 0.5);
+}
+.medaille-argent {
+  background: rgba(26, 22, 20, 0.04);
+  color: var(--ink-soft);
+  border-color: rgba(122, 110, 99, 0.5);
+}
+.medaille-redaction {
+  background: rgba(139, 46, 42, 0.08);
+  color: var(--cachet);
+  border-color: rgba(139, 46, 42, 0.4);
+  font-style: italic;
+}
+
+/* ------------------------------------------------------------------
+   Encart méthodologie (paper-warm)
+   ------------------------------------------------------------------ */
+.encart-methodologie {
+  background: var(--paper-warm);
+  border: 1px solid rgba(26, 22, 20, 0.08);
+  border-top: 2px solid var(--ink);
+  padding: 1.5rem 1.8rem;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------
+   Ink bleed , transition sections (masque SVG)
+   ------------------------------------------------------------------ */
+.ink-bleed-divider {
+  position: relative;
+  height: 72px;
+  overflow: hidden;
+}
+.ink-bleed-divider svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ------------------------------------------------------------------
+   Focus visible editorial , outline or
+   ------------------------------------------------------------------ */
+:focus-visible {
+  outline: 2px solid var(--or);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------
+   Prefers reduced motion
+   ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .seal-rotate { animation: none; }
+  .live-dot { animation: none; box-shadow: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* ------------------------------------------------------------------
+   Utilities
+   ------------------------------------------------------------------ */
+.container-editorial {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding-inline: clamp(1.25rem, 5vw, 5rem);
+}
+.container-prose {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding-inline: clamp(1.25rem, 5vw, 2rem);
+}
+.container-wide {
+  max-width: 84rem;
+  margin: 0 auto;
+  padding-inline: clamp(1.25rem, 5vw, 5rem);
+}
+
+.hairline {
+  display: block;
+  height: 1px;
+  background: rgba(26, 22, 20, 0.18);
+  margin: 0;
+}
+.hairline-or {
+  display: block;
+  height: 2px;
+  background: var(--or);
+  width: 3rem;
+  margin: 1rem 0;
+}
+
+.italic-fraunces {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.shadow-seal { box-shadow: var(--shadow-seal); }
+
+/* Page curl hover sur n'importe quel wrapper .curl */
+.curl {
+  position: relative;
+}
+.curl::after {
+  content: "";
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 0 12px 12px;
+  border-color: transparent transparent rgba(184, 134, 61, 0.35) transparent;
+  opacity: 0;
+  transition: opacity 360ms var(--ease-out-expo), border-width 360ms var(--ease-out-expo);
+}
+.curl:hover::after {
+  opacity: 1;
+  border-width: 0 0 24px 24px;
+}
+
+/* Telescope watermark (fond décoratif pages longues) */
+.telescope-watermark {
+  position: absolute;
+  top: 40%;
+  right: -80px;
+  width: 520px;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+@media (max-width: 768px) {
+  .telescope-watermark { right: -120px; width: 360px; opacity: 0.04; }
+}

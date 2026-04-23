@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import EditorialHeader from "../../components/EditorialHeader.astro";
+import Seal from "../../components/Seal.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "Archives , L'Observatoire des Pros";
+const description = "Les editions passees de L'Observatoire des Pros. Chaque edition est archivee en integralite et reste consultable.";
+const url = `${siteConfig.url}/archives/`;
+
+const editions = [
+  {
+    num: 1, mois: siteConfig.editionMonth, annee: siteConfig.editionYear,
+    themes: ["Lancement editorial", "Plomberie, electricite, couverture, menuiserie, isolation", "3 departements pilotes"],
+    statut: "courante",
+  },
+];
+
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Archives", url }])];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="archives-page">
+    <div class="container-editorial arch-head">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Archives" }]} />
+      <Masthead category="ARCHIVES" />
+      <h1 class="heading-display">Toutes les editions.</h1>
+      <p class="lead">
+        Chaque edition de L'Observatoire est archivee dans son etat de publication. Les versions anterieures des classements, portraits et observations restent consultables.
+      </p>
+    </div>
+
+    <section class="container-wide arch-liste">
+      <EditorialHeader category="LES EDITIONS" title="Chronologie publiee" />
+
+      <div class="editions-list">
+        {editions.map((e) => (
+          <article class={`edition-card card-editorial ${e.statut === "courante" ? "is-courante" : ""}`}>
+            <div class="edition-seal">
+              <Seal size={88} variant={e.statut === "courante" ? "or" : "ink"} animated={e.statut === "courante"} />
+            </div>
+            <div class="edition-body">
+              <span class="meta-label-or">EDITION N°{e.num} &middot; {e.statut === "courante" ? "COURANTE" : "ARCHIVEE"}</span>
+              <h2 class="italic-fraunces">{e.mois} {e.annee}</h2>
+              <ul class="edition-themes">
+                {e.themes.map((t) => <li>{t}</li>)}
+              </ul>
+              {e.statut === "courante" ? (
+                <p class="edition-cta"><a class="btn btn-outline" href="/selection/">Consulter la selection en cours</a></p>
+              ) : (
+                <p><a class="btn-ghost" href={`/archives/edition-${e.num}/`}>Ouvrir cette archive <span class="arrow">&rarr;</span></a></p>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <p class="arch-prochain italic-fraunces">
+        « Edition N°2 en preparation , mai 2026 »
+      </p>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .archives-page { padding: 2rem 0 4rem; }
+  .arch-head { margin-bottom: 2rem; }
+  .arch-head .heading-display { margin: 0.4rem 0 1rem; }
+  .arch-liste { padding: 2rem 0; max-width: 62rem; margin: 0 auto; }
+
+  .editions-list { display: grid; gap: 1.4rem; margin-top: 1.8rem; }
+  .edition-card {
+    padding: 2rem 2.2rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  .edition-card.is-courante {
+    background: linear-gradient(180deg, var(--paper-warm) 0%, var(--paper) 60%);
+    border-color: rgba(184, 134, 61, 0.4);
+  }
+  @media (max-width: 720px) {
+    .edition-card { grid-template-columns: 1fr; }
+    .edition-seal { justify-self: center; }
+  }
+  .edition-body h2 { font-size: 1.8rem; margin: 0.3rem 0 0.7rem; font-weight: 500; color: var(--ink); }
+  .edition-themes { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.3rem; }
+  .edition-themes li { color: var(--ink-soft); font-size: 0.94rem; padding-left: 0.8rem; position: relative; }
+  .edition-themes li::before { content: "·"; color: var(--or); position: absolute; left: 0.2rem; }
+  .arch-prochain {
+    text-align: center;
+    margin: 3rem auto 0;
+    font-size: 1.1rem;
+    color: var(--ink-muted);
+  }
+</style>
