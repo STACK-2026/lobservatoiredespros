@@ -4,6 +4,48 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 
 ---
 
+## 2026-04-23 , 17:40 , Enrichissement RGE ADEME
+
+**Contexte** : Intégration API ADEME `liste-des-entreprises-rge-2` pour enrichir les pros avec leurs qualifications RGE détaillées (au-delà du simple bool RGE).
+
+**Bloqueurs résolus** :
+1. Mauvaise syntaxe API : `qs=siret:"XXX"` encodé → corrigé en `qs=siret:XXX` sans quotes, sans URL encoding
+2. `size` par défaut 12 → passé à 100 (évite la troncature)
+3. Dataset `liste-des-entreprises-rge` obsolète → remplacé par `liste-des-entreprises-rge-2` (à jour quotidiennement)
+4. Index partiel `CURRENT_DATE` non-immutable → retiré, simple index `date_fin`
+5. Cache PostgREST pas rafraîchi → `NOTIFY pgrst, 'reload schema'` + 10s d'attente
+
+**Nouveaux assets** :
+- Migration SQL `supabase/migrations/20260423_001_rge_qualifications.sql` :
+  - Table `pro_qualifications` (siret, code_qualification, meta_domaine, domaine, dates, url_certificat, particulier, telephone/email/site source ADEME)
+  - UNIQUE(siret, code_qualification), 4 indexes, RLS public read
+  - Colonnes d'agrégat sur `pros` : `nb_qualifications_actives`, `liste_certificats[]`
+- Script `scripts/sync_rge_qualifications.py` :
+  - Fetch par SIRET avec retry + rate limit 6 req/s
+  - Upsert `pro_qualifications` (insert/update par UNIQUE siret+code)
+  - PATCH `pros` : rge bool + nb actives + liste certificats + score recalculé
+  - Score enrichi : +1.5 base RGE, +0.5 si ≥3 qualifs, +0.5 si ≥6 qualifs, +0.5 si particulier, +0.5 si multi-organismes, +0.5 si qualif récente < 2 ans
+- Component `QualificationsBlock.astro` :
+  - Groupement par `meta_domaine` (Travaux d'efficacité énergétique, etc.)
+  - Pills organisme (QUALIBAT, QUALIFELEC, etc.) avec count
+  - Cards qualifs avec badge coloré + date expiration + code + tag "Particuliers" + lien PDF certificat
+  - Border-radius asymétrique cohérent avec DA
+  - GlossaireTerm "RGE" inline
+
+**Sync live réalisée** :
+- Test SIRET `48758196900010` (ACE MILBERT FRERES) : 2 qualifications Qualibat-RGE 5211D101 + 5211D107 valides jusqu'au 2027-04-15 ✓
+- Dept 89 full sync : **49/290 pros (16%) ont le RGE actif**, 227 qualifications actives total, moyenne 4.6 qualifs/pro RGE
+- Score ACE MILBERT : 4.5 → 6.5 après enrichissement
+
+**Impact éditorial** :
+- Le bloc "Qualifications vérifiées" affiche les certifications précises (Chaudière condensation · Radiateurs électriques · Isolation combles...) avec validité et lien PDF officiel
+- 0 concurrent français n'affiche les qualifs RGE à ce niveau de détail
+- Source "ADEME · Vérifié [date]" en header = signature éditoriale
+
+**Décision** : sync massive sur Paris + Côte-d'Or à lancer ensuite, puis recalcul global du classement par Score de Confiance enrichi.
+
+---
+
 ## 2026-04-23 , 16:55 , Audit après P0.1 à P0.4 complet
 
 **Contexte** : 4 nouveautés P0 déployées (Ticker live, Verdict éditorial, UnknownsCard, Typo scale)

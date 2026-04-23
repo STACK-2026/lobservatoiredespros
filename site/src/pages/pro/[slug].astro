@@ -10,6 +10,7 @@ import GlossaireTerm from "../../components/GlossaireTerm.astro";
 import SourceBadge from "../../components/SourceBadge.astro";
 import EditorialVerdict from "../../components/EditorialVerdict.astro";
 import UnknownsCard from "../../components/UnknownsCard.astro";
+import QualificationsBlock from "../../components/QualificationsBlock.astro";
 import { siteConfig } from "../../utils/config";
 import { supabase } from "../../lib/supabase";
 import { jsonLdBreadcrumbs, jsonLdLocalBusiness } from "../../utils/seo";
@@ -338,6 +339,11 @@ const jsonLd = [
         </div>
       </section>
     )}
+
+    <!-- QUALIFICATIONS RGE , cartographiees par ADEME -->
+    <section class="container-wide portrait-qualifs">
+      <QualificationsBlock proId={p.id} siret={p.siret} />
+    </section>
 
     <!-- "CE QUE NOUS NE SAVONS PAS ENCORE" , transparence éditoriale -->
     <section class="container-wide portrait-unknowns">
@@ -780,6 +786,12 @@ const jsonLd = [
   @media (max-width: 680px) { .cta-card-actions { justify-content: center; } }
 
   /* ═══════ SOURCES ═══════ */
+  .portrait-qualifs {
+    max-width: 62rem;
+    margin: 2rem auto 0.5rem;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+
   .portrait-unknowns {
     max-width: 62rem;
     margin: 1rem auto 0.5rem;

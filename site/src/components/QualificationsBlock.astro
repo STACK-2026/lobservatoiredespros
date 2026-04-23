@@ -1,0 +1,394 @@
+---
+/**
+ * QualificationsBlock , affichage editorial des qualifications RGE.
+ *
+ * Groupe les qualifs par meta_domaine, affiche chaque certif avec :
+ * - Badge organisme (QUALIBAT, QUALIFELEC, etc.)
+ * - Domaine technique
+ * - Date de validite
+ * - Tag "Particuliers" si applicable
+ * - Lien vers le certificat PDF
+ *
+ * Source : ADEME , synchronise quotidiennement.
+ */
+import { supabase } from "../lib/supabase";
+import GlossaireTerm from "./GlossaireTerm.astro";
+
+interface Props {
+  proId: string;
+  siret?: string | null;
+}
+
+const { proId, siret } = Astro.props;
+
+// Fetch qualifications actives pour ce pro
+const { data: quals } = await supabase
+  .from("pro_qualifications")
+  .select("*")
+  .eq("pro_id", proId)
+  .order("meta_domaine", { ascending: true })
+  .order("date_fin", { ascending: false });
+
+const today = new Date().toISOString().slice(0, 10);
+const actives = (quals || []).filter((q) => q.date_fin && q.date_fin >= today);
+
+// Grouper par meta_domaine
+const grouped: Record<string, typeof actives> = {};
+for (const q of actives) {
+  const key = q.meta_domaine || "Autres qualifications";
+  if (!grouped[key]) grouped[key] = [];
+  grouped[key].push(q);
+}
+
+const hasQualifs = actives.length > 0;
+const organismes = [...new Set(actives.map((q) => q.organisme))];
+const lastChecked = actives[0]?.last_checked_at
+  ? new Date(actives[0].last_checked_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+  : new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+function formatDate(d: string | null): string {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+const organismeColors: Record<string, string> = {
+  qualibat: "#B8863D",
+  qualifelec: "#D4A017",
+  cequami: "#4A913A",
+  certibat: "#19376D",
+  qualit_enr: "#C87828",
+};
+---
+
+{hasQualifs && (
+  <section class="qualifs-block fade-up" aria-labelledby="qualifs-title">
+    <header class="qb-head">
+      <div class="qb-head-left">
+        <span class="meta-label-or">Qualifications vérifiées</span>
+        <h2 id="qualifs-title" class="qb-title italic-fraunces">{actives.length} {actives.length > 1 ? "qualifications" : "qualification"} {actives.length > 1 ? "actives" : "active"}</h2>
+      </div>
+      <div class="qb-head-right">
+        <span class="qb-source folio">
+          Source : <GlossaireTerm slug="rge" text="ADEME RGE" /> &middot; Vérifié {lastChecked}
+        </span>
+      </div>
+    </header>
+
+    <!-- Summary counter pills -->
+    <div class="qb-summary">
+      {organismes.map((org) => {
+        const count = actives.filter((q) => q.organisme === org).length;
+        const color = organismeColors[org] || "#7A6E63";
+        return (
+          <span class="qb-org-pill" style={`--org-color: ${color};`}>
+            <span class="qb-org-dot" aria-hidden="true"></span>
+            <span class="qb-org-name">{org.replace("_", " ")}</span>
+            <span class="qb-org-count">{count}</span>
+          </span>
+        );
+      })}
+    </div>
+
+    <!-- Grouped qualifications by domain -->
+    <div class="qb-groups stagger-children">
+      {Object.entries(grouped).map(([meta, quals]) => (
+        <article class="qb-group">
+          <header class="qb-group-head">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M2 8 L6 12 L14 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h3 class="qb-group-title">{meta}</h3>
+            <span class="qb-group-count">{quals.length}</span>
+          </header>
+          <ul class="qb-list">
+            {quals.map((q) => {
+              const color = organismeColors[q.organisme] || "#7A6E63";
+              return (
+                <li class="qb-item" style={`--org-color: ${color};`}>
+                  <span class="qb-item-badge">
+                    <span class="qb-item-badge-dot" aria-hidden="true"></span>
+                    {q.nom_certificat}
+                  </span>
+                  <div class="qb-item-body">
+                    <p class="qb-item-domaine">{q.domaine}</p>
+                    <div class="qb-item-meta">
+                      <span class="qb-meta-chunk">
+                        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2" /><path d="M6 3v3l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /></svg>
+                        <span>Valide jusqu'au <strong>{formatDate(q.date_fin)}</strong></span>
+                      </span>
+                      <span class="qb-meta-chunk folio">Code {q.code_qualification}</span>
+                      {q.particulier && (
+                        <span class="qb-meta-tag">
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><circle cx="5" cy="5" r="4.5" /></svg>
+                          Particuliers
+                        </span>
+                      )}
+                      {q.url_certificat && (
+                        <a href={q.url_certificat} target="_blank" rel="nofollow noopener" class="qb-meta-link">
+                          Voir le certificat <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 9L9 3M5 3h4v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </article>
+      ))}
+    </div>
+
+    <footer class="qb-foot">
+      <p class="folio">
+        Synchronisation quotidienne depuis le jeu de données public <GlossaireTerm slug="rge" text="RGE de l'ADEME" />.
+        {siret && (
+          <>
+            SIRET <span class="mono">{siret}</span> ·
+          </>
+        )}
+      </p>
+    </footer>
+  </section>
+)}
+
+<style>
+  .qualifs-block {
+    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 100%);
+    border: 1px solid rgba(184, 134, 61, 0.3);
+    border-radius: 4px 28px 4px 4px;
+    padding: 1.8rem 2rem 1.8rem;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .qualifs-block::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--or), var(--or-deep) 70%, var(--observatoire));
+  }
+
+  .qb-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(184, 134, 61, 0.25);
+    margin-bottom: 1.3rem;
+    flex-wrap: wrap;
+  }
+  .qb-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+    font-weight: 400;
+    color: var(--ink);
+    margin: 0.25rem 0 0;
+    letter-spacing: -0.018em;
+  }
+  .qb-source {
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+  }
+
+  /* Org pills (QUALIBAT x 3, QUALIFELEC x 2, ...) */
+  .qb-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1.4rem;
+  }
+  .qb-org-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.65rem 0.35rem 0.55rem;
+    background: color-mix(in srgb, var(--org-color) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--org-color) 35%, transparent);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--org-color);
+  }
+  .qb-org-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--org-color);
+    flex-shrink: 0;
+  }
+  .qb-org-name {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .qb-org-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 0.3rem;
+    background: var(--org-color);
+    color: var(--paper);
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+
+  /* Groups */
+  .qb-groups { display: grid; gap: 1.2rem; }
+  .qb-group {
+    padding: 1rem 1.2rem 1.1rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 4px 20px 4px 4px;
+  }
+  .qb-group-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px dashed rgba(26, 22, 20, 0.1);
+  }
+  .qb-group-head svg { color: #4A913A; flex-shrink: 0; }
+  .qb-group-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0;
+    flex: 1;
+    letter-spacing: -0.012em;
+  }
+  .qb-group-count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    padding: 0.2rem 0.55rem;
+    background: rgba(26, 22, 20, 0.04);
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  .qb-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .qb-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.7rem 0.85rem;
+    background: color-mix(in srgb, var(--org-color) 4%, transparent);
+    border-left: 3px solid var(--org-color);
+    border-radius: 0 6px 6px 0;
+    transition: background 220ms, transform 220ms;
+  }
+  .qb-item:hover {
+    background: color-mix(in srgb, var(--org-color) 8%, transparent);
+    transform: translateX(2px);
+  }
+  @media (max-width: 620px) {
+    .qb-item { grid-template-columns: 1fr; gap: 0.5rem; }
+  }
+  .qb-item-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.7rem;
+    background: var(--org-color);
+    color: var(--paper);
+    border-radius: 4px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    height: fit-content;
+  }
+  .qb-item-badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(247, 243, 236, 0.85);
+  }
+
+  .qb-item-body { min-width: 0; }
+  .qb-item-domaine {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--ink);
+    margin: 0 0 0.45rem;
+    line-height: 1.35;
+    letter-spacing: -0.008em;
+  }
+  .qb-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.9rem;
+    align-items: center;
+    font-size: 0.76rem;
+  }
+  .qb-meta-chunk {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--ink-muted);
+  }
+  .qb-meta-chunk svg { color: var(--org-color); }
+  .qb-meta-chunk strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .qb-meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.5rem;
+    background: rgba(30, 58, 82, 0.06);
+    color: var(--observatoire-deep);
+    border: 1px solid rgba(30, 58, 82, 0.15);
+    border-radius: 3px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .qb-meta-tag svg { color: var(--observatoire); }
+  .qb-meta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--or-deep);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px dotted var(--or);
+    font-size: 0.76rem;
+    padding-bottom: 1px;
+  }
+  .qb-meta-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .qb-foot {
+    margin-top: 1.2rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed rgba(184, 134, 61, 0.25);
+  }
+  .qb-foot p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.72rem;
+  }
+  .qb-foot .mono {
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+</style>
