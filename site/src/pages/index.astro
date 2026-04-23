@@ -436,58 +436,102 @@ const jsonLd = {
 
   <InkBleedDivider variant="compass" />
 
-  <!-- ═══════════════════ DERNIÈRES OBSERVATIONS ═══════════════════ -->
-  <section class="section-observations container-wide">
-    <EditorialHeader category="NOS OBSERVATIONS" title="Dernières publications de la rédaction" />
-    <div class="observations-list">
-      {alaUne.map((o) => (
-        <a class="observation-row curl" href={`/observations/${o.slug}/`}>
-          <div class="observation-meta">
-            <span class="meta-label-or">{o.category}</span>
-            <span class="folio">{o.date}</span>
+  <!-- ═══════════════════ DERNIÈRES OBSERVATIONS , v3 cards premium ═══════════════════ -->
+  <section class="section-observations-v3 container-wide">
+    <EditorialHeader category="NOS OBSERVATIONS" title="Dernières publications de la rédaction" subtitle="Enquêtes, portraits et dossiers récents de notre rédaction." />
+
+    <div class="obs-list-v3 stagger-children">
+      {alaUne.map((o, i) => (
+        <a class="obs-card-v3" href={`/observations/${o.slug}/`}>
+          <span class="obs-num folio" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+          <div class="obs-body">
+            <div class="obs-meta-row">
+              <span class="obs-cat">
+                <span class="obs-cat-dot" aria-hidden="true"></span>
+                {o.category}
+              </span>
+              <span class="obs-date folio">{o.date}</span>
+              <span class="obs-reading folio">· {o.readingTime} min</span>
+            </div>
+            <h3 class="obs-title italic-fraunces">{o.title}</h3>
+            <p class="obs-excerpt">{o.excerpt}</p>
+            <div class="obs-footer">
+              <span class="obs-author">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <circle cx="6" cy="4" r="2" stroke="currentColor" stroke-width="1.2" />
+                  <path d="M2 11 C 2 9 4 8 6 8 C 8 8 10 9 10 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                </svg>
+                <span>{o.author}</span>
+              </span>
+              <span class="obs-cta">Lire <span class="obs-arrow" aria-hidden="true">&rarr;</span></span>
+            </div>
           </div>
-          <h3 class="observation-title">{o.title}</h3>
-          <p class="observation-excerpt">{o.excerpt}</p>
-          <span class="observation-arrow">&rarr;</span>
         </a>
       ))}
     </div>
-    <p><a href="/observations/" class="btn-ghost">Toutes les observations <span class="arrow">&rarr;</span></a></p>
+
+    <p class="obs-all-link">
+      <a href="/observations/" class="btn btn-outline magnetic">Toutes les observations <span class="arrow">&rarr;</span></a>
+    </p>
   </section>
 
-  <!-- ═══════════════════ FAQ ═══════════════════ -->
-  <section class="section-faq">
+  <!-- ═══════════════════ FAQ v3 , coin asymétrique + hover ═══════════════════ -->
+  <section class="section-faq-v3">
     <div class="container-editorial">
-      <EditorialHeader category="QUESTIONS FRÉQUENTES" title="Ce que nous répondons, publiquement" align="center" />
-      <div class="faq-list stagger-children">
+      <EditorialHeader category="QUESTIONS FRÉQUENTES" title="Ce que nous répondons, publiquement" subtitle="Huit questions récurrentes, réponses courtes et directes." align="center" />
+      <div class="faq-list-v3 stagger-children">
         {siteConfig.faq.map((q, i) => (
-          <details class="faq-item">
+          <details class="faq-v3-item">
             <summary>
-              <span class="folio faq-num">{String(i+1).padStart(2, "0")}</span>
-              <span class="faq-question">{q.question}</span>
-              <span class="faq-toggle" aria-hidden="true">+</span>
+              <span class="faq-v3-num folio">{String(i+1).padStart(2, "0")}</span>
+              <span class="faq-v3-question">{q.question}</span>
+              <span class="faq-v3-toggle" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+              </span>
             </summary>
-            <div class="faq-answer"><p>{q.answer}</p></div>
+            <div class="faq-v3-answer"><p>{q.answer}</p></div>
           </details>
         ))}
       </div>
     </div>
   </section>
 
-  <!-- ═══════════════════ NEWSLETTER ═══════════════════ -->
-  <section class="section-newsletter">
-    <div class="container-editorial newsletter-inner">
-      <Seal size={72} variant="or" animated={true} />
-      <h2 class="heading-display newsletter-title">La lettre de L'Observatoire</h2>
-      <p class="lead">
-        Chaque mois, notre rédaction adresse une lettre à ses lecteurs. Une observation majeure, un portrait, une question de méthode. Pas de publicité, pas de tracking invasif. Désabonnement en un clic.
-      </p>
-      <form class="newsletter-form" method="post" action="#">
-        <label class="sr-only" for="nl-email">Adresse email</label>
-        <input id="nl-email" type="email" name="email" required placeholder="votre adresse email" />
-        <button type="submit" class="btn btn-observatoire">S'abonner</button>
-      </form>
-      <p class="meta-label newsletter-meta">Gratuit. Ouvert à tous. Archives consultables.</p>
+  <!-- ═══════════════════ NEWSLETTER v3 card premium ═══════════════════ -->
+  <section class="section-newsletter-v3">
+    <div class="container-editorial">
+      <div class="nl-v3-card blur-reveal">
+        <div class="nl-v3-decor" aria-hidden="true">
+          <Seal size={96} variant="or" animated={true} />
+        </div>
+        <div class="nl-v3-body">
+          <span class="meta-label-or">La lettre éditoriale , mensuelle</span>
+          <h2 class="heading-display nl-v3-title">La lettre de L'Observatoire.</h2>
+          <p class="lead nl-v3-lead">
+            Chaque mois, une observation majeure, un portrait, une question de méthode. Pas de publicité, pas de tracking invasif. Désabonnement en un clic.
+          </p>
+          <form class="nl-v3-form" method="post" action="/api/newsletter">
+            <label class="sr-only" for="nl-email">Adresse email</label>
+            <input id="nl-email" type="email" name="email" required placeholder="votre adresse email" autocomplete="email" />
+            <button type="submit" class="btn btn-primary magnetic">S'abonner</button>
+          </form>
+          <div class="nl-v3-perks">
+            <span class="nl-v3-perk">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 7 L6 10 L11 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              Gratuit
+            </span>
+            <span class="nl-v3-perk">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 7 L6 10 L11 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              Un envoi par mois, jamais plus
+            </span>
+            <span class="nl-v3-perk">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 7 L6 10 L11 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              Archives consultables
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1050,49 +1094,194 @@ const jsonLd = {
   }
   @media (max-width: 760px) { .pro-v2-actions { justify-content: center; } }
 
-  /* ═══════ OBSERVATIONS LIST ═══════ */
-  .section-observations { padding: clamp(1.5rem, 3vw, 3rem) 0 clamp(2rem, 3.5vw, 3.5rem); }
-  .observations-list { display: grid; gap: 0; margin-top: 1rem; }
-  .observation-row {
-    display: block;
-    padding: 1.6rem 0 1.7rem;
-    border-top: 1px solid rgba(26, 22, 20, 0.1);
+  /* ═══════ OBSERVATIONS LIST V3 ═══════ */
+  .section-observations-v3 {
+    padding: clamp(2rem, 4vw, 4rem) 0 clamp(2.5rem, 4vw, 4rem);
+  }
+  .obs-list-v3 {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1.8rem;
+  }
+  .obs-card-v3 {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.4rem;
+    padding: 1.4rem 1.6rem 1.5rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 4px 24px 4px 4px;
     text-decoration: none;
     color: inherit;
     position: relative;
-    transition: padding-left 280ms var(--ease-out-quart), background 280ms;
+    transition: transform 320ms var(--ease-out-expo),
+                box-shadow 320ms var(--ease-out-expo),
+                border-color 320ms,
+                background 320ms;
+    overflow: hidden;
   }
-  .observation-row:last-child { border-bottom: 1px solid rgba(26, 22, 20, 0.1); }
-  .observation-row:hover { padding-left: 0.8rem; background: rgba(239, 231, 214, 0.3); }
-  .observation-meta { display: flex; gap: 1rem; align-items: baseline; margin-bottom: 0.35rem; }
-  .observation-title {
+  .obs-card-v3::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--or);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 380ms var(--ease-out-expo);
+  }
+  .obs-card-v3:hover {
+    transform: translateX(4px) translateY(-2px);
+    box-shadow: 0 16px 34px -20px rgba(26, 22, 20, 0.2);
+    border-color: rgba(184, 134, 61, 0.5);
+    background: linear-gradient(135deg, var(--paper) 0%, rgba(239, 231, 214, 0.4) 100%);
+  }
+  .obs-card-v3:hover::before {
+    transform: scaleY(1);
+  }
+
+  .obs-num {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--or);
+    opacity: 0.35;
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.2rem;
+    transition: opacity 300ms, transform 300ms;
+  }
+  .obs-card-v3:hover .obs-num { opacity: 0.7; transform: scale(1.05); }
+
+  .obs-body { min-width: 0; }
+  .obs-meta-row {
+    display: flex;
+    gap: 0.8rem;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .obs-cat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--or-deep);
+    font-weight: 600;
+  }
+  .obs-cat-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--or);
+    box-shadow: 0 0 0 0 rgba(184, 134, 61, 0.55);
+    animation: obs-pulse 2.4s ease-out infinite;
+  }
+  @keyframes obs-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(184, 134, 61, 0.45); }
+    70% { box-shadow: 0 0 0 6px rgba(184, 134, 61, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(184, 134, 61, 0); }
+  }
+  .obs-date { color: var(--ink-muted); font-size: 0.72rem; }
+  .obs-reading { color: var(--ink-muted); font-size: 0.72rem; }
+
+  .obs-title {
     font-family: var(--font-display);
     font-size: clamp(1.3rem, 2vw, 1.7rem);
-    font-weight: 500;
-    letter-spacing: -0.014em;
+    font-weight: 400;
+    letter-spacing: -0.015em;
     margin: 0 0 0.45rem;
     color: var(--ink);
+    line-height: 1.2;
+    transition: color 200ms;
   }
-  .observation-excerpt { color: var(--ink-soft); margin: 0 0 0.2rem; max-width: 54rem; }
-  .observation-arrow {
-    position: absolute; right: 0; top: 50%;
-    transform: translateY(-50%); color: var(--or-deep);
-    transition: transform 280ms var(--ease-out-quart);
+  .obs-card-v3:hover .obs-title { color: var(--or-deep); }
+  .obs-excerpt {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin: 0 0 0.8rem;
+    max-width: 54rem;
   }
-  .observation-row:hover .observation-arrow { transform: translate(6px, -50%); }
 
-  /* ═══════ FAQ ═══════ */
-  .section-faq { padding: clamp(3rem, 5vw, 5rem) 0; background: var(--paper-warm); }
-  .faq-list { display: grid; gap: 0.4rem; margin-top: 1.6rem; }
-  .faq-item {
+  .obs-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.6rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.1);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .obs-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.01em;
+  }
+  .obs-author svg { color: var(--or); }
+  .obs-cta {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .obs-arrow {
+    display: inline-block;
+    transition: transform 280ms var(--ease-out-quart);
+    color: var(--or-deep);
+  }
+  .obs-card-v3:hover .obs-arrow { transform: translateX(4px); }
+
+  .obs-all-link {
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 560px) {
+    .obs-card-v3 { grid-template-columns: 1fr; gap: 0.6rem; }
+    .obs-num { font-size: 1.6rem; }
+  }
+
+  /* ═══════ FAQ V3 ═══════ */
+  .section-faq-v3 { padding: clamp(3rem, 5vw, 5rem) 0; background: var(--paper-warm); }
+  .faq-list-v3 { display: grid; gap: 0.55rem; margin-top: 1.8rem; }
+  .faq-v3-item {
     background: var(--paper);
     border: 1px solid rgba(26, 22, 20, 0.08);
-    border-radius: 2px;
+    border-radius: 4px 20px 4px 4px;
     padding: 0;
-    transition: border-color 240ms, box-shadow 240ms;
+    transition: border-color 280ms, box-shadow 280ms, transform 280ms;
+    overflow: hidden;
+    position: relative;
   }
-  .faq-item[open] { border-color: rgba(184, 134, 61, 0.4); box-shadow: var(--shadow-paper); }
-  .faq-item summary {
+  .faq-v3-item::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--or);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 320ms var(--ease-out-expo);
+  }
+  .faq-v3-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(184, 134, 61, 0.4);
+    box-shadow: 0 10px 24px -16px rgba(26, 22, 20, 0.15);
+  }
+  .faq-v3-item:hover::before { transform: scaleY(1); }
+  .faq-v3-item[open] {
+    border-color: rgba(184, 134, 61, 0.5);
+    box-shadow: 0 14px 32px -18px rgba(26, 22, 20, 0.2);
+  }
+  .faq-v3-item[open]::before { transform: scaleY(1); }
+  .faq-v3-item summary {
     display: grid;
     grid-template-columns: auto 1fr auto;
     gap: 1rem;
@@ -1101,59 +1290,131 @@ const jsonLd = {
     cursor: pointer;
     list-style: none;
   }
-  .faq-item summary::-webkit-details-marker { display: none; }
-  .faq-num { color: var(--or-deep); }
-  .faq-question {
-    font-family: var(--font-display);
-    font-size: 1.12rem;
+  .faq-v3-item summary::-webkit-details-marker { display: none; }
+  .faq-v3-num {
+    color: var(--or-deep);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
     font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  .faq-v3-question {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 400;
     color: var(--ink);
     letter-spacing: -0.012em;
+    line-height: 1.35;
   }
-  .faq-toggle {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
+  .faq-v3-toggle {
+    width: 32px; height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(184, 134, 61, 0.08);
     color: var(--or-deep);
-    transition: transform 240ms var(--ease-out-quart);
+    border-radius: 50%;
+    transition: transform 320ms var(--ease-out-quart), background 280ms;
   }
-  .faq-item[open] .faq-toggle { transform: rotate(45deg); }
-  .faq-answer { padding: 0 1.4rem 1.3rem 3.4rem; color: var(--ink-soft); font-size: 0.98rem; line-height: 1.6; }
-  .faq-answer p { margin: 0; }
+  .faq-v3-item:hover .faq-v3-toggle { background: rgba(184, 134, 61, 0.18); }
+  .faq-v3-item[open] .faq-v3-toggle { transform: rotate(45deg); background: var(--or); color: var(--paper); }
+  .faq-v3-answer {
+    padding: 0 1.4rem 1.3rem 3.9rem;
+    color: var(--ink-soft);
+    font-size: 0.96rem;
+    line-height: 1.6;
+  }
+  .faq-v3-answer p { margin: 0; max-width: 52rem; }
+  @media (max-width: 640px) {
+    .faq-v3-answer { padding-left: 1.4rem; }
+  }
 
-  /* ═══════ NEWSLETTER ═══════ */
-  .section-newsletter {
-    padding: clamp(4rem, 6vw, 6rem) 0;
-    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 100%);
+  /* ═══════ NEWSLETTER V3 , card premium ═══════ */
+  .section-newsletter-v3 {
+    padding: clamp(3.5rem, 5vw, 5rem) 0 clamp(2rem, 3vw, 3rem);
   }
-  .newsletter-inner {
-    text-align: center;
+  .nl-v3-card {
+    background: linear-gradient(135deg, var(--paper-warm) 0%, var(--paper) 65%);
+    border: 2px solid var(--or);
+    border-radius: 4px 52px 4px 4px;
+    padding: 2.4rem 2.6rem 2.6rem;
     display: grid;
-    gap: 0.9rem;
-    place-items: center;
+    grid-template-columns: auto 1fr;
+    gap: 2.4rem;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
   }
-  .newsletter-title { margin: 0.4rem 0 0.4rem; }
-  .newsletter-inner .lead { margin-inline: auto; }
-  .newsletter-form {
+  .nl-v3-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 88% 20%, rgba(184, 134, 61, 0.16) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  @media (max-width: 780px) {
+    .nl-v3-card {
+      grid-template-columns: 1fr;
+      text-align: center;
+      padding: 2rem 1.6rem 2.2rem;
+    }
+    .nl-v3-decor { justify-self: center; }
+    .nl-v3-form { justify-content: center; }
+    .nl-v3-perks { justify-content: center; }
+  }
+  .nl-v3-decor { position: relative; z-index: 1; }
+  .nl-v3-body { position: relative; z-index: 1; }
+  .nl-v3-title {
+    font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+    margin: 0.4rem 0 0.8rem;
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  .nl-v3-lead { margin: 0 0 1.4rem; max-width: 42rem; }
+  .nl-v3-form {
     display: flex;
     gap: 0.6rem;
-    width: 100%;
-    max-width: 28rem;
-    margin: 1.2rem auto 0.6rem;
+    max-width: 32rem;
+    margin: 0 0 1.2rem;
     flex-wrap: wrap;
   }
-  .newsletter-form input {
+  .nl-v3-form input {
     flex: 1 1 220px;
     padding: 0.85rem 1.1rem;
     font-family: var(--font-body);
     font-size: 0.95rem;
     border: 1px solid rgba(26, 22, 20, 0.18);
     background: var(--paper);
-    border-radius: 2px;
+    border-radius: 4px 14px 4px 4px;
     color: var(--ink);
     min-width: 0;
+    transition: border-color 220ms, box-shadow 220ms;
   }
-  .newsletter-form input:focus { outline: 2px solid var(--or); outline-offset: 1px; }
-  .newsletter-meta { color: var(--ink-muted); font-size: 0.7rem; }
+  .nl-v3-form input:focus {
+    outline: none;
+    border-color: var(--or);
+    box-shadow: 0 0 0 3px rgba(184, 134, 61, 0.18);
+  }
+  .nl-v3-perks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-top: 0.2rem;
+  }
+  .nl-v3-perk {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .nl-v3-perk svg {
+    color: #4A913A;
+    flex-shrink: 0;
+  }
 
   .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
