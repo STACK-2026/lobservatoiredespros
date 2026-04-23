@@ -1,0 +1,30 @@
+name: Daily rebuild guard
+
+on:
+  schedule:
+    # Chaque jour a 06:12 UTC (07:12 Paris hiver / 08:12 ete)
+    - cron: "12 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Update build marker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump marker
+        run: |
+          mkdir -p site/public
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > site/public/.build-marker
+          git config user.name "observatoire-bot"
+          git config user.email "bot@lobservatoiredespros.com"
+          git add site/public/.build-marker
+          git diff --staged --quiet || git commit -m "chore: daily rebuild marker $(date -u +%Y-%m-%d)"
+          git push

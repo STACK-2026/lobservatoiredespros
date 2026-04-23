@@ -11,8 +11,9 @@ export const siteConfig = {
   monogram: "OdP",
   tagline: "Observer. Vérifier. Recommander.",
   baseline: "Le guide de référence des professionnels français.",
+  // Meta description homepage , 155 chars max (Google truncates at 155-160)
   description:
-    "L'Observatoire des Pros est le média éditorial indépendant qui observe, vérifie et classe les artisans et entreprises du BTP et des services à domicile, département par département, métier par métier. Méthodologie publique. Classement non payant. Médailles Or et Argent décernées après examen éditorial.",
+    "Classement éditorial des artisans et entreprises du BTP en France. Méthodologie publique, Score de Confiance /10. Édition mensuelle.",
   url: "https://lobservatoiredespros.com",
   appUrl: "",
   locale: "fr-FR",
@@ -53,7 +54,7 @@ export const siteConfig = {
   // SEO
   author: "La rédaction de L'Observatoire",
   twitterHandle: "",
-  ogImage: "/og-default.svg",
+  ogImage: "/og-default.png",
   keywords: [
     "classement artisans france",
     "meilleur plombier",

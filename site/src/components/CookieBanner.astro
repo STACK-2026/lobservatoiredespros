@@ -1,60 +1,193 @@
 ---
+// Cookie consent banner , CNIL RGPD conforme
+// - Affiche au premier visit + si consent expire (13 mois)
+// - 3 choix equilibres : Refuser / En savoir plus / Accepter
+// - localStorage key "ls_cookie_consent" (lu par Analytics.astro)
+// - Re-ouvert via lien #cookie-settings en footer
+// - Events "ls:consent-accepted" / "ls:consent-rejected" dispatches
 ---
 
-<div
-  id="cookie-banner"
-  class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-4 hidden"
-  role="dialog"
-  aria-label="Consentement cookies"
->
-  <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-4">
-    <p class="text-sm text-gray-600 flex-1">
-      On utilise des cookies pour mesurer l'audience du site. Rien de plus, rien de louche. Pas de tracking publicitaire.
-    </p>
-    <div class="flex gap-3">
-      <button
-        id="cookie-decline"
-        class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2 transition-colors"
-      >
-        Refuser
-      </button>
-      <button
-        id="cookie-accept"
-        class="text-sm font-semibold text-white bg-secondary px-5 py-2 rounded-lg hover:bg-secondary/90 transition-colors"
-      >
-        Accepter
-      </button>
+<div id="cookie-banner" class="cookie-banner" role="dialog" aria-labelledby="cookie-title" aria-describedby="cookie-desc" hidden>
+  <div class="cookie-inner">
+    <div class="cookie-copy">
+      <h2 id="cookie-title">Cookies et mesure d'audience</h2>
+      <p id="cookie-desc">
+        L'Observatoire depose un cookie d'audience anonyme pour mesurer son trafic et ameliorer ses publications. Aucun partage tiers, aucune publicite. Tu peux refuser, cela n'affecte pas ta consultation.
+        <a href="/politique-confidentialite/#cookies">En savoir plus sur les cookies &rarr;</a>
+      </p>
+    </div>
+    <div class="cookie-actions">
+      <button type="button" class="cookie-btn cookie-btn-refuse" data-consent="rejected">Refuser</button>
+      <button type="button" class="cookie-btn cookie-btn-accept" data-consent="accepted">Accepter</button>
     </div>
   </div>
 </div>
 
-<script>
-  const banner = document.getElementById("cookie-banner");
-  const accept = document.getElementById("cookie-accept");
-  const decline = document.getElementById("cookie-decline");
+<script is:inline>
+  (function () {
+    var STORAGE_KEY = "ls_cookie_consent";
+    var VALIDITY_MS = 13 * 30 * 24 * 60 * 60 * 1000; // 13 mois (recommandation CNIL)
 
-  function getCookie(name: string) {
-    const v = document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)");
-    return v ? v.pop() : null;
-  }
+    function read() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); }
+      catch (e) { return null; }
+    }
+    function isValid(c) {
+      return c && (c.status === "accepted" || c.status === "rejected") && c.expires && Date.now() < c.expires;
+    }
+    function save(status) {
+      var now = Date.now();
+      var consent = { status: status, timestamp: now, expires: now + VALIDITY_MS };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(consent)); } catch (e) {}
+      return consent;
+    }
 
-  function setCookie(name: string, value: string, days: number) {
-    const d = new Date();
-    d.setTime(d.getTime() + days * 864e5);
-    document.cookie = `${name}=${value};path=/;expires=${d.toUTCString()};SameSite=Lax;domain=.adapte-toi.com`;
-  }
+    var banner = document.getElementById("cookie-banner");
+    if (!banner) return;
 
-  if (!getCookie("adaptetoi_consent")) {
-    banner?.classList.remove("hidden");
-  }
+    function show() {
+      banner.hidden = false;
+      requestAnimationFrame(function () { banner.classList.add("cookie-open"); });
+    }
+    function hide() {
+      banner.classList.remove("cookie-open");
+      setTimeout(function () { banner.hidden = true; }, 260);
+    }
 
-  accept?.addEventListener("click", () => {
-    setCookie("adaptetoi_consent", "accepted", 365);
-    banner?.classList.add("hidden");
-  });
+    // Decide to show banner on load
+    var existing = read();
+    if (!isValid(existing)) {
+      // Delay slightly to let the page render first (no layout shift)
+      setTimeout(show, 600);
+    }
 
-  decline?.addEventListener("click", () => {
-    setCookie("adaptetoi_consent", "declined", 365);
-    banner?.classList.add("hidden");
-  });
+    // Button handlers
+    banner.querySelectorAll("[data-consent]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var status = btn.getAttribute("data-consent");
+        save(status);
+        hide();
+        var evtName = status === "accepted" ? "ls:consent-accepted" : "ls:consent-rejected";
+        window.dispatchEvent(new CustomEvent(evtName));
+      });
+    });
+
+    // Re-ouvrir le banner depuis #cookie-settings en footer
+    document.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t && (t.id === "cookie-settings" || (t.closest && t.closest("#cookie-settings")))) {
+        e.preventDefault();
+        show();
+      }
+    });
+  })();
 </script>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 9900;
+    padding: 0.9rem;
+    pointer-events: none;
+    transform: translateY(8px);
+    opacity: 0;
+    transition: opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cookie-banner[hidden] { display: block !important; visibility: hidden; }
+  .cookie-banner:not([hidden]) { visibility: visible; }
+  .cookie-banner.cookie-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .cookie-inner {
+    max-width: 1060px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 1.1rem 1.3rem;
+    background: #1A1614;
+    color: #F7F3EC;
+    border: 1px solid rgba(184, 134, 61, 0.4);
+    border-radius: 3px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  }
+  @media (max-width: 720px) {
+    .cookie-inner {
+      grid-template-columns: 1fr;
+      padding: 1rem 1.15rem;
+      gap: 0.9rem;
+    }
+  }
+  .cookie-copy h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 0.82rem;
+    margin: 0 0 0.35rem;
+    color: #D4A55C;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .cookie-copy p {
+    font-family: "Instrument Sans", system-ui, sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin: 0;
+    color: rgba(247, 243, 236, 0.92);
+  }
+  .cookie-copy a {
+    color: #D4A55C;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .cookie-copy a:hover { text-decoration: none; color: #F7F3EC; }
+  .cookie-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+  @media (max-width: 720px) {
+    .cookie-actions { justify-content: flex-end; flex-wrap: wrap; }
+  }
+  .cookie-btn {
+    padding: 0.62rem 1.25rem;
+    font-size: 0.88rem;
+    font-family: "Instrument Sans", system-ui, sans-serif;
+    font-weight: 600;
+    border-radius: 2px;
+    border: 1px solid rgba(247, 243, 236, 0.28);
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, transform 0.18s, border-color 0.18s;
+    letter-spacing: 0.01em;
+  }
+  .cookie-btn-refuse {
+    background: transparent;
+    color: #F7F3EC;
+  }
+  .cookie-btn-refuse:hover {
+    background: rgba(247, 243, 236, 0.1);
+    border-color: rgba(247, 243, 236, 0.55);
+  }
+  .cookie-btn-accept {
+    background: #B8863D;
+    color: #1A1614;
+    border-color: #B8863D;
+  }
+  .cookie-btn-accept:hover {
+    background: #D4A55C;
+    border-color: #D4A55C;
+    transform: translateY(-1px);
+  }
+  .cookie-btn:focus-visible {
+    outline: 2px solid #D4A55C;
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cookie-banner { transition: opacity 0ms; }
+    .cookie-btn-accept:hover { transform: none; }
+  }
+</style>
