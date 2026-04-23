@@ -7,7 +7,7 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "La lettre de L'Observatoire , Newsletter mensuelle";
-const description = "Chaque mois, la lettre de L'Observatoire : une observation majeure, un portrait, une question de methode. Gratuit, desabonnement en un clic.";
+const description = "Chaque mois, la lettre de L'Observatoire : une observation majeure, un portrait, une question de méthode. Gratuit, desabonnement en un clic.";
 const url = `${siteConfig.url}/newsletter/`;
 
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "La lettre", url }])];
@@ -17,13 +17,13 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
   <article class="newsletter-page">
     <div class="container-editorial nl-head">
       <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La lettre" }]} />
-      <Masthead category="LETTRE MENSUELLE" signature="Par la redaction" />
+      <Masthead category="LETTRE MENSUELLE" signature="Par la rédaction" />
 
       <div class="nl-hero">
         <Seal size={180} variant="or" animated={true} />
         <h1 class="heading-display">La lettre de L'Observatoire.</h1>
         <p class="lead">
-          Chaque mois, un numero epuré : une observation majeure, un portrait, une question de methode. Pas de pub. Pas de tracking invasif. Desabonnement en un clic.
+          Chaque mois, un numéro epuré : une observation majeure, un portrait, une question de méthode. Pas de pub. Pas de tracking invasif. Desabonnement en un clic.
         </p>
       </div>
 
@@ -39,15 +39,15 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
     <section class="container-editorial nl-details">
       <h2>Ce que vous recevez</h2>
       <ul class="nl-ul">
-        <li><strong>Une observation majeure</strong> , l'enquete ou le dossier du mois presente en un paragraphe, avec lien vers l'article integral.</li>
+        <li><strong>Une observation majeure</strong> , l'enquete ou le dossier du mois présenté en un paragraphe, avec lien vers l'article integral.</li>
         <li><strong>Un portrait</strong> , la rencontre marquante avec un artisan ou une entreprise.</li>
-        <li><strong>Une question de methode</strong> , un detail de la grille ou un ajustement editorial explique.</li>
+        <li><strong>Une question de méthode</strong> , un detail de la grille ou un ajustement éditorial explique.</li>
         <li><strong>Le calendrier des prochaines editions</strong> , dates et zones couvertes.</li>
       </ul>
       <h2>Nos engagements</h2>
       <ul class="nl-ul">
         <li>Aucune publicite, aucun lien affilie.</li>
-        <li>Aucun partage de vos donnees avec des tiers.</li>
+        <li>Aucun partage de vos données avec des tiers.</li>
         <li>Un seul envoi par mois, pas d'email commercial intercalé.</li>
         <li>Desabonnement en un clic depuis chaque email.</li>
       </ul>

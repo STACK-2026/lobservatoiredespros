@@ -8,13 +8,13 @@ import TelescopeWatermark from "../../components/TelescopeWatermark.astro";
 import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
-const title = "Methodologie , L'Observatoire des Pros";
-const description = "La methodologie complete de L'Observatoire : six criteres de notation, sources officielles, pondération et processus d'examen des candidatures.";
+const title = "Méthodologie , L'Observatoire des Pros";
+const description = "La méthodologie complete de L'Observatoire : six critères de notation, sources officielles, pondération et processus d'examen des candidatures.";
 const url = `${siteConfig.url}/methode/`;
 
 const breadcrumb = jsonLdBreadcrumbs([
   { name: "Accueil", url: siteConfig.url },
-  { name: "Methode", url },
+  { name: "Méthode", url },
 ]);
 
 const jsonLd = [
@@ -22,7 +22,7 @@ const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "AboutPage",
-    name: "Methodologie",
+    name: "Méthodologie",
     url,
     description,
     publisher: { "@type": "NewsMediaOrganization", name: siteConfig.name, url: siteConfig.url },
@@ -35,16 +35,16 @@ const jsonLd = [
     <TelescopeWatermark side="right" size={480} parallax={0.06} />
 
     <div class="container-prose methode-content">
-      <Masthead category="METHODOLOGIE" signature="Par la redaction" />
+      <Masthead category="MÉTHODOLOGIE" signature="Par la rédaction" />
 
-      <h1 class="heading-display">La methode de L'Observatoire.</h1>
+      <h1 class="heading-display">La méthode de L'Observatoire.</h1>
       <p class="lead">
-        Six criteres. Cinq sources publiques. Une grille de notation sur dix points, recalculee chaque trimestre. Voici comment nous selectionnons les professionnels qui figurent dans nos classements.
+        Six critères. Cinq sources publiques. Une grille de notation sur dix points, recalculée chaque trimestre. Voici comment nous sélectionnons les professionnels qui figurent dans nos classements.
       </p>
 
       <ByLine
         authors={[
-          { name: "Antoine Delaunay", role: "Analyste methodologie", slug: "antoine-delaunay" },
+          { name: "Antoine Delaunay", role: "Analyste méthodologie", slug: "antoine-delaunay" },
           { name: "Camille Fabre", role: "Redactrice en chef", slug: "camille-fabre" },
         ]}
         date="15 avril 2026"
@@ -54,10 +54,10 @@ const jsonLd = [
 
       <section class="prose">
         <DropCap>
-          Fonder un classement editorial impose une regle simple : n'integrer dans la note que ce qui peut etre verifie par un tiers a partir de sources publiques. Toute donnee privee, toute declaration unilaterale d'un professionnel, toute note achetee est exclue de notre grille. Voici les six criteres qui composent le Score de Confiance.
+          Fonder un classement éditorial impose une règle simple : n'integrer dans la note que ce qui peut etre vérifié par un tiers a partir de sources publiques. Toute donnee privée, toute declaration unilaterale d'un professionnel, toute note achetee est exclue de notre grille. Voici les six critères qui composent le Score de Confiance.
         </DropCap>
 
-        <h2>Les six criteres du Score de Confiance</h2>
+        <h2>Les six critères du Score de Confiance</h2>
 
         {siteConfig.scoringCriteres.map((c, i) => (
           <div class="methode-critere-detail">
@@ -74,7 +74,7 @@ const jsonLd = [
 
         <h2>Nos sources officielles</h2>
         <ul>
-          <li><strong>INSEE Sirene</strong> , etat civil des entreprises, date de creation, code NAF, statut actif. Donnees publiques en open data.</li>
+          <li><strong>INSEE Sirene</strong> , etat civil des entreprises, date de creation, code NAF, statut actif. Données publiques en open data.</li>
           <li><strong>France Renov</strong> (france-renov.gouv.fr) , annuaire national des professionnels certifies RGE pour la renovation energetique.</li>
           <li><strong>Qualibat</strong> , registre des entreprises qualifiees pour les travaux de batiment, base publique consultable.</li>
           <li><strong>Google Business Profile</strong> , avis clients publics, horaires, photos, coordonnees affichees volontairement.</li>
@@ -82,45 +82,45 @@ const jsonLd = [
           <li><strong>Sites web professionnels</strong> , consultation manuelle des portfolios et pages entreprise pour verification de contenu.</li>
         </ul>
 
-        <PullQuote cite="Antoine Delaunay, analyste methodologie">
+        <PullQuote cite="Antoine Delaunay, analyste méthodologie">
           La moyenne d'etoiles Google, prise seule, est un indicateur fragile. Nous croisons systematiquement quatre sources avant de retenir un pourcentage.
         </PullQuote>
 
         <h2>Processus d'examen d'une candidature</h2>
         <p>
-          Les Portraits Recommandes sont automatiques : toute entreprise active au Sirene dans nos zones couvertes, repondant au minimum a deux criteres, figure dans nos classements.
+          Les Portraits Recommandes sont automatiques : toute entreprise active au Sirene dans nos zones couvertes, repondant au minimum a deux critères, figure dans nos classements.
         </p>
         <p>
-          Les Portraits Verifies font l'objet d'un dossier de candidature payant. Notre redaction examine le dossier dans un delai de quinze jours ouvres. L'examen porte sur la coherence des declarations avec les sources publiques, la qualite du portfolio soumis, et l'absence de signalement DGCCRF recent.
+          Les Portraits Verifies font l'objet d'un dossier de candidature payant. Notre rédaction examine le dossier dans un délai de quinze jours ouvres. L'examen porte sur la coherence des declarations avec les sources publiques, la qualite du portfolio soumis, et l'absence de signalement DGCCRF recent.
         </p>
         <p>
-          Les Portraits Laureats sont decernes annuellement a un nombre limite de dossiers. L'examen inclut un entretien avec le dirigeant, une verification terrain d'au moins une realisation recente, et trois entretiens avec des clients finaux references par l'entreprise.
+          Les Portraits Laureats sont decernes annuellement a un nombre limite de dossiers. L'examen inclut un entretien avec le dirigeant, une verification terrain d'au moins une réalisation recente, et trois entretiens avec des clients finaux références par l'entreprise.
         </p>
 
         <h2>Ce que nous ne faisons jamais</h2>
         <ul>
           <li>Nous ne vendons aucune position dans le classement.</li>
           <li>Nous ne modifions aucun Score de Confiance sur sollicitation.</li>
-          <li>Nous ne collectons aucune donnee privee, ni par scraping ni par achat.</li>
+          <li>Nous ne collectons aucune donnee privée, ni par scraping ni par achat.</li>
           <li>Nous ne publions aucune publicite tierce dans les pages de classement.</li>
-          <li>Nous ne cedons aucun droit de regard editorial aux candidats, meme Laureats.</li>
+          <li>Nous ne cedons aucun droit de regard éditorial aux candidats, meme Laureats.</li>
         </ul>
 
         <h2>Calendrier de mise a jour</h2>
         <p>
-          Les donnees sources (Sirene, RGE, Qualibat, Google) sont synchronisees chaque <strong>30 jours</strong>. Les Scores de Confiance sont recalcules a chaque synchronisation. L'edition annuelle est publiee en avril. Les editions intermediaires integrent les nouveaux Portraits Verifies et Laureats.
+          Les données sources (Sirene, RGE, Qualibat, Google) sont synchronisees chaque <strong>30 jours</strong>. Les Scores de Confiance sont recalcules a chaque synchronisation. L'edition annuelle est publiée en avril. Les editions intermediaires integrent les nouveaux Portraits Verifies et Laureats.
         </p>
 
         <h2>Audit et contestation</h2>
         <p>
-          Notre methodologie est publique et auditable. Tout lecteur, tout journaliste, tout chercheur peut nous contacter pour consulter le detail d'une notation ou contester la presence d'un professionnel. Un professionnel qui estime son Score incorrect peut demander un reexamen a l'adresse <a href={`mailto:${siteConfig.legal.email}`}>{siteConfig.legal.email}</a>.
+          Notre méthodologie est publique et auditable. Tout lecteur, tout journaliste, tout chercheur peut nous contacter pour consulter le détail d'une notation ou contester la presence d'un professionnel. Un professionnel qui estime son Score incorrect peut demander un reexamen a l'adresse <a href={`mailto:${siteConfig.legal.email}`}>{siteConfig.legal.email}</a>.
         </p>
 
         <hr />
         <p class="italic-fraunces" style="text-align:center; color:var(--ink-muted); font-size:1.1rem;">
-          « La methode est l'os d'un media. Quand elle est fragile, la confiance s'effondre. »
+          « La méthode est l'os d'un media. Quand elle est fragile, la confiance s'effondre. »
         </p>
-        <p class="folio" style="text-align:center;">Edition N°{siteConfig.editionNumber} &middot; Relu et valide par la redaction , avril 2026</p>
+        <p class="folio" style="text-align:center;">Edition N°{siteConfig.editionNumber} &middot; Relu et validé par la rédaction , avril 2026</p>
       </section>
     </div>
   </article>

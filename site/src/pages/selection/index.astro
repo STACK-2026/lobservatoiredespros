@@ -8,23 +8,23 @@ import { siteConfig } from "../../utils/config";
 import { prosSeed } from "../../data/seed-pros";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
-const title = `La selection ${siteConfig.editionYear} , L'Observatoire des Pros`;
-const description = "La selection editoriale de l'edition en cours. Tous les professionnels retenus, triés par Score de Confiance, toutes zones et tous metiers.";
+const title = `La sélection ${siteConfig.editionYear} , L'Observatoire des Pros`;
+const description = "La sélection éditoriale de l'edition en cours. Tous les professionnels retenus, triés par Score de Confiance, toutes zones et tous metiers.";
 const url = `${siteConfig.url}/selection/`;
 
 const laureats = prosSeed.filter((p) => p.tier === "or").sort((a, b) => b.score - a.score);
 const verifies = prosSeed.filter((p) => p.tier === "argent").sort((a, b) => b.score - a.score);
 
-const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Selection", url }])];
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Sélection", url }])];
 ---
 
 <BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
   <div class="container-wide" style="padding: 2rem 0 4rem;">
-    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La selection" }]} />
+    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La sélection" }]} />
     <Masthead category="LA SELECTION" signature={`Edition N°${siteConfig.editionNumber} , ${siteConfig.editionMonth} ${siteConfig.editionYear}`} />
-    <h1 class="heading-display">La selection {siteConfig.editionYear}.</h1>
+    <h1 class="heading-display">La sélection {siteConfig.editionYear}.</h1>
     <p class="lead">
-      Les professionnels retenus par notre redaction, toutes zones couvertes, toutes distinctions confondues. {laureats.length} Portraits Laureats. {verifies.length} Portraits Verifies. {prosSeed.length - laureats.length - verifies.length} Portraits Recommandes.
+      Les professionnels retenus par notre rédaction, toutes zones couvertes, toutes distinctions confondues. {laureats.length} Portraits Laureats. {verifies.length} Portraits Verifies. {prosSeed.length - laureats.length - verifies.length} Portraits Recommandes.
     </p>
 
     <section style="margin-top: 3rem;">
@@ -41,7 +41,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
             ancienneteAnnees={p.ancienneteAnnees}
             rge={p.rge}
             qualibat={p.qualibat}
-            specialites={p.specialites}
+            spécialités={p.spécialités}
             resumeCourt={p.resumeCourt}
           />
         ))}
@@ -62,7 +62,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
             ancienneteAnnees={p.ancienneteAnnees}
             rge={p.rge}
             qualibat={p.qualibat}
-            specialites={p.specialites}
+            spécialités={p.spécialités}
             resumeCourt={p.resumeCourt}
           />
         ))}

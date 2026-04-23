@@ -7,13 +7,13 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "Contact , L'Observatoire des Pros";
-const description = "Contacter la redaction de L'Observatoire des Pros : piste, signalement, demande de rectification, candidature professionnelle, partenariat editorial.";
+const description = "Contacter la rédaction de L'Observatoire des Pros : piste, signalement, demande de rectification, candidature professionnelle, partenariat éditorial.";
 const url = `${siteConfig.url}/contact/`;
 
 const destinations = [
-  { label: "Redaction", email: siteConfig.legal.email, role: "Pistes, signalements, corrections" },
-  { label: "Candidatures", email: siteConfig.legal.emailPro, role: "Portrait Verifie ou Laureat" },
-  { label: "Presse", email: "presse@lobservatoiredespros.com", role: "Demandes d'interview, donnees pour citation" },
+  { label: "Rédaction", email: siteConfig.legal.email, role: "Pistes, signalements, corrections" },
+  { label: "Candidatures", email: siteConfig.legal.emailPro, role: "Portrait Vérifié ou Laureat" },
+  { label: "Presse", email: "presse@lobservatoiredespros.com", role: "Demandes d'interview, données pour citation" },
 ];
 
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Contact", url }])];
@@ -26,7 +26,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       <Masthead category="CONTACT" />
       <h1 class="heading-display">Nous ecrire.</h1>
       <p class="lead">
-        La redaction lit tous ses messages. Elle repond sous quinze jours ouvres maximum. Voici les bonnes adresses selon votre objet.
+        La rédaction lit tous ses messages. Elle repond sous quinze jours ouvres maximum. Voici les bonnes adresses selon votre objet.
       </p>
     </div>
 
@@ -47,7 +47,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
 
     <section class="container-editorial contact-form-section">
       <h2 class="heading-display" style="font-size: clamp(1.6rem, 3vw, 2.2rem);">Formulaire generique</h2>
-      <p class="lead">Si vous preferez ecrire en ligne, ce formulaire transmet votre message directement a la redaction.</p>
+      <p class="lead">Si vous preferez ecrire en ligne, ce formulaire transmet votre message directement a la rédaction.</p>
 
       <form class="contact-form" method="post" action="/api/contact">
         <div class="form-row">
@@ -77,7 +77,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
         <div class="form-row form-consent">
           <label>
             <input type="checkbox" name="rgpd" required />
-            <span>J'accepte que L'Observatoire conserve ces informations aux fins de traitement de ma demande, conformement a la <a href="/politique-confidentialite/">politique de confidentialite</a>.</span>
+            <span>J'accepte que L'Observatoire conserve ces informations aux fins de traitement de ma demande, conformément a la <a href="/politique-confidentialite/">politique de confidentialite</a>.</span>
           </label>
         </div>
         <button type="submit" class="btn btn-primary magnetic">Envoyer</button>

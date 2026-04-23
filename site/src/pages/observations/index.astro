@@ -7,16 +7,16 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "Observations , L'Observatoire des Pros";
-const description = "Toutes les observations publiees par la redaction : enquetes, portraits, dossiers, guides pratiques. Archivees par edition.";
+const description = "Toutes les observations publiees par la rédaction : enquêtes, portraits, dossiers, guides pratiques. Archivees par edition.";
 const url = `${siteConfig.url}/observations/`;
 
 const categories = [
   { slug: "portraits", nom: "Portraits", desc: "Long format sur les Laureats." },
-  { slug: "enquetes", nom: "Enquetes", desc: "Investigations sur le secteur." },
+  { slug: "enquetes", nom: "Enquêtes", desc: "Investigations sur le secteur." },
   { slug: "dossiers", nom: "Dossiers", desc: "Analyses thematiques approfondies." },
   { slug: "guide-pratique", nom: "Guide pratique", desc: "Methodes pour les particuliers." },
   { slug: "entretiens", nom: "Entretiens", desc: "Conversations avec des artisans et experts." },
-  { slug: "methodologie", nom: "Methodologie", desc: "Explications et ajustements de la grille." },
+  { slug: "methodologie", nom: "Méthodologie", desc: "Explications et ajustements de la grille." },
 ];
 
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Observations", url }])];
@@ -29,7 +29,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       <Masthead category="OBSERVATIONS" signature="Toutes les categories" />
       <h1 class="heading-display">Nos observations.</h1>
       <p class="lead">
-        La redaction publie chaque semaine. Enquetes longues, portraits soignes, dossiers documentes, guides pratiques pour les particuliers.
+        La rédaction publié chaque semaine. Enquêtes longues, portraits soignes, dossiers documentes, guides pratiques pour les particuliers.
       </p>
     </div>
 
@@ -50,9 +50,9 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
     <section class="container-editorial" style="margin-top: 4rem; padding-bottom: 2rem;">
       <div class="obs-placeholder">
         <p class="italic-fraunces">Notre premiere serie d'observations arrive dans les prochains jours.</p>
-        <p class="folio">En attendant, consultez la methodologie, candidater a un portrait, ou nous contacter.</p>
+        <p class="folio">En attendant, consultez la méthodologie, candidater a un portrait, ou nous contacter.</p>
         <p>
-          <a class="btn btn-outline" href="/methode/">La methode</a>
+          <a class="btn btn-outline" href="/methode/">La méthode</a>
           &nbsp;
           <a class="btn btn-outline" href="/candidater/">Candidater</a>
         </p>

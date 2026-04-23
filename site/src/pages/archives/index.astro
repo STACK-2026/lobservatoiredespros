@@ -8,13 +8,13 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "Archives , L'Observatoire des Pros";
-const description = "Les editions passees de L'Observatoire : classements, portraits et observations de chaque numero sont archives et consultables indefiniment.";
+const description = "Les editions passees de L'Observatoire : classements, portraits et observations de chaque numéro sont archives et consultables indefiniment.";
 const url = `${siteConfig.url}/archives/`;
 
 const editions = [
   {
     num: 1, mois: siteConfig.editionMonth, annee: siteConfig.editionYear,
-    themes: ["Lancement editorial", "Plomberie, electricite, couverture, menuiserie, isolation", "3 departements pilotes"],
+    themes: ["Lancement éditorial", "Plomberie, electricite, couverture, menuiserie, isolation", "3 departements pilotes"],
     statut: "courante",
   },
 ];
@@ -34,7 +34,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
     </div>
 
     <section class="container-wide arch-liste">
-      <EditorialHeader category="LES EDITIONS" title="Chronologie publiee" />
+      <EditorialHeader category="LES EDITIONS" title="Chronologie publiée" />
 
       <div class="editions-list">
         {editions.map((e) => (
@@ -49,7 +49,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
                 {e.themes.map((t) => <li>{t}</li>)}
               </ul>
               {e.statut === "courante" ? (
-                <p class="edition-cta"><a class="btn btn-outline" href="/selection/">Consulter la selection en cours</a></p>
+                <p class="edition-cta"><a class="btn btn-outline" href="/selection/">Consulter la sélection en cours</a></p>
               ) : (
                 <p><a class="btn-ghost" href={`/archives/edition-${e.num}/`}>Ouvrir cette archive <span class="arrow">&rarr;</span></a></p>
               )}

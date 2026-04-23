@@ -8,14 +8,14 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "Candidater a l'edition 2026 , L'Observatoire des Pros";
-const description = "Soumettez la candidature de votre entreprise a l'edition annuelle de L'Observatoire. Recommandation, Verifie, Laureat : trois niveaux de distinction.";
+const description = "Soumettez la candidature de votre entreprise a l'edition annuelle de L'Observatoire. Recommandation, Vérifié, Laureat : trois niveaux de distinction.";
 const url = `${siteConfig.url}/candidater/`;
 
 const processus = [
   { n: 1, nom: "Soumission", desc: "Vous remplissez le formulaire de candidature avec SIRET, spécialités, années d'activité, pièces justificatives." },
-  { n: 2, nom: "Examen", desc: "Notre redaction examine le dossier, croise avec les sources publiques, verifie la coherence des declarations." },
-  { n: 3, nom: "Verification", desc: "Pour les Laureats, entretien avec le dirigeant et verification terrain d'au moins une realisation recente." },
-  { n: 4, nom: "Publication", desc: "Le portrait est publie a la prochaine edition mensuelle, avec medaille si elle a ete attribuee." },
+  { n: 2, nom: "Examen", desc: "Notre rédaction examine le dossier, croise avec les sources publiques, vérifié la coherence des declarations." },
+  { n: 3, nom: "Verification", desc: "Pour les Laureats, entretien avec le dirigeant et verification terrain d'au moins une réalisation recente." },
+  { n: 4, nom: "Publication", desc: "Le portrait est publié a la prochaine edition mensuelle, avec medaille si elle a été attribuee." },
 ];
 
 const jsonLd = [
@@ -26,7 +26,7 @@ const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: "Portrait editorial d'entreprise",
+    name: "Portrait éditorial d'entreprise",
     provider: { "@type": "NewsMediaOrganization", name: siteConfig.name, url: siteConfig.url },
     offers: siteConfig.candidature.offres.map((o) => ({
       "@type": "Offer",
@@ -46,7 +46,7 @@ const jsonLd = [
         <Masthead category="CANDIDATURE 2026" signature="Guide a l'attention des professionnels" />
         <h1 class="heading-display">Candidatez a l'edition 2026 de L'Observatoire.</h1>
         <p class="lead">
-          Chaque annee, notre redaction selectionne les entreprises dignes de figurer dans notre guide. Voici comment soumettre votre candidature, et ce que votre dossier apporte a nos lecteurs.
+          Chaque annee, notre rédaction sélectionné les entreprises dignes de figurer dans notre guide. Voici comment soumettre votre candidature, et ce que votre dossier apporte a nos lecteurs.
         </p>
         <div class="cand-hero-cta">
           <a href="#formulaire" class="btn btn-primary magnetic">Soumettre mon dossier</a>
@@ -60,7 +60,7 @@ const jsonLd = [
   </section>
 
   <section class="section-processus container-wide">
-    <EditorialHeader category="PROCESSUS" title="Quatre temps, quinze jours ouvres." subtitle="Votre dossier suit un parcours editorial identique pour toutes les candidatures, quelle que soit la formule." align="center" />
+    <EditorialHeader category="PROCESSUS" title="Quatre temps, quinze jours ouvres." subtitle="Votre dossier suit un parcours éditorial identique pour toutes les candidatures, quelle que soit la formule." align="center" />
     <ol class="processus-list stagger-children">
       {processus.map((p) => (
         <li class="processus-item card-editorial">
@@ -74,14 +74,14 @@ const jsonLd = [
 
   <section id="offres" class="section-offres">
     <div class="container-wide">
-      <EditorialHeader category="TROIS FORMULES" title="Recommande. Verifie. Laureat." subtitle="Tous les professionnels eligibles figurent gratuitement dans nos classements. Deux formules optionnelles enrichissent le portrait." align="center" />
+      <EditorialHeader category="TROIS FORMULES" title="Recommande. Vérifié. Laureat." subtitle="Tous les professionnels éligibles figurent gratuitement dans nos classements. Deux formules optionnelles enrichissent le portrait." align="center" />
 
       <div class="offres-grid stagger-children">
         {siteConfig.candidature.offres.map((o) => (
           <article class={`offre-card card-editorial ${o.highlight ? "is-highlight" : ""} ${o.slug === "laureat" ? "is-laureat" : ""}`}>
             <header class="offre-head">
               {o.slug === "laureat" && <Medaille tier="or" />}
-              {o.slug === "verifie" && <Medaille tier="argent" />}
+              {o.slug === "vérifié" && <Medaille tier="argent" />}
               {o.slug === "recommande" && <span class="meta-label-or">Automatique</span>}
               <h3 class="offre-nom italic-fraunces">{o.nom}</h3>
               <p class="offre-prix">
@@ -106,7 +106,7 @@ const jsonLd = [
             </ul>
             <footer class="offre-foot">
               {o.slug === "recommande" ? (
-                <a class="btn btn-outline" href="/selection/">Voir la selection</a>
+                <a class="btn btn-outline" href="/selection/">Voir la sélection</a>
               ) : (
                 <a class="btn btn-observatoire magnetic" href="#formulaire">Candidater , {o.nom}</a>
               )}
@@ -121,7 +121,7 @@ const jsonLd = [
     <div class="container-prose cand-form-inner">
       <EditorialHeader category="FORMULAIRE" title="Soumettez votre dossier." align="center" />
       <p class="lead" style="text-align:center;">
-        Champs ci-dessous. Notre redaction revient vers vous dans un delai maximum de quinze jours ouvres.
+        Champs ci-dessous. Notre rédaction revient vers vous dans un délai maximum de quinze jours ouvres.
       </p>
 
       <form class="cand-form" method="post" action="/api/candidature">
@@ -154,7 +154,7 @@ const jsonLd = [
           <select id="metier" name="metier" required>
             <option value="">Selectionnez un metier</option>
             {siteConfig.metiersPilote.map((m) => <option value={m.slug}>{m.nom}</option>)}
-            <option value="autre">Autre (preciser dans les specialites)</option>
+            <option value="autre">Autre (preciser dans les spécialités)</option>
           </select>
         </div>
         <div class="form-row">
@@ -165,11 +165,11 @@ const jsonLd = [
           </select>
         </div>
         <div class="form-row">
-          <label for="specialites">Specialites (separees par des virgules)</label>
+          <label for="spécialités">Spécialités (separees par des virgules)</label>
           <input id="specialites" name="specialites" type="text" placeholder="ex : renovation reseau ancien, depannage 24h, salles de bain..." />
         </div>
         <div class="form-row">
-          <label for="anciennete">Annee de creation *</label>
+          <label for="ancienneté">Annee de creation *</label>
           <input id="anciennete" name="anciennete" required type="number" min="1900" max="2026" />
         </div>
         <div class="form-row">
@@ -187,7 +187,7 @@ const jsonLd = [
         <div class="form-row form-consent">
           <label>
             <input type="checkbox" name="rgpd" required />
-            <span>J'accepte que L'Observatoire utilise ces informations pour l'examen de ma candidature, conformement a la <a href="/politique-confidentialite/">politique de confidentialite</a>.</span>
+            <span>J'accepte que L'Observatoire utilise ces informations pour l'examen de ma candidature, conformément a la <a href="/politique-confidentialite/">politique de confidentialite</a>.</span>
           </label>
         </div>
 

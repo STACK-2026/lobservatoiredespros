@@ -7,32 +7,32 @@ import PullQuote from "../../components/PullQuote.astro";
 import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
-const title = "La redaction , L'Observatoire des Pros";
-const description = "Les trois journalistes et analystes qui composent la redaction de L'Observatoire : parcours, specialites et principes editoriaux qui nous guident.";
+const title = "La rédaction , L'Observatoire des Pros";
+const description = "Les trois journalistes et analystes qui composent la rédaction de L'Observatoire : parcours, spécialités et principes editoriaux qui nous guident.";
 const url = `${siteConfig.url}/redaction/`;
 
-const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "La redaction", url }])];
+const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "La rédaction", url }])];
 ---
 
 <BaseLayout title={title} description={description} jsonLd={jsonLd}>
   <article class="redaction-page">
     <div class="container-editorial redaction-head">
-      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La redaction" }]} />
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "La rédaction" }]} />
       <Masthead category="LA REDACTION" signature={`Edition N°${siteConfig.editionNumber}`} />
-      <h1 class="heading-display">La redaction.</h1>
+      <h1 class="heading-display">La rédaction.</h1>
       <p class="lead">
-        Trois journalistes et analystes independants composent la redaction de L'Observatoire. Voici leurs parcours, leurs specialites et les articles qui leur sont confies.
+        Trois journalistes et analystes indépendants composent la rédaction de L'Observatoire. Voici leurs parcours, leurs spécialités et les articles qui leur sont confies.
       </p>
     </div>
 
     <section class="container-editorial">
-      <PullQuote cite="Charte editoriale de L'Observatoire">
-        Un media n'est serieux que si ses auteurs sont visibles, ses angles assumes, ses sources citees. Nous nous tenons a cette regle.
+      <PullQuote cite="Charte éditoriale de L'Observatoire">
+        Un media n'est serieux que si ses auteurs sont visibles, ses angles assumes, ses sources citees. Nous nous tenons a cette règle.
       </PullQuote>
     </section>
 
     <section class="container-wide redaction-liste-section">
-      <EditorialHeader category="NOS JOURNALISTES ET ANALYSTES" title={`Equipe editoriale ${siteConfig.editionYear}`} />
+      <EditorialHeader category="NOS JOURNALISTES ET ANALYSTES" title={`Equipe éditoriale ${siteConfig.editionYear}`} />
       <div class="redaction-grid stagger-children">
         {siteConfig.blog.authors.map((a) => (
           <article class="author-card card-editorial" id={a.slug}>
@@ -53,27 +53,27 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
     </section>
 
     <section class="container-editorial redaction-principes">
-      <EditorialHeader category="NOS PRINCIPES EDITORIAUX" title="Ce qui guide la redaction" />
+      <EditorialHeader category="NOS PRINCIPES EDITORIAUX" title="Ce qui guide la rédaction" />
       <ol class="principes-list">
         <li>
           <span class="rank-num rank-outlined">01</span>
           <div>
-            <h3>Verification prealable</h3>
-            <p>Aucune affirmation publiee sans avoir ete verifiee aupres d'une source publique, officielle, traceable. Cite.</p>
+            <h3>Verification préalable</h3>
+            <p>Aucune affirmation publiée sans avoir été vérifiée aupres d'une source publique, officielle, traçable. Cite.</p>
           </div>
         </li>
         <li>
           <span class="rank-num rank-outlined">02</span>
           <div>
-            <h3>Independance economique</h3>
-            <p>Aucun auteur ne percoit de commission, cadeau ou avantage des professionnels cites. Les relations sont encadrees par charte ecrite.</p>
+            <h3>Indépendance economique</h3>
+            <p>Aucun auteur ne percoit de commission, cadeau ou avantage des professionnels cites. Les relations sont encadrees par charte écrite.</p>
           </div>
         </li>
         <li>
           <span class="rank-num rank-outlined">03</span>
           <div>
             <h3>Droit de reponse</h3>
-            <p>Tout professionnel mis en cause dispose d'un delai de quinze jours pour faire valoir son point de vue avant publication. Ce principe est inscrit dans nos conditions.</p>
+            <p>Tout professionnel mis en cause dispose d'un délai de quinze jours pour faire valoir son point de vue avant publication. Ce principe est inscrit dans nos conditions.</p>
           </div>
         </li>
         <li>
@@ -88,10 +88,10 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
 
     <section class="section-cta-page" style="margin-top: 3rem; background: var(--paper-warm); padding: 4rem 0;">
       <div class="container-editorial" style="text-align: center;">
-        <p class="meta-label-or">Contacter la redaction</p>
+        <p class="meta-label-or">Contacter la rédaction</p>
         <h2 class="heading-display" style="font-size: clamp(1.8rem, 3.5vw, 2.6rem); margin: 0.6rem 0 1rem;">Une piste, un signalement, une demande de rectification.</h2>
         <p class="lead" style="margin-inline: auto; margin-bottom: 1.5rem;">
-          La redaction lit tous ses messages. Elle repond sous quinze jours ouvres maximum, moins en cas d'urgence editoriale.
+          La rédaction lit tous ses messages. Elle repond sous quinze jours ouvres maximum, moins en cas d'urgence éditoriale.
         </p>
         <a href={`mailto:${siteConfig.legal.email}`} class="btn btn-primary magnetic">{siteConfig.legal.email}</a>
       </div>

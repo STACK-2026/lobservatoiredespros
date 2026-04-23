@@ -11,7 +11,7 @@ interface Props {
   appliedTo?: string;
 }
 const {
-  title = "La methode appliquee",
+  title = "La méthode appliquee",
   compact = false,
   showCriteres = true,
   appliedTo,
@@ -20,7 +20,7 @@ const {
 
 <aside class={`encart-methodologie method-block ${compact ? "is-compact" : ""}`} aria-labelledby="method-title">
   <header class="method-head">
-    <span class="meta-label-ink">Methodologie</span>
+    <span class="meta-label-ink">Méthodologie</span>
     <h3 id="method-title" class="method-title">{title}</h3>
     {appliedTo && <p class="method-applied italic-fraunces">{appliedTo}</p>}
   </header>
@@ -43,7 +43,7 @@ const {
   )}
 
   <footer class="method-foot">
-    <a href="/methode/" class="btn-ghost">Consulter la methode complete <span class="arrow">&rarr;</span></a>
+    <a href="/methode/" class="btn-ghost">Consulter la méthode complete <span class="arrow">&rarr;</span></a>
   </footer>
 </aside>
 

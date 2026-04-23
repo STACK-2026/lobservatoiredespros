@@ -17,14 +17,14 @@ const outils = [
   },
   {
     slug: "verifier-siret",
-    nom: "Verifier un SIRET",
+    nom: "Vérifier un SIRET",
     description: "Connectee au registre Sirene officiel. Colle le SIRET, obtiens la fiche officielle (date creation, etat actif, adresse, NAF).",
     accroche: "Entreprise active, depuis quand, a quelle adresse",
     statut: "prochaine-edition",
   },
   {
     slug: "verifier-rge",
-    nom: "Verifier une certification RGE",
+    nom: "Vérifier une certification RGE",
     description: "Connectee a l'annuaire officiel France Renov. Confirme qu'une entreprise est bien certifiee RGE a la date du jour.",
     accroche: "Le RGE est-il reel et en cours ?",
     statut: "prochaine-edition",
@@ -46,7 +46,7 @@ const outils = [
 ];
 
 const title = "Outils , L'Observatoire des Pros";
-const description = "Les outils editoriaux de L'Observatoire pour verifier un SIRET, un RGE, lire un devis, simuler MaPrimeRenov', comparer trois devis. Gratuits, sans inscription.";
+const description = "Les outils editoriaux de L'Observatoire pour vérifier un SIRET, un RGE, lire un devis, simuler MaPrimeRenov', comparer trois devis. Gratuits, sans inscription.";
 const url = `${siteConfig.url}/outils/`;
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Outils", url }])];
 ---
@@ -55,15 +55,15 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
   <article class="outils-page">
     <div class="container-editorial outils-head">
       <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Outils" }]} />
-      <Masthead category="OUTILS" signature="Par la redaction" />
+      <Masthead category="OUTILS" signature="Par la rédaction" />
       <h1 class="heading-display">Cinq outils pour ne pas se tromper.</h1>
       <p class="lead">
-        Verifier un SIRET, confirmer un label RGE, comparer trois devis, lire un devis ligne par ligne, simuler MaPrimeRenov'. Cinq outils editoriaux, gratuits, sans inscription, connectes aux sources officielles.
+        Vérifier un SIRET, confirmer un label RGE, comparer trois devis, lire un devis ligne par ligne, simuler MaPrimeRenov'. Cinq outils editoriaux, gratuits, sans inscription, connectes aux sources officielles.
       </p>
     </div>
 
     <section class="container-wide outils-section">
-      <EditorialHeader category="EDITION EN COURS" title="Les outils de notre redaction" subtitle="Un premier outil est deja en ligne. Les quatre autres arrivent dans les prochaines editions." />
+      <EditorialHeader category="EDITION EN COURS" title="Les outils de notre rédaction" subtitle="Un premier outil est deja en ligne. Les quatre autres arrivent dans les prochaines editions." />
 
       <div class="outils-grid stagger-children">
         {outils.map((o) => (

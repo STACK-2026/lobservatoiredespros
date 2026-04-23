@@ -4,7 +4,7 @@
  * Petit badge pill + SVG optionnel.
  */
 interface Props {
-  tier: "or" | "argent" | "redaction";
+  tier: "or" | "argent" | "rédaction";
   showIcon?: boolean;
   compact?: boolean;
 }
@@ -12,8 +12,8 @@ const { tier, showIcon = true, compact = false } = Astro.props;
 
 const labels = {
   or: "Laureat",
-  argent: "Verifie",
-  redaction: "Choix de la redaction",
+  argent: "Vérifié",
+  rédaction: "Choix de la rédaction",
 };
 const label = labels[tier];
 ---
@@ -32,7 +32,7 @@ const label = labels[tier];
       <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.2" fill="none" />
     </svg>
   )}
-  {showIcon && tier === "redaction" && (
+  {showIcon && tier === "rédaction" && (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M4 8l8 10 8-10" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
     </svg>
