@@ -1,0 +1,316 @@
+---
+/**
+ * TrustSignals , bloc 4 du plan Trust Score v2.
+ *
+ * Affiche les signaux_positifs[] et signaux_alerte[] calcules par
+ * lib_trust_score.py, en deux colonnes equilibrees.
+ *
+ * Rendu :
+ *   [ + ce que notre redaction observe de positif     |  ! points d'attention ]
+ *   - 17 ans d'activite                               |  - 1 qualif recemment expiree
+ *   - 2 qualifs RGE actives                           |
+ *   - Comptes deposes regulierement                   |
+ */
+interface Props {
+  scoreDetail?: {
+    score?: number;
+    niveau?: string;
+    signaux_positifs?: string[];
+    signaux_alerte?: string[];
+    composantes?: Record<string, number>;
+  } | null;
+  nom?: string;
+}
+
+const { scoreDetail, nom } = Astro.props;
+
+const positifs: string[] = scoreDetail?.signaux_positifs || [];
+const alertes: string[] = scoreDetail?.signaux_alerte || [];
+const hasData = positifs.length > 0 || alertes.length > 0;
+
+const niveau = scoreDetail?.niveau || "bronze";
+const niveauLabels: Record<string, string> = {
+  bronze: "Bronze",
+  argent: "Argent",
+  or: "Or",
+  platine: "Platine",
+};
+const niveauColors: Record<string, string> = {
+  bronze: "#B8863D",
+  argent: "#7A6E63",
+  or: "#D4A55C",
+  platine: "#1E3A52",
+};
+---
+
+{hasData && (
+  <section class="ts fade-up" aria-labelledby="ts-title">
+    <header class="ts-head">
+      <p class="ts-kicker">
+        <span class="ts-kicker-dot" aria-hidden="true"></span>
+        Lecture éditoriale
+      </p>
+      <h2 id="ts-title" class="ts-title">Signaux de confiance</h2>
+      {scoreDetail?.score !== undefined && (
+        <p class="ts-lead">
+          {positifs.length} signal{positifs.length > 1 ? "aux" : ""} positif{positifs.length > 1 ? "s" : ""}
+          {alertes.length > 0 && <> · {alertes.length} point{alertes.length > 1 ? "s" : ""} d'attention</>}
+          {scoreDetail?.niveau && (
+            <> · Niveau <strong class="ts-niveau" style={`color: ${niveauColors[niveau]};`}>{niveauLabels[niveau]}</strong></>
+          )}
+        </p>
+      )}
+    </header>
+
+    <div class="ts-grid">
+      <!-- Colonne positifs -->
+      <div class="ts-col ts-col-ok">
+        <p class="ts-col-kicker">
+          <span class="ts-col-badge ts-col-badge-ok">
+            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 7.3 L 5.7 10 L 11 4.5" />
+            </svg>
+          </span>
+          <span>Ce que la rédaction observe</span>
+          <span class="ts-col-count">{positifs.length}</span>
+        </p>
+        {positifs.length > 0 ? (
+          <ul class="ts-list">
+            {positifs.map((sig) => (
+              <li class="ts-sig">
+                <svg class="ts-sig-icon" width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7.3 L 5.7 10 L 11 4.5" />
+                </svg>
+                <span>{sig}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="ts-empty">Aucun signal positif pour l'instant.</p>
+        )}
+      </div>
+
+      <!-- Colonne alertes -->
+      <div class={`ts-col ts-col-alert ${alertes.length === 0 ? "ts-col-silent" : ""}`}>
+        <p class="ts-col-kicker">
+          <span class={`ts-col-badge ${alertes.length > 0 ? "ts-col-badge-alert" : "ts-col-badge-quiet"}`}>
+            {alertes.length > 0 ? (
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7 2 L 13 12 H 1 Z" />
+                <path d="M7 5.5 V 8.5 M 7 10 V 10.2" />
+              </svg>
+            ) : (
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="7" cy="7" r="5.6" />
+                <path d="M4.5 7.3 L 6.3 9 L 9.5 5.5" />
+              </svg>
+            )}
+          </span>
+          <span>{alertes.length > 0 ? "Points d'attention" : "Aucun point d'attention"}</span>
+          {alertes.length > 0 && <span class="ts-col-count">{alertes.length}</span>}
+        </p>
+        {alertes.length > 0 ? (
+          <ul class="ts-list">
+            {alertes.map((sig) => (
+              <li class="ts-sig ts-sig-alert">
+                <svg class="ts-sig-icon" width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 2 L 13 12 H 1 Z" />
+                  <path d="M7 5.5 V 8 M 7 9.5 V 9.7" />
+                </svg>
+                <span>{sig}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="ts-empty ts-empty-ok">
+            Aucune procédure collective, aucune qualification expirée,
+            aucune alerte publique détectée.
+          </p>
+        )}
+      </div>
+    </div>
+
+    <footer class="ts-foot">
+      <p class="ts-foot-note">
+        Signaux calculés automatiquement à partir de Sirene INSEE, ADEME RGE
+        et BODACC · Mis à jour mensuellement.
+      </p>
+    </footer>
+  </section>
+)}
+
+<style>
+  .ts {
+    max-width: 50rem;
+    margin: 2rem 0;
+  }
+  .ts-head { margin-bottom: 1.2rem; }
+  .ts-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.5rem;
+    padding: 0.3rem 0.75rem 0.3rem 0.6rem;
+    background: rgba(247, 243, 236, 0.75);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--or-deep);
+  }
+  .ts-kicker-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--or);
+  }
+  .ts-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+    line-height: 1.08;
+  }
+  .ts-lead {
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .ts-niveau {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .ts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 720px) {
+    .ts-grid { grid-template-columns: 1fr; }
+  }
+
+  .ts-col {
+    padding: 1rem 1.1rem 1.1rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ts-col-ok {
+    background: linear-gradient(180deg, rgba(74, 145, 58, 0.04) 0%, var(--paper) 60%);
+    border-color: rgba(74, 145, 58, 0.2);
+  }
+  .ts-col-alert {
+    background: linear-gradient(180deg, rgba(139, 46, 42, 0.04) 0%, var(--paper) 60%);
+    border-color: rgba(139, 46, 42, 0.2);
+  }
+  .ts-col-silent {
+    background: linear-gradient(180deg, rgba(74, 145, 58, 0.03) 0%, var(--paper) 60%);
+    border-color: rgba(74, 145, 58, 0.15);
+  }
+
+  .ts-col-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.8rem;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    width: 100%;
+  }
+  .ts-col-ok .ts-col-kicker { color: #2d5424; }
+  .ts-col-alert .ts-col-kicker { color: var(--cachet); }
+  .ts-col-silent .ts-col-kicker { color: #2d5424; }
+
+  .ts-col-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .ts-col-badge-ok { background: rgba(74, 145, 58, 0.18); color: #3a6e30; }
+  .ts-col-badge-alert { background: rgba(139, 46, 42, 0.15); color: var(--cachet); }
+  .ts-col-badge-quiet { background: rgba(74, 145, 58, 0.12); color: #3a6e30; }
+
+  .ts-col-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .ts-col-ok .ts-col-count { background: rgba(74, 145, 58, 0.15); color: #2d5424; }
+  .ts-col-alert .ts-col-count { background: rgba(139, 46, 42, 0.15); color: var(--cachet); }
+
+  .ts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .ts-sig {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.55rem;
+    align-items: baseline;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: var(--ink);
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    padding: 0.3rem 0;
+  }
+  .ts-sig-icon {
+    margin-top: 0.3rem;
+    flex-shrink: 0;
+  }
+  .ts-col-ok .ts-sig-icon { color: #3a6e30; }
+  .ts-sig-alert .ts-sig-icon { color: var(--cachet); }
+  .ts-sig-alert { color: var(--ink); }
+
+  .ts-empty {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    font-style: italic;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .ts-empty-ok {
+    color: #3a6e30;
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .ts-foot {
+    margin-top: 1rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.08);
+  }
+  .ts-foot-note {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    margin: 0;
+    letter-spacing: -0.003em;
+  }
+</style>

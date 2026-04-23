@@ -4,6 +4,7 @@ import Masthead from "../../../components/Masthead.astro";
 import ByLine from "../../../components/ByLine.astro";
 import ProCard from "../../../components/ProCard.astro";
 import ProCompactRow from "../../../components/ProCompactRow.astro";
+import ClassementMap from "../../../components/ClassementMap.astro";
 import MethodologyBlock from "../../../components/MethodologyBlock.astro";
 import EditorialHeader from "../../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
@@ -277,6 +278,29 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
               ))}
             </div>
           </section>
+        )}
+
+        <!-- CARTE DU CLASSEMENT , tous les pros geolocalises -->
+        {pros.filter((p: any) => p.lat && p.lng).length >= 3 && (
+          <ClassementMap
+            pros={pros.slice(0, 60).map((p: any, i: number) => ({
+              id: p.id,
+              slug: p.slug,
+              nom_entreprise: p.nom_entreprise,
+              ville: p.ville,
+              code_postal: p.code_postal,
+              score_confiance: p.score_confiance || 0,
+              tier: p.tier,
+              niveau_confiance: p.niveau_confiance,
+              rge: p.rge,
+              qualibat: p.qualibat,
+              lat: p.lat,
+              lng: p.lng,
+            }))}
+            metier={metierObj.nom.toLowerCase()}
+            dept={deptObj.nom}
+            deptCode={deptObj.code}
+          />
         )}
 
         <!-- TOP 4-15 , cards standards en grille serree -->

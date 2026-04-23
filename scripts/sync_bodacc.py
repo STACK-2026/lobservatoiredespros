@@ -118,7 +118,12 @@ def sb_upsert(path: str, rows: list[dict], on_conflict: str):
 
 
 def fetch_pros(only_missing: bool, siren_filter: str | None, limit: int) -> list[dict]:
-    select = "id,slug,siren,siret,score_confiance,tier,rge,qualibat,date_creation_entreprise,last_trust_sync"
+    select = (
+        "id,slug,siren,siret,score_confiance,tier,rge,qualibat,"
+        "date_creation_entreprise,last_trust_sync,"
+        "categorie_entreprise,tranche_effectif,dirigeants_count,"
+        "etat_administratif,est_qualiopi"
+    )
     where = ["active=eq.true", "siren=not.is.null"]
     if only_missing:
         where.append("last_trust_sync=is.null")
@@ -187,11 +192,13 @@ def main():
                 except Exception:
                     age = 0
 
-            # 4. Trust Score
+            # 4. Trust Score , utilise les champs enrichis recherche-entreprises
             ts_inputs = {
                 "anciennete_annees": age,
-                "etat_administratif": "A",
-                "dirigeant_identifie": False,
+                "etat_administratif": pro.get("etat_administratif") or "A",
+                "categorie_entreprise": pro.get("categorie_entreprise"),
+                "tranche_effectif": pro.get("tranche_effectif"),
+                "dirigeant_identifie": (pro.get("dirigeants_count") or 0) > 0,
                 "qualifications_actives": qa,
                 "qualifications_historiques": qh,
                 "organismes_certificateurs": orgs,
@@ -199,7 +206,7 @@ def main():
                 **synthese,
                 "decennale_verifiee": False,
                 "rc_pro_verifiee": False,
-                "est_qualiopi": False,
+                "est_qualiopi": bool(pro.get("est_qualiopi")),
             }
             ts = calculer_trust_score(ts_inputs)
             stats_niveaux[ts["niveau"]] = stats_niveaux.get(ts["niveau"], 0) + 1

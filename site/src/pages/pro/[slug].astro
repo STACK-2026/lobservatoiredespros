@@ -12,6 +12,7 @@ import SpeakableTLDR from "../../components/SpeakableTLDR.astro";
 import ProMap from "../../components/ProMap.astro";
 import ContactBlock from "../../components/ContactBlock.astro";
 import LegalTimeline from "../../components/LegalTimeline.astro";
+import TrustSignals from "../../components/TrustSignals.astro";
 import InfoPill from "../../components/InfoPill.astro";
 import GlossaireTerm from "../../components/GlossaireTerm.astro";
 import SourceBadge from "../../components/SourceBadge.astro";
@@ -411,6 +412,13 @@ const jsonLd = [
         </div>
       </div>
     </section>
+
+    <!-- SIGNAUX EDITORIAUX , lecture trust score positifs/alertes -->
+    {p.score_detail && (p.score_detail.signaux_positifs?.length > 0 || p.score_detail.signaux_alerte?.length > 0) && (
+      <section class="container-wide portrait-signals">
+        <TrustSignals scoreDetail={p.score_detail} nom={p.nom_entreprise} />
+      </section>
+    )}
 
     <!-- TIMELINE LEGALE BODACC , historique officiel + regularite depots -->
     {(legalEvents.length > 0 || (p.bodacc_synthese && Object.keys(p.bodacc_synthese).length > 0)) && (
@@ -1139,6 +1147,12 @@ const jsonLd = [
   }
 
   .portrait-legal {
+    max-width: 62rem;
+    margin: 2rem auto;
+    padding: 0 clamp(1.25rem, 5vw, 4rem);
+  }
+
+  .portrait-signals {
     max-width: 62rem;
     margin: 2rem auto;
     padding: 0 clamp(1.25rem, 5vw, 4rem);
