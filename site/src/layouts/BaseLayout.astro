@@ -132,6 +132,10 @@ const allJsonLd = [...jsonLdBase, ...jsonLdArray];
     <Analytics />
 
     <script>
+      // Reveal animations : Intersection Observer + initial fire pour les elements
+      // deja visibles au chargement (hero, above the fold).
+      const REVEAL_SELECTOR = ".fade-up, .blur-reveal, .scale-reveal, .clip-reveal, .slide-left, .slide-right, .stagger-children, .split-words";
+
       const revealObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -141,15 +145,10 @@ const allJsonLd = [...jsonLdBase, ...jsonLdArray];
             }
           });
         },
-        {
-          threshold: window.innerWidth < 640 ? 0.15 : 0.1,
-          rootMargin: window.innerWidth < 640 ? "0px 0px -80px 0px" : "0px 0px -60px 0px",
-        }
+        { threshold: 0, rootMargin: "0px 0px 0px 0px" }
       );
-      document.querySelectorAll(
-        ".fade-up, .blur-reveal, .scale-reveal, .clip-reveal, .slide-left, .slide-right, .stagger-children, .split-words"
-      ).forEach((el) => revealObserver.observe(el));
 
+      // 1. Split les mots dans [data-split-words] AVANT d'observer
       document.querySelectorAll("[data-split-words]").forEach((el) => {
         const text = el.textContent || "";
         el.innerHTML = text
@@ -157,8 +156,42 @@ const allJsonLd = [...jsonLdBase, ...jsonLdArray];
           .map((word, i) => `<span class="word" style="transition-delay:${i * 55}ms">${word}</span>`)
           .join(" ");
         el.classList.add("split-words");
-        revealObserver.observe(el);
       });
+
+      // 2. Observer tous les elements reveal
+      const allRevealEls = document.querySelectorAll(REVEAL_SELECTOR);
+      allRevealEls.forEach((el) => revealObserver.observe(el));
+
+      // 3. Fire immediat pour tous les elements deja dans le viewport au chargement
+      // (corrige les hero above-the-fold qui ne bougent pas sinon)
+      function fireInitiallyVisible() {
+        allRevealEls.forEach((el) => {
+          const r = el.getBoundingClientRect();
+          const inView = r.top < (window.innerHeight || document.documentElement.clientHeight) && r.bottom > 0;
+          if (inView) {
+            el.classList.add("visible");
+            revealObserver.unobserve(el);
+          }
+        });
+      }
+      // Premier appel des que le DOM est pret
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", fireInitiallyVisible, { once: true });
+      } else {
+        fireInitiallyVisible();
+      }
+      // Deuxieme appel apres load (images, fonts) , au cas ou le viewport bouge
+      window.addEventListener("load", fireInitiallyVisible, { once: true });
+
+      // 4. Filet de securite : apres 3s, tout ce qui n'a pas encore ete reveal
+      // recoit .visible (au cas ou IO echoue , SSR hydration edge cases, etc.)
+      setTimeout(() => {
+        document.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+          if (!el.classList.contains("visible")) {
+            el.classList.add("visible");
+          }
+        });
+      }, 3000);
 
       const counterObserver = new IntersectionObserver(
         (entries) => {

@@ -44,10 +44,10 @@ export const siteConfig = {
     text: "#1A1614",
   },
 
-  // Typographie
+  // Typographie (Google Fonts , moderne + lisse + editorial)
   fonts: {
-    display: "Fraunces",
-    body: "Instrument Sans",
+    display: "Instrument Serif", // serif moderne, ballon terminal, pile editorial 2025
+    body: "Inter", // neutre, lisible, systeme
     mono: "JetBrains Mono",
   },
 

@@ -9,9 +9,9 @@ export function fullUrl(path: string): string {
   return `${base}${clean}`;
 }
 
-/** Google Fonts URL , Fraunces display, Instrument Sans body, JetBrains Mono */
+/** Google Fonts URL , Instrument Serif (display) + Inter (body) + JetBrains Mono */
 export function fontsUrl(): string {
-  return "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,400;1,9..144,600&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap";
+  return "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap";
 }
 
 /** Numéro d'édition formatté */

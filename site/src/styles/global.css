@@ -23,8 +23,8 @@
   --color-cachet: #8B2E2A;
   --color-archive: #4A5D3A;
 
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-body: "Instrument Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 
   --max-w-prose-editorial: 38rem;
@@ -107,16 +107,16 @@ body::before {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   color: var(--ink);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.022em;
-  font-feature-settings: "ss01", "ss02", "liga", "calt";
+  font-weight: 400; /* Instrument Serif est deja genereusement spacee */
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  font-feature-settings: "liga", "calt";
   text-wrap: balance;
 }
 
 h1 {
   font-size: clamp(2.5rem, 5.5vw, 4.5rem);
-  font-weight: 600;
+  font-weight: 400;
 }
 h2 {
   font-size: clamp(1.75rem, 3.2vw, 2.5rem);
@@ -139,17 +139,17 @@ h4 {
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 8vw, 7rem);
   line-height: 0.96;
-  letter-spacing: -0.035em;
-  font-weight: 500;
-  font-feature-settings: "ss01", "liga", "calt";
+  letter-spacing: -0.03em;
+  font-weight: 400;
+  font-feature-settings: "liga", "calt";
 }
 
 .heading-display {
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 5vw, 4.5rem);
   line-height: 1.02;
-  letter-spacing: -0.028em;
-  font-weight: 500;
+  letter-spacing: -0.025em;
+  font-weight: 400;
 }
 
 /* Chapô éditorial , lead */
@@ -413,52 +413,65 @@ code, pre, .mono {
 
 /* ------------------------------------------------------------------
    Reveal animations (Intersection Observer dans BaseLayout)
+   FAIL-SAFE : chaque classe a un fallback @keyframes safety-reveal qui
+   force le visible apres 2.5s max , si le JS ne prend pas la main.
    ------------------------------------------------------------------ */
+@keyframes safety-reveal {
+  to { opacity: 1; transform: none; filter: none; clip-path: inset(0 0 0 0); }
+}
+
 .fade-up {
   opacity: 0;
   transform: translateY(22px);
   transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
-.fade-up.visible { opacity: 1; transform: translateY(0); }
+.fade-up.visible { opacity: 1; transform: translateY(0); animation: none; }
 
 .blur-reveal {
   opacity: 0;
   filter: blur(12px);
   transform: translateY(14px);
   transition: opacity 1100ms var(--ease-out-expo), filter 1100ms var(--ease-out-expo), transform 1100ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
 .blur-reveal.visible {
   opacity: 1;
   filter: blur(0);
   transform: translateY(0);
+  animation: none;
 }
 
 .scale-reveal {
   opacity: 0;
   transform: scale(0.95);
   transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
-.scale-reveal.visible { opacity: 1; transform: scale(1); }
+.scale-reveal.visible { opacity: 1; transform: scale(1); animation: none; }
 
 .clip-reveal {
   clip-path: inset(0 100% 0 0);
   transition: clip-path 1200ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
-.clip-reveal.visible { clip-path: inset(0 0 0 0); }
+.clip-reveal.visible { clip-path: inset(0 0 0 0); animation: none; }
 
 .slide-left {
   opacity: 0;
   transform: translateX(-28px);
   transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
-.slide-left.visible { opacity: 1; transform: translateX(0); }
+.slide-left.visible { opacity: 1; transform: translateX(0); animation: none; }
 
 .slide-right {
   opacity: 0;
   transform: translateX(28px);
   transition: opacity 900ms var(--ease-out-expo), transform 900ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
-.slide-right.visible { opacity: 1; transform: translateX(0); }
+.slide-right.visible { opacity: 1; transform: translateX(0); animation: none; }
 
 /* Split words (BaseLayout split dynamiquement sur data-split-words) */
 .split-words .word {
@@ -466,10 +479,12 @@ code, pre, .mono {
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 700ms var(--ease-out-expo), transform 700ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
 .split-words.visible .word {
   opacity: 1;
   transform: translateY(0);
+  animation: none;
 }
 
 /* Stagger children */
@@ -477,6 +492,7 @@ code, pre, .mono {
   opacity: 0;
   transform: translateY(18px);
   transition: opacity 700ms var(--ease-out-expo), transform 700ms var(--ease-out-expo);
+  animation: safety-reveal 10ms 2500ms forwards;
 }
 .stagger-children.visible > *:nth-child(1) { transition-delay: 0ms; }
 .stagger-children.visible > *:nth-child(2) { transition-delay: 80ms; }
@@ -486,7 +502,7 @@ code, pre, .mono {
 .stagger-children.visible > *:nth-child(6) { transition-delay: 400ms; }
 .stagger-children.visible > *:nth-child(7) { transition-delay: 480ms; }
 .stagger-children.visible > *:nth-child(8) { transition-delay: 560ms; }
-.stagger-children.visible > * { opacity: 1; transform: translateY(0); }
+.stagger-children.visible > * { opacity: 1; transform: translateY(0); animation: none; }
 
 /* ------------------------------------------------------------------
    Cursor glow (desktop only)
@@ -668,7 +684,7 @@ code, pre, .mono {
 }
 
 /* ------------------------------------------------------------------
-   Prefers reduced motion
+   Prefers reduced motion , contenu immediatement visible
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -677,9 +693,32 @@ code, pre, .mono {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .fade-up, .blur-reveal, .scale-reveal, .clip-reveal,
+  .slide-left, .slide-right, .stagger-children > *,
+  .split-words .word {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: inset(0 0 0 0) !important;
+  }
   .seal-rotate { animation: none; }
   .live-dot { animation: none; box-shadow: none; }
   html { scroll-behavior: auto; }
+}
+
+/* ------------------------------------------------------------------
+   Print , tout visible pour impression
+   ------------------------------------------------------------------ */
+@media print {
+  .fade-up, .blur-reveal, .scale-reveal, .clip-reveal,
+  .slide-left, .slide-right, .stagger-children > *,
+  .split-words .word {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: inset(0 0 0 0) !important;
+  }
+  #cookie-banner, #cursor-glow, .mobile-menu-btn { display: none !important; }
 }
 
 /* ------------------------------------------------------------------

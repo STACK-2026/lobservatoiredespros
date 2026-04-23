@@ -122,14 +122,14 @@ const jsonLd = {
 <BaseLayout title={title} description={description} jsonLd={jsonLd}>
 
   <!-- ═══════════════════ HERO ═══════════════════ -->
-  <section class="hero-section" aria-label="Accueil editorial">
+  <section class="hero-section" aria-label="Accueil éditorial">
     <TelescopeWatermark side="right" size={520} parallax={0.05} />
 
     <div class="container-wide hero-inner">
       <div class="hero-text">
         <div class="hero-overline fade-up">
           <span class="live-dot" aria-hidden="true"></span>
-          <span class="meta-label-ink">Edition N°{siteConfig.editionNumber} &middot; {siteConfig.editionMonth} {siteConfig.editionYear}</span>
+          <span class="meta-label-ink">Édition N°{siteConfig.editionNumber} &middot; {siteConfig.editionMonth} {siteConfig.editionYear}</span>
         </div>
 
         <h1 class="heading-hero hero-title" data-split-words>
@@ -137,7 +137,7 @@ const jsonLd = {
         </h1>
 
         <p class="lead hero-lead fade-up">
-          Chaque mois, notre redaction observe, verifie et classe les meilleurs artisans de France. Sans algorithme opaque. Avec methode. Avec patience.
+          Chaque mois, notre rédaction observe, vérifie et classe les meilleurs artisans de France. Sans algorithme opaque. Avec méthode. Avec patience.
         </p>
 
         <div class="hero-counter fade-up">
@@ -145,25 +145,25 @@ const jsonLd = {
         </div>
 
         <div class="hero-cta-row fade-up">
-          <a href="/selection/" class="btn btn-primary magnetic">Explorer la selection</a>
-          <a href="/methode/" class="btn btn-ghost">Consulter la methode <span class="arrow">&rarr;</span></a>
+          <a href="/selection/" class="btn btn-primary magnetic">Explorer la sélection</a>
+          <a href="/methode/" class="btn btn-ghost">Consulter la méthode <span class="arrow">&rarr;</span></a>
         </div>
 
         <div class="hero-proof meta-label fade-up">
-          Sources: INSEE &middot; France Renov &middot; Qualibat &middot; Google Business &middot; DGCCRF
+          Sources : INSEE &middot; France Rénov &middot; Qualibat &middot; Google Business &middot; DGCCRF
         </div>
       </div>
 
       <div class="hero-seal scale-reveal">
         <Seal size={280} variant="or" animated={true} stamp={true} />
-        <p class="hero-seal-caption meta-label-or">Sceau de la redaction 2026</p>
+        <p class="hero-seal-caption meta-label-or">Sceau de la rédaction 2026</p>
       </div>
     </div>
   </section>
 
   <!-- ═══════════════════ À LA UNE ═══════════════════ -->
   <section class="section-alaune container-wide">
-    <EditorialHeader category="A LA UNE CETTE SEMAINE" title="Observations de la redaction" subtitle="Trois sujets que notre redaction a jugé dignes d'etre mis a la une cette semaine." />
+    <EditorialHeader category="À LA UNE CETTE SEMAINE" title="Observations de la rédaction" subtitle="Trois sujets que notre rédaction a jugés dignes d'être mis à la une cette semaine." />
 
     <div class="alaune-grid stagger-children">
       {alaUne.map((item, i) => (
@@ -196,17 +196,17 @@ const jsonLd = {
   <section class="section-portrait">
     <div class="container-wide portrait-inner">
       <div class="portrait-meta slide-left">
-        <span class="meta-label-or">Portrait Laureat &middot; Avril 2026</span>
+        <span class="meta-label-or">Portrait Lauréat &middot; Avril 2026</span>
         <h2 class="heading-display portrait-title">
           <span class="italic-fraunces">{portraitVedette.name}</span>
         </h2>
         <p class="lead portrait-lead">
-          Portrait long format de la seule entreprise de plomberie generale de l'Yonne distinguee d'une medaille d'Or cette annee.
+          Portrait long format de la seule entreprise de plomberie générale de l'Yonne distinguée d'une médaille d'Or cette année.
         </p>
         <ul class="portrait-stats">
-          <li><span class="stat-val">{portraitVedette.score}</span><span class="stat-lbl">/ 10 Score de confiance</span></li>
-          <li><span class="stat-val">{new Date().getFullYear() - portraitVedette.fondation}</span><span class="stat-lbl">annees d'activite</span></li>
-          <li><span class="stat-val">{portraitVedette.salaries}</span><span class="stat-lbl">salaries et apprentis</span></li>
+          <li><span class="stat-val">{portraitVedette.score}</span><span class="stat-lbl">/ 10 Score de Confiance</span></li>
+          <li><span class="stat-val">{new Date().getFullYear() - portraitVedette.fondation}</span><span class="stat-lbl">années d'activité</span></li>
+          <li><span class="stat-val">{portraitVedette.salaries}</span><span class="stat-lbl">salariés et apprentis</span></li>
         </ul>
         <a href={`/pro/${portraitVedette.slug}/`} class="btn btn-observatoire magnetic">Lire le portrait complet</a>
       </div>
@@ -222,41 +222,41 @@ const jsonLd = {
 
   <!-- ═══════════════════ LES 3 TEMPS DE LA MÉTHODE ═══════════════════ -->
   <section class="section-methode container-wide">
-    <EditorialHeader category="LA METHODE" title="Observer. Verifier. Recommander." subtitle="Trois temps, six criteres, une methode publique, verifiable, decrite par ecrit." align="center" />
+    <EditorialHeader category="LA MÉTHODE" title="Observer. Vérifier. Recommander." subtitle="Trois temps, six critères, une méthode publique, vérifiable, décrite par écrit." align="center" />
 
     <ol class="methode-trois-temps stagger-children">
       <li class="methode-temps card-editorial">
         <span class="rank-num rank-outlined">01</span>
         <h3>Observer</h3>
-        <p>Nous cartographions les 47 382 artisans referencés au Sirene sur nos zones pilotes. Donnees publiques uniquement. Sources citees.</p>
+        <p>Nous cartographions les 47 382 artisans référencés au Sirene sur nos zones pilotes. Données publiques uniquement. Sources citées.</p>
       </li>
       <li class="methode-temps card-editorial">
         <span class="rank-num rank-outlined">02</span>
-        <h3>Verifier</h3>
-        <p>Chaque candidat est confronte a six criteres documentes : anciennete, RGE, avis, SIRET, site web, portfolio. Pas de score, pas de publication.</p>
+        <h3>Vérifier</h3>
+        <p>Chaque candidat est confronté à six critères documentés : ancienneté, RGE, avis, SIRET, site web, portfolio. Pas de score, pas de publication.</p>
       </li>
       <li class="methode-temps card-editorial">
         <span class="rank-num rank-outlined">03</span>
         <h3>Recommander</h3>
-        <p>La redaction classe. Medailles Or et Argent decernees apres examen editorial. Archivees chaque annee. Consultables indefiniment.</p>
+        <p>La rédaction classe. Médailles Or et Argent décernées après examen éditorial. Archivées chaque année. Consultables indéfiniment.</p>
       </li>
     </ol>
 
     <p class="methode-foot-cta">
-      <a href="/methode/" class="btn-ghost">La methode complete en 2 500 mots <span class="arrow">&rarr;</span></a>
+      <a href="/methode/" class="btn-ghost">La méthode complète en 2 500 mots <span class="arrow">&rarr;</span></a>
     </p>
   </section>
 
   <!-- ═══════════════════ CLASSEMENTS POPULAIRES ═══════════════════ -->
   <section class="section-classements container-wide">
-    <EditorialHeader category="LA SELECTION" title="Les classements les plus consultes" subtitle="Huit classements departementaux les plus consultés cette semaine par les lecteurs." />
+    <EditorialHeader category="LA SÉLECTION" title="Les classements les plus consultés" subtitle="Huit classements départementaux les plus consultés cette semaine par les lecteurs." />
 
     <div class="classements-grid stagger-children">
       {classementsPopulaires.map((c) => (
         <a href={`/${c.slug}/${c.deptSlug}/`} class="classement-card card-editorial curl">
           <span class="meta-label">{c.dept}</span>
           <h3 class="classement-title italic-fraunces">{c.metier}s</h3>
-          <p class="classement-count folio">{c.count} observations &middot; edition en cours</p>
+          <p class="classement-count folio">{c.count} observations &middot; édition en cours</p>
           <span class="classement-arrow">&rarr;</span>
         </a>
       ))}
@@ -269,7 +269,7 @@ const jsonLd = {
 
   <!-- ═══════════════════ TOP 3 , EXTRAIT D'UN CLASSEMENT ═══════════════════ -->
   <section class="section-top3 container-wide">
-    <EditorialHeader category="EXTRAIT DU CLASSEMENT" title="Plomberie generale dans l'Yonne" subtitle="Trois premieres places du classement 2026, extrait de l'edition mensuelle." />
+    <EditorialHeader category="EXTRAIT DU CLASSEMENT" title="Plomberie générale dans l'Yonne" subtitle="Trois premières places du classement 2026, extrait de l'édition mensuelle." />
 
     <div class="top3-list">
       {topClassementMisEnAvant.map((p) => (
@@ -280,7 +280,7 @@ const jsonLd = {
     </div>
 
     <p class="top3-link">
-      <a href="/plombier/yonne-89/" class="btn btn-outline">Consulter le classement integral <span class="arrow">&rarr;</span></a>
+      <a href="/plombier/yonne-89/" class="btn btn-outline">Consulter le classement intégral <span class="arrow">&rarr;</span></a>
     </p>
   </section>
 
@@ -293,15 +293,15 @@ const jsonLd = {
       </div>
       <div class="stat-block">
         <p class="stat-num" data-count="6">6</p>
-        <p class="stat-label">criteres objectifs de scoring</p>
+        <p class="stat-label">critères objectifs de scoring</p>
       </div>
       <div class="stat-block">
         <p class="stat-num" data-count="3">3</p>
-        <p class="stat-label">departements pilotes cette edition</p>
+        <p class="stat-label">départements pilotes cette édition</p>
       </div>
       <div class="stat-block">
         <p class="stat-num" data-count="128">128</p>
-        <p class="stat-label">dossiers candidats examines</p>
+        <p class="stat-label">dossiers candidats examinés</p>
       </div>
     </div>
   </section>
@@ -309,21 +309,21 @@ const jsonLd = {
   <!-- ═══════════════════ ESPACE PRO ═══════════════════ -->
   <section class="section-pro">
     <div class="container-editorial pro-cta-inner blur-reveal">
-      <span class="meta-label-or">Candidater a l'edition 2026</span>
-      <h2 class="heading-display">Votre entreprise merite-t-elle de figurer dans notre guide ?</h2>
+      <span class="meta-label-or">Candidater à l'édition 2026</span>
+      <h2 class="heading-display">Votre entreprise mérite-t-elle de figurer dans notre guide ?</h2>
       <p class="lead">
-        Chaque annee, notre redaction examine quelques milliers de dossiers. Les meilleurs recoivent la medaille d'Argent ou d'Or. Votre candidature est gratuite. Le passage en Portrait Verifie ou Laureat est optionnel, payant, et sans engagement de duree.
+        Chaque année, notre rédaction examine quelques milliers de dossiers. Les meilleurs reçoivent la médaille d'Argent ou d'Or. Votre candidature est gratuite. Le passage en Portrait Vérifié ou Lauréat est optionnel, payant, et sans engagement de durée.
       </p>
       <div class="pro-cta-row">
         <a href="/candidater/" class="btn btn-primary magnetic">Soumettre ma candidature</a>
-        <a href="/portraits/laureat/" class="btn btn-ghost">En savoir plus sur le Portrait Laureat <span class="arrow">&rarr;</span></a>
+        <a href="/portraits/laureat/" class="btn btn-ghost">En savoir plus sur le Portrait Lauréat <span class="arrow">&rarr;</span></a>
       </div>
     </div>
   </section>
 
   <!-- ═══════════════════ DERNIÈRES OBSERVATIONS ═══════════════════ -->
   <section class="section-observations container-wide">
-    <EditorialHeader category="NOS OBSERVATIONS" title="Dernieres publications de la redaction" />
+    <EditorialHeader category="NOS OBSERVATIONS" title="Dernières publications de la rédaction" />
     <div class="observations-list">
       {alaUne.map((o) => (
         <a class="observation-row curl" href={`/observations/${o.slug}/`}>
@@ -343,7 +343,7 @@ const jsonLd = {
   <!-- ═══════════════════ FAQ ═══════════════════ -->
   <section class="section-faq">
     <div class="container-editorial">
-      <EditorialHeader category="QUESTIONS FREQUENTES" title="Ce que nous repondons, publiquement" align="center" />
+      <EditorialHeader category="QUESTIONS FRÉQUENTES" title="Ce que nous répondons, publiquement" align="center" />
       <div class="faq-list stagger-children">
         {siteConfig.faq.map((q, i) => (
           <details class="faq-item">
@@ -365,14 +365,14 @@ const jsonLd = {
       <Seal size={72} variant="or" animated={true} />
       <h2 class="heading-display newsletter-title">La lettre de L'Observatoire</h2>
       <p class="lead">
-        Chaque mois, notre redaction adresse une lettre a ses lecteurs. Une observation majeure, un portrait, une question de methode. Pas de publicite, pas de tracking invasif. Desabonnement en un clic.
+        Chaque mois, notre rédaction adresse une lettre à ses lecteurs. Une observation majeure, un portrait, une question de méthode. Pas de publicité, pas de tracking invasif. Désabonnement en un clic.
       </p>
       <form class="newsletter-form" method="post" action="#">
         <label class="sr-only" for="nl-email">Adresse email</label>
         <input id="nl-email" type="email" name="email" required placeholder="votre adresse email" />
         <button type="submit" class="btn btn-observatoire">S'abonner</button>
       </form>
-      <p class="meta-label newsletter-meta">Gratuit. Ouvert a tous. Archives consultables.</p>
+      <p class="meta-label newsletter-meta">Gratuit. Ouvert à tous. Archives consultables.</p>
     </div>
   </section>
 

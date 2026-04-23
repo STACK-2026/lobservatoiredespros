@@ -1,16 +1,34 @@
 ---
 /**
  * Sceau officiel de L'Observatoire des Pros.
- * Cercle double + texte circulaire + monogramme OdP ou étoile au centre.
- * Signature animation : rotation lente continue (26s) + effet wax-stamp à l'apparition.
+ *
+ * Design institutionnel pixel-perfect, inspire des medailles des academies
+ * francaises (Academie francaise, Academie des sciences) et des sceaux
+ * municipaux XIXe.
+ *
+ * Geometrie (viewBox 200x200, centre 100x100) :
+ *   R 96  , cercle externe principal (trait 1.2)
+ *   R 90  , micro-couronne de dots (16 points espaces)
+ *   R 86  , path de ring-text (hors strokes des cercles)
+ *   R 80  , cercle interne fin qui encadre le ring-text
+ *   R 50  , cercle central (compartiment monogramme)
+ *   R 46  , halo fin interieur
+ *
+ * Le ring-text est sur R86, font-size 8.5 , les glyphs ne
+ * depassent jamais les circles R80/R96 quel que soit l'ecran.
+ *
+ * Animations :
+ * - seal-rotate : rotation complete 28s lineaire (couronne seulement)
+ * - seal-stamp  : apparition wax-stamp (opacity + scale + rebound)
+ * - prefers-reduced-motion : rotation desactivee.
  */
 interface Props {
   size?: number;
-  variant?: "ink" | "or" | "paper";
+  variant?: "ink" | "or" | "paper" | "observatoire";
   animated?: boolean;
   stamp?: boolean;
   text?: string;
-  center?: "monogram" | "star";
+  center?: "monogram" | "star" | "compass";
   className?: string;
 }
 
@@ -19,26 +37,40 @@ const {
   variant = "or",
   animated = true,
   stamp = false,
-  text = "L'OBSERVATOIRE DES PROS ☆ EDITION 2026 ☆ ",
-  center = "monogram",
+  text = "L'OBSERVATOIRE DES PROS",
+  center = "star",
   className = "",
 } = Astro.props;
 
-const colors = {
+const palette: Record<string, string> = {
   ink: "#1A1614",
   or: "#B8863D",
   paper: "#F7F3EC",
+  observatoire: "#1E3A52",
 };
-const stroke = colors[variant];
+const stroke = palette[variant] || palette.or;
 const uid = `seal-${Math.random().toString(36).slice(2, 9)}`;
 const rotateClass = animated ? "seal-rotate" : "";
 const stampClass = stamp ? "seal-stamp" : "";
+
+// Ring text : dupliquer "L'OBSERVATOIRE DES PROS · EDITION 2026 · " pour remplir 360°.
+// On utilise · (middle dot U+00B7) comme separateur elegant.
+const ringText = `${text} · ÉDITION 2026 · `;
+
+// 16 points decoratifs sur R=90 (angles espaces de 22.5°)
+const dots = Array.from({ length: 16 }, (_, i) => {
+  const rad = (i * 360) / 16 * (Math.PI / 180);
+  const cx = 100 + 90 * Math.cos(rad);
+  const cy = 100 + 90 * Math.sin(rad);
+  return { cx: +cx.toFixed(2), cy: +cy.toFixed(2) };
+});
 ---
 
 <span
   class={`seal-wrapper ${stampClass} ${className}`}
   style={`--seal-size: ${size}px; --seal-color: ${stroke};`}
   aria-label="Sceau officiel de L'Observatoire des Pros"
+  role="img"
 >
   <svg
     viewBox="0 0 200 200"
@@ -49,28 +81,91 @@ const stampClass = stamp ? "seal-stamp" : "";
     aria-hidden="true"
   >
     <defs>
-      <path
-        id={`${uid}-circle`}
-        d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"
-      />
+      <!-- Path pour ring-text : cercle R86 parcouru dans le sens horaire -->
+      <path id={`${uid}-ring`} d="M100 14 A86 86 0 1 1 99.99 14" />
     </defs>
+
+    <!-- PARTIE QUI TOURNE : bordure externe + couronne de points + ring text -->
     <g class={rotateClass} style="transform-origin: 100px 100px;">
-      <circle cx="100" cy="100" r="92" fill="none" stroke={stroke} stroke-width="0.8" />
-      <circle cx="100" cy="100" r="84" fill="none" stroke={stroke} stroke-width="0.6" />
-      <text fill={stroke} font-family="Fraunces, Georgia, serif" font-size="11" letter-spacing="4.8" font-weight="500">
-        <textPath href={`#${uid}-circle`} startOffset="0%">{text}{text}</textPath>
+      <!-- Cercle externe principal -->
+      <circle cx="100" cy="100" r="96" fill="none" stroke={stroke} stroke-width="1.2" />
+
+      <!-- Cercle interne fin qui encadre le ring-text -->
+      <circle cx="100" cy="100" r="80" fill="none" stroke={stroke} stroke-width="0.5" opacity="0.7" />
+
+      <!-- Couronne de 16 dots sur R=90, entre les deux cercles -->
+      {dots.map((d) => (
+        <circle cx={d.cx} cy={d.cy} r="0.9" fill={stroke} opacity="0.9" />
+      ))}
+
+      <!-- Ring text sur R=86 , entre les deux cercles, jamais coupe -->
+      <text
+        fill={stroke}
+        font-family="Instrument Serif, Georgia, serif"
+        font-size="8.6"
+        letter-spacing="2.8"
+        font-weight="400"
+      >
+        <textPath href={`#${uid}-ring`} startOffset="0" method="align" spacing="auto">
+          {ringText}{ringText}
+        </textPath>
       </text>
     </g>
-    <circle cx="100" cy="100" r="58" fill="none" stroke={stroke} stroke-width="1" opacity="0.85" />
-    <circle cx="100" cy="100" r="52" fill="none" stroke={stroke} stroke-width="0.5" opacity="0.65" />
-    {center === "monogram" ? (
-      <text x="100" y="118" text-anchor="middle" fill={stroke} font-family="Fraunces, Georgia, serif" font-size="44" font-style="italic" font-weight="500" letter-spacing="-2">OdP</text>
-    ) : (
-      <g fill={stroke}>
-        <path d="M100 62 l7.2 22.3 23.4 0 -18.9 13.8 7.2 22.3 -18.9 -13.8 -18.9 13.8 7.2 -22.3 -18.9 -13.8 23.4 0 z" />
-      </g>
-    )}
-    <text x="100" y="156" text-anchor="middle" fill={stroke} font-family="Fraunces, Georgia, serif" font-size="7.4" letter-spacing="4" font-weight="500" opacity="0.9">EST. 2026</text>
+
+    <!-- PARTIE FIXE : cercle central + monogramme -->
+    <g>
+      <!-- Cercle central (compartiment central) -->
+      <circle cx="100" cy="100" r="50" fill="none" stroke={stroke} stroke-width="0.9" />
+      <!-- Halo interieur fin -->
+      <circle cx="100" cy="100" r="46" fill="none" stroke={stroke} stroke-width="0.3" opacity="0.55" />
+
+      {center === "star" && (
+        <g fill={stroke}>
+          <!-- Etoile a huit branches, centree a 100,100, rayon externe 26, rayon interne 10 -->
+          <path d="M100 72 L104.6 90 L122.5 90 L108 101 L113 118 L100 108 L87 118 L92 101 L77.5 90 L95.4 90 Z" opacity="0.96" />
+          <!-- 4 branches cardinales plus longues, fines -->
+          <g stroke={stroke} stroke-width="0.8" opacity="0.65">
+            <line x1="100" y1="62" x2="100" y2="54" />
+            <line x1="100" y1="138" x2="100" y2="146" />
+            <line x1="62" y1="100" x2="54" y2="100" />
+            <line x1="138" y1="100" x2="146" y2="100" />
+          </g>
+        </g>
+      )}
+
+      {center === "compass" && (
+        <g fill={stroke} stroke={stroke}>
+          <circle cx="100" cy="100" r="4" fill={stroke} />
+          <path d="M100 62 L104 100 L96 100 Z" opacity="0.9" />
+          <path d="M100 138 L96 100 L104 100 Z" opacity="0.5" />
+          <line x1="62" y1="100" x2="138" y2="100" stroke-width="0.6" opacity="0.4" />
+        </g>
+      )}
+
+      {center === "monogram" && (
+        <g>
+          <!-- "O" stylise en cercle -->
+          <circle cx="100" cy="100" r="18" fill="none" stroke={stroke} stroke-width="1.4" />
+          <!-- Barre diagonale du monogramme -->
+          <line x1="91" y1="112" x2="109" y2="88" stroke={stroke} stroke-width="1.2" opacity="0.7" />
+          <!-- Petit point de prestige en haut a droite -->
+          <circle cx="112" cy="86" r="1.4" fill={stroke} />
+        </g>
+      )}
+
+      <!-- EST. MMXXVI en-dessous du centre (partie fixe) -->
+      <text
+        x="100"
+        y="140"
+        text-anchor="middle"
+        fill={stroke}
+        font-family="Instrument Serif, Georgia, serif"
+        font-size="7.2"
+        letter-spacing="3.5"
+        font-weight="400"
+        opacity="0.88"
+      >EST. MMXXVI</text>
+    </g>
   </svg>
 </span>
 
@@ -79,7 +174,17 @@ const stampClass = stamp ? "seal-stamp" : "";
     display: inline-flex;
     width: var(--seal-size);
     height: var(--seal-size);
-    filter: drop-shadow(0 6px 18px rgba(184, 134, 61, 0.18));
+    filter: drop-shadow(0 4px 14px rgba(184, 134, 61, 0.16));
+    isolation: isolate;
   }
-  .seal-svg { width: 100%; height: 100%; display: block; }
+  .seal-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    shape-rendering: geometricPrecision;
+    text-rendering: geometricPrecision;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seal-wrapper { filter: none; }
+  }
 </style>
