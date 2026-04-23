@@ -76,9 +76,16 @@ const allJsonLd = [...jsonLdBase, ...jsonLdArray];
     <meta name="theme-color" content="#F7F3EC" />
     <meta name="format-detection" content="telephone=no" />
 
+    <!-- Preconnect tiers critiques + fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
+    <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
     <link rel="stylesheet" href={fontsUrl()} />
+
+    <!-- AI crawlers hints , signal explicite -->
+    <meta name="ai-content-declaration" content="editorial-human-written" />
+    <meta name="ai-sitemap" content="/ai-sitemap.xml" />
 
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -112,6 +119,15 @@ const allJsonLd = [...jsonLdBase, ...jsonLdArray];
 
     <link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} , Observations`} href="/rss.xml" />
     <link rel="alternate" type="text/plain" href="/llms.txt" />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+    <!-- Speakable specification schema (pour Assistant vocal + AI overviews) -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["[data-speakable]", ".speakable"],
+      "xpath": ["//*[@data-speakable]"]
+    })} />
 
     {allJsonLd.map((ld) => (
       <script type="application/ld+json" set:html={JSON.stringify(ld)} />

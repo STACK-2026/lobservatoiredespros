@@ -5,7 +5,7 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-# AI crawlers explicitement autorises
+# AI crawlers explicitement autorises (LLMs, generative AI)
 User-agent: GPTBot
 Allow: /
 User-agent: ClaudeBot
@@ -30,8 +30,40 @@ User-agent: Amazonbot
 Allow: /
 User-agent: Meta-ExternalAgent
 Allow: /
+User-agent: Diffbot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: cohere-ai
+Allow: /
+User-agent: Cohere-AI
+Allow: /
+User-agent: YouBot
+Allow: /
+User-agent: Timpibot
+Allow: /
+User-agent: ImagesiftBot
+Allow: /
 
-# SEO crawlers , denied
+# Search crawlers classiques , autorises explicitement
+User-agent: Googlebot
+Allow: /
+User-agent: Googlebot-News
+Allow: /
+User-agent: Googlebot-Image
+Allow: /
+User-agent: Bingbot
+Allow: /
+User-agent: DuckDuckBot
+Allow: /
+User-agent: YandexBot
+Allow: /
+User-agent: Baiduspider
+Allow: /
+
+# SEO / competitive intel crawlers , denied
 User-agent: SemrushBot
 Disallow: /
 User-agent: AhrefsBot
@@ -40,5 +72,11 @@ User-agent: MJ12bot
 Disallow: /
 User-agent: DotBot
 Disallow: /
+User-agent: MegaIndex
+Disallow: /
+User-agent: BLEXBot
+Disallow: /
 
+# Sitemaps
 Sitemap: https://lobservatoiredespros.com/sitemap-index.xml
+Sitemap: https://lobservatoiredespros.com/ai-sitemap.xml
