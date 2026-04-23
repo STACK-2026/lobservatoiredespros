@@ -37,12 +37,12 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       <EditorialHeader category="PAR CATEGORIE" title="Six angles editoriaux" />
       <div class="cats-grid stagger-children">
         {categories.map((c) => (
-          <a class="cat-card card-editorial curl" href={`/observations/${c.slug}/`}>
+          <div class="cat-card card-editorial curl">
             <span class="meta-label-or">{c.slug.toUpperCase()}</span>
             <h3 class="italic-fraunces">{c.nom}</h3>
             <p class="cat-desc">{c.desc}</p>
-            <p class="folio">Consulter la catégorie &rarr;</p>
-          </a>
+            <p class="folio">À paraître prochainement</p>
+          </div>
         ))}
       </div>
     </section>

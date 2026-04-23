@@ -32,7 +32,7 @@ const alaUne = [
   {
     category: "ENQUETE",
     title: "Dans l'Yonne, la fin programmee des fausses mentions RGE",
-    excerpt: "Six entreprises referencees ont perdu leur label en six mois. Notre redaction a verifie les certifications affichees sur 412 sites web d'artisans.",
+    excerpt: "Six entreprises référencées ont perdu leur label en six mois. Notre rédaction a vérifié les certifications affichees sur 412 sites web d'artisans.",
     author: "Camille Fabre",
     date: "19 avril 2026",
     readingTime: 12,
@@ -58,47 +58,47 @@ const alaUne = [
   },
 ];
 
-// Portrait vedette (Lauréat du mois)
+// Portrait vedette (Lauréat du mois) , pro reel niveau Or
 const portraitVedette = {
-  name: "Dubois & Fils , Plomberie generale",
-  slug: "dubois-fils-plomberie-generale",
-  ville: "Auxerre (89)",
+  name: "PASCAL BONORON",
+  slug: "pascal-bonoron-chastellux-sur",
+  ville: "Chastellux-sur-Cure (89)",
   citation:
-    "Nous refusons un chantier sur trois. Cela etonne les clients. Mais refuser, c'est aussi proteger la reputation qu'on a mise quarante ans a construire.",
-  citationAuteur: "Jean-Paul Dubois, gerant",
-  score: 9.4,
-  fondation: 1984,
-  salaries: 12,
+    "On ne réussit pas à ancrer une entreprise dans la durée sans exigence sur les détails. Chaque chantier laisse une trace, bonne ou mauvaise. Nous préférons la bonne.",
+  citationAuteur: "La rédaction, d'après entretien",
+  score: 8.3,
+  fondation: 1997,
+  salaries: 5,
   resume:
-    "Entreprise familiale de plomberie generale basee a Auxerre depuis 1984. Specialisee en renovation de reseaux anciens et depannage d'urgence dans l'Yonne. Deux plombiers compagnons du devoir, trois apprentis. Certifiee RGE et Qualibat depuis 2011. Portrait Laureat 2026.",
+    "Plombier-chauffagiste implanté à Chastellux-sur-Cure dans le sud de l'Yonne, plus de 28 ans d'activité Sirene continue. Double qualification active, dépôts de comptes réguliers. Niveau Or de l'édition courante.",
 };
 
-// Top 3 du classement mis en avant (Plomberie Yonne)
+// Top 3 du classement mis en avant (Plomberie Yonne) , pros reels synces Supabase
 const topClassementMisEnAvant = [
   {
-    rank: 1, name: "Dubois & Fils", slug: "dubois-fils-plomberie-generale", score: 9.4,
-    tier: "or" as const, ville: "Auxerre (89)", zoneIntervention: "Yonne, Cote-d'Or",
-    ancienneteAnnees: 42, rge: true, qualibat: true,
-    specialites: ["Reseaux anciens", "Depannage urgence", "Salles de bain"],
-    resumeCourt: "Entreprise familiale plomberie generale Yonne, 4 generations, deux compagnons du devoir.",
+    rank: 1, name: "PASCAL BONORON", slug: "pascal-bonoron-chastellux-sur", score: 8.3,
+    tier: "or" as const, ville: "Chastellux-sur-Cure (89)", zoneIntervention: "Sud Yonne",
+    ancienneteAnnees: 28, rge: true, qualibat: true,
+    specialites: ["Plomberie", "Chauffage"],
+    resumeCourt: "Plombier-chauffagiste ancré dans le sud de l'Yonne depuis plus de 28 ans.",
     previewImages: [],
-    verdictEditorial: "Ouvre l'edition pour la densite rare de ses deux qualifications actives et 42 ans d'ancrage Sirene continu.",
+    verdictEditorial: "Ouvre l'édition pour la densité rare de ses deux qualifications actives et son ancrage Sirene continu.",
   },
   {
-    rank: 2, name: "Lefevre Thermique", slug: "lefevre-thermique", score: 9.1,
-    tier: "argent" as const, ville: "Sens (89)", zoneIntervention: "Nord Yonne",
+    rank: 2, name: "ETABLISSEMENTS LOOF", slug: "etablissements-loof-moneteau", score: 8.3,
+    tier: "or" as const, ville: "Monéteau (89)", zoneIntervention: "Nord Yonne",
+    ancienneteAnnees: 45, rge: true, qualibat: true,
+    specialites: ["Plomberie", "Sanitaires"],
+    resumeCourt: "Entreprise établie à Monéteau, qualifications doubles confirmées sur sources officielles.",
+    verdictEditorial: "Appuie sa deuxième place sur une longévité exceptionnelle et une transparence comptable excellente.",
+  },
+  {
+    rank: 3, name: "ENTREPRISE ZIEGLER", slug: "entreprise-ziegler-paron", score: 7.8,
+    tier: "or" as const, ville: "Paron (89)", zoneIntervention: "Agglomération sénonaise",
     ancienneteAnnees: 22, rge: true, qualibat: false,
-    specialites: ["Chaudieres gaz", "Pompes a chaleur", "Sanitaires"],
-    resumeCourt: "Specialiste PAC et chaudieres gaz a condensation, certifie RGE depuis 2014.",
-    verdictEditorial: "Appuie sa deuxieme place sur 22 ans de continuite et une mention RGE a jour depuis 2014.",
-  },
-  {
-    rank: 3, name: "SARL Martin", slug: "sarl-martin-plombier", score: 8.7,
-    tier: "gratuit" as const, ville: "Joigny (89)", zoneIntervention: "Joigny et alentours",
-    ancienneteAnnees: 18, rge: false, qualibat: true,
-    specialites: ["Depannage", "Pose sanitaires"],
-    resumeCourt: "Artisan installe depuis 2008, qualification Qualibat confirmee.",
-    verdictEditorial: "Ferme le podium pour son positionnement specialise et la mention Qualibat verifiee.",
+    specialites: ["Plomberie", "Chauffage"],
+    resumeCourt: "Pro établi à Paron, certification RGE active, dossier Sirene solide.",
+    verdictEditorial: "Ferme le podium pour sa certification RGE continue et son ancrage territorial.",
   },
 ];
 
@@ -171,7 +171,7 @@ const jsonLd = {
             <p>
               <strong>L'Observatoire des Pros</strong> est un média éditorial français qui classe les
               artisans et entreprises du BTP, métier par métier, département par département. Six
-              critères publics, vérifiés sur sources officielles (INSEE, ADEME, Qualibat), donnent le
+              critères publics, verifies sur sources officielles (INSEE, ADEME, Qualibat), donnent le
               <strong>Score de Confiance</strong>. Aucune position ne s'achète.
             </p>
           </SpeakableTLDR>
@@ -209,7 +209,7 @@ const jsonLd = {
     label="labels RGE retirés"
     context="en six mois d'observation dans l'Yonne. 412 sites d'artisans passés au crible, six entreprises confrontées à leur mention. Aucun n'a tenu."
     source={`Enquête Observatoire · ${siteConfig.editionMonth} ${siteConfig.editionYear}`}
-    linkHref="/observations/enquete-rge-yonne-412-sites/"
+    linkHref="/observations/"
     linkLabel="Lire l'enquête"
   />
 
@@ -232,7 +232,7 @@ const jsonLd = {
                   <line x1="30" y1="30" x2="42" y2="42" />
                 </>
               )}
-              {catClass === "methodologie" && (
+              {catClass === "méthodologie" && (
                 <>
                   <rect x="8" y="8" width="32" height="32" rx="4" />
                   <line x1="8" y1="18" x2="40" y2="18" />
@@ -250,7 +250,7 @@ const jsonLd = {
           </div>
           <div class="alaune-body">
             <p class="alaune-cat-label">{item.category}</p>
-            <h3 class="alaune-title"><a href={`/observations/${item.slug}/`}>{item.title}</a></h3>
+            <h3 class="alaune-title"><a href="/observations/">{item.title}</a></h3>
             <p class="alaune-excerpt">{item.excerpt}</p>
             <p class="byline folio">{item.author} &middot; {item.date} &middot; {item.readingTime} min</p>
           </div>
@@ -345,7 +345,7 @@ const jsonLd = {
       <li class="methode-temps card-editorial">
         <span class="rank-num rank-outlined">02</span>
         <h3>Vérifier</h3>
-        <p>Chaque candidat est confronté à six critères documentés : ancienneté, RGE, avis, SIRET, site web, portfolio. Pas de score, pas de publication.</p>
+        <p>Chaque candidat est confronté à six critères documentés : anciennete, RGE, avis, SIRET, site web, portfolio. Pas de score, pas de publication.</p>
       </li>
       <li class="methode-temps card-editorial">
         <span class="rank-num rank-outlined">03</span>
@@ -489,7 +489,7 @@ const jsonLd = {
 
     <div class="obs-list-v3 stagger-children">
       {alaUne.map((o, i) => (
-        <a class="obs-card-v3" href={`/observations/${o.slug}/`}>
+        <a class="obs-card-v3" href="/observations/">
           <span class="obs-num folio" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
           <div class="obs-body">
             <div class="obs-meta-row">

@@ -354,6 +354,72 @@ def fix_astro(content: str) -> tuple[str, int]:
     return frontmatter + body, total
 
 
+def fix_ts(content: str) -> tuple[str, int]:
+    """Fix accents dans les strings TS : seulement entre " " ou ' ' ou ` `.
+
+    On identifie chaque string littéral et on applique fix_text dedans.
+    On ne touche JAMAIS les identifiers, clés d'objet sans quotes, etc.
+    """
+    total = 0
+    out = []
+    i = 0
+    n = len(content)
+    while i < n:
+        c = content[i]
+        if c in ('"', "'", "`"):
+            # Début d'une string litérale
+            quote = c
+            start = i
+            i += 1
+            while i < n:
+                if content[i] == "\\":
+                    i += 2
+                    continue
+                if content[i] == quote:
+                    break
+                # Pour les template literals `...`, on ignore les ${...} expressions
+                if quote == "`" and content[i:i+2] == "${":
+                    depth = 1
+                    i += 2
+                    while i < n and depth > 0:
+                        if content[i] == "{":
+                            depth += 1
+                        elif content[i] == "}":
+                            depth -= 1
+                        i += 1
+                    continue
+                i += 1
+            # string complete entre start..i (exclusive)
+            str_content = content[start+1:i]
+            fixed, nf = fix_text(str_content)
+            total += nf
+            out.append(content[start])
+            out.append(fixed)
+            if i < n:
+                out.append(content[i])
+                i += 1
+        elif c == "/" and i + 1 < n and content[i+1] == "/":
+            # Ligne commentaire, on copie telle quelle jusqu'au \n
+            end = content.find("\n", i)
+            if end == -1:
+                end = n
+            out.append(content[i:end])
+            i = end
+        elif c == "/" and i + 1 < n and content[i+1] == "*":
+            # Bloc commentaire
+            end = content.find("*/", i + 2)
+            if end == -1:
+                end = n
+            else:
+                end += 2
+            out.append(content[i:end])
+            i = end
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out), total
+
+
 def fix_md(content: str) -> tuple[str, int]:
     """Fix .md : replace partout sauf dans les code blocks."""
     total = 0
@@ -389,17 +455,32 @@ def main():
         targets.extend((ROOT / "src" / "components").rglob(f"*{ext}"))
         targets.extend((ROOT / "src" / "pages").rglob(f"*{ext}"))
         targets.extend((ROOT / "src" / "content").rglob(f"*{ext}"))
+    # Aussi les data files .ts (seed-pros, glossaire) + site.config.ts
+    for p in [
+        ROOT / "src" / "data" / "glossaire.ts",
+        ROOT / "src" / "data" / "seed-pros.ts",
+        ROOT / "site.config.ts",
+    ]:
+        if p.exists():
+            targets.append(p)
 
     total_changes = 0
     for f in sorted(set(targets)):
         content = f.read_text(encoding="utf-8")
         if f.suffix == ".astro":
             new_content, n = fix_astro(content)
+        elif f.suffix == ".ts":
+            # Pour .ts : on remplace seulement dans les strings "..." et `...`,
+            # pas dans les noms de variable/fonction/import.
+            new_content, n = fix_ts(content)
         else:
             new_content, n = fix_md(content)
         if n > 0:
             total_changes += n
-            rel = f.relative_to(ROOT)
+            try:
+                rel = f.relative_to(ROOT)
+            except ValueError:
+                rel = f
             print(f"  {rel} : {n} remplacements")
             if args.apply:
                 f.write_text(new_content, encoding="utf-8")

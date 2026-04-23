@@ -18,7 +18,7 @@ export const glossaire: TermeGlossaire[] = [
     terme: "RGE",
     slug: "rge",
     acronyme: "Reconnu Garant de l'Environnement",
-    definition: "Mention officielle attribuee par l'Etat aux professionnels du batiment qualifies en renovation energetique.",
+    definition: "Mention officielle attribuee par l'État aux professionnels du batiment qualifies en renovation energetique.",
     developpement:
       "Obligatoire pour que les travaux soient eligibles aux aides publiques : MaPrimeRenov', TVA reduite a 5.5%, eco-pret a taux zero, Certificats d'Economie d'Energie (CEE). Delivree par des organismes certificateurs agrees (Qualibat, Qualifelec, Qualit'EnR, Cequami). Verifiable sur france-renov.gouv.fr.",
     source: { label: "France Renov", url: "https://france-renov.gouv.fr/annuaire-rge" },
@@ -28,9 +28,9 @@ export const glossaire: TermeGlossaire[] = [
   {
     terme: "Qualibat",
     slug: "qualibat",
-    definition: "Organisme certificateur francais independant qui qualifie les entreprises de batiment sur des criteres techniques, administratifs et financiers.",
+    definition: "Organisme certificateur français independant qui qualifie les entreprises de batiment sur des criteres techniques, administratifs et financiers.",
     developpement:
-      "Plus de 45 000 entreprises qualifiees. La qualification Qualibat est un signal fort de serieux : elle atteste que l'entreprise respecte les obligations sociales, fiscales, assurantielles, et possede les competences techniques documentees. Validee pour une duree limitee, renouvelee par audit.",
+      "Plus de 45 000 entreprises qualifiees. La qualification Qualibat est un signal fort de sérieux : elle atteste que l'entreprise respecte les obligations sociales, fiscales, assurantielles, et possede les competences techniques documentees. Validee pour une durée limitee, renouvelee par audit.",
     source: { label: "Qualibat", url: "https://www.qualibat.com" },
     categorie: "certification",
     voirAussi: ["rge"],
@@ -39,9 +39,9 @@ export const glossaire: TermeGlossaire[] = [
     terme: "Sirene",
     slug: "sirene",
     acronyme: "Systeme Informatise du Repertoire National des Entreprises et des Etablissements",
-    definition: "Repertoire officiel de l'INSEE qui recense toutes les entreprises francaises.",
+    definition: "Repertoire officiel de l'INSEE qui recense toutes les entreprises françaises.",
     developpement:
-      "Chaque entreprise recoit un SIREN (9 chiffres, identifiant juridique) et chaque etablissement un SIRET (14 chiffres = SIREN + 5 chiffres). Les donnees Sirene sont publiques et gratuites, consultables via recherche-entreprises.api.gouv.fr. L'Observatoire utilise Sirene comme source de verite pour l'anciennete et l'etat administratif des entreprises.",
+      "Chaque entreprise recoit un SIREN (9 chiffres, identifiant juridique) et chaque etablissement un SIRET (14 chiffres = SIREN + 5 chiffres). Les données Sirene sont publiques et gratuites, consultables via recherche-entreprises.api.gouv.fr. L'Observatoire utilise Sirene comme source de verite pour l'anciennete et l'etat administratif des entreprises.",
     source: { label: "Sirene", url: "https://www.sirene.fr" },
     categorie: "juridique",
     voirAussi: ["naf"],
@@ -58,17 +58,17 @@ export const glossaire: TermeGlossaire[] = [
   {
     terme: "Code NAF",
     slug: "naf",
-    acronyme: "Nomenclature d'Activites Francaise",
-    definition: "Code a 5 caracteres qui classe l'activite principale d'une entreprise.",
+    acronyme: "Nomenclature d'Activites Française",
+    definition: "Code a 5 caracteres qui classe l'activité principale d'une entreprise.",
     developpement:
-      "Pour les metiers que nous couvrons : 43.22A (plomberie), 43.21A (installation electrique), 43.91B (travaux de couverture), 43.32A (travaux de menuiserie bois et PVC), 43.29A (autres travaux d'installation). Ce code est choisi par l'entreprise elle-meme, il peut etre imprecis. L'Observatoire le croise avec le libelle d'activite et les realisations effectives.",
+      "Pour les metiers que nous couvrons : 43.22A (plomberie), 43.21A (installation electrique), 43.91B (travaux de couverture), 43.32A (travaux de menuiserie bois et PVC), 43.29A (autres travaux d'installation). Ce code est choisi par l'entreprise elle-meme, il peut etre imprecis. L'Observatoire le croise avec le libelle d'activité et les realisations effectives.",
     categorie: "juridique",
     voirAussi: ["sirene"],
   },
   {
     terme: "MaPrimeRenov'",
     slug: "maprimerenov",
-    definition: "Aide de l'Etat versee aux particuliers pour financer des travaux de renovation energetique de leur logement principal.",
+    definition: "Aide de l'État versee aux particuliers pour financer des travaux de renovation energetique de leur logement principal.",
     developpement:
       "Lancee en 2020, elle remplace le Credit d'Impot Transition Energetique (CITE) et le programme Habiter Mieux Agilite. Montant module selon les revenus du foyer et la nature des travaux (isolation, chauffage, ventilation, audit energetique). Accessible uniquement via un professionnel RGE. Paiement au prestataire sur presentation de la facture.",
     source: { label: "ANAH , MaPrimeRenov", url: "https://www.maprimerenov.gouv.fr" },
@@ -89,27 +89,27 @@ export const glossaire: TermeGlossaire[] = [
     terme: "Eco-PTZ",
     slug: "eco-ptz",
     acronyme: "Eco-Pret a Taux Zero",
-    definition: "Pret bancaire finance par l'Etat pour financer les travaux de renovation energetique, sans interets ni frais.",
+    definition: "Pret bancaire finance par l'État pour financer les travaux de renovation energetique, sans interets ni frais.",
     developpement:
-      "Jusqu'a 50 000 euros remboursables sur 20 ans maximum. Cumulable avec MaPrimeRenov' et les CEE. Accessible sans conditions de ressources pour le logement principal. L'entreprise doit etre RGE sauf pour un logement copropriete deja certifie.",
+      "Jusqu'a 50 000 euros remboursables sur 20 ans maximum. Cumulable avec MaPrimeRenov' et les CEE. Accessible sans conditions de ressources pour le logement principal. L'entreprise doit etre RGE sauf pour un logement copropriete déjà certifié.",
     categorie: "financement",
   },
   {
     terme: "DGCCRF",
     slug: "dgccrf",
     acronyme: "Direction Generale de la Concurrence, de la Consommation et de la Repression des Fraudes",
-    definition: "Service de l'Etat charge de veiller a la protection des consommateurs.",
+    definition: "Service de l'État charge de veiller a la protection des consommateurs.",
     developpement:
-      "La DGCCRF enquete sur les pratiques commerciales trompeuses, les arnaques a la renovation energetique, les demarchages abusifs. Elle publie chaque annee un rapport avec les secteurs les plus signales. L'Observatoire consulte les signalements publics DGCCRF lors de l'examen des dossiers Laureats.",
+      "La DGCCRF enquete sur les pratiques commerciales trompeuses, les arnaques a la renovation energetique, les demarchages abusifs. Elle publié chaque annee un rapport avec les secteurs les plus signalés. L'Observatoire consulte les signalements publics DGCCRF lors de l'examen des dossiers Laureats.",
     source: { label: "DGCCRF", url: "https://www.economie.gouv.fr/dgccrf" },
     categorie: "juridique",
   },
   {
     terme: "Devis",
     slug: "devis",
-    definition: "Document ecrit, detaille et signe qui chiffre une prestation avant execution.",
+    definition: "Document écrit, détaillé et signé qui chiffre une prestation avant execution.",
     developpement:
-      "Obligatoire pour les travaux de plus de 150 euros TTC (article L. 111-1 du Code de la consommation). Doit mentionner : identite complete du pro (SIRET, adresse, assurance), nature et quantite des prestations, prix unitaire et total HT/TTC, conditions de paiement, date limite de validite. Un devis signe vaut engagement reciproque.",
+      "Obligatoire pour les travaux de plus de 150 euros TTC (article L. 111-1 du Code de la consommation). Doit mentionner : identite complete du pro (SIRET, adresse, assurance), nature et quantite des prestations, prix unitaire et total HT/TTC, conditions de paiement, date limite de validite. Un devis signé vaut engagement reciproque.",
     categorie: "juridique",
   },
   {
@@ -126,7 +126,7 @@ export const glossaire: TermeGlossaire[] = [
     acronyme: "Isolation Thermique par l'Exterieur",
     definition: "Technique qui consiste a envelopper le batiment d'une couche isolante appliquee sur la facade.",
     developpement:
-      "Permet d'eviter les ponts thermiques et de conserver l'inertie des murs. Plus chere que l'isolation interieure (ITI) mais plus efficace. Necessite souvent un permis de construire ou une declaration prealable (modifie l'aspect exterieur). Eligible MaPrimeRenov', CEE, Eco-PTZ, TVA 5.5%.",
+      "Permet d'eviter les ponts thermiques et de conserver l'inertie des murs. Plus chere que l'isolation interieure (ITI) mais plus efficace. Necessite souvent un permis de construire ou une declaration préalable (modifie l'aspect exterieur). Eligible MaPrimeRenov', CEE, Eco-PTZ, TVA 5.5%.",
     categorie: "technique",
     voirAussi: ["maprimerenov", "rge"],
   },
@@ -150,11 +150,11 @@ export const glossaire: TermeGlossaire[] = [
     voirAussi: ["rge", "qualibat", "sirene"],
   },
   {
-    terme: "Portrait Laureat",
-    slug: "portrait-laureat",
-    definition: "Distinction annuelle decernee par L'Observatoire a un nombre limite de professionnels apres examen editorial complet.",
+    terme: "Portrait Lauréat",
+    slug: "portrait-lauréat",
+    definition: "Distinction annuelle decernee par L'Observatoire a un nombre limite de professionnels après examen éditorial complet.",
     developpement:
-      "Inclut un entretien avec le dirigeant, une verification terrain d'au moins une realisation recente, trois entretiens avec des clients finaux references. Medaille d'Or. Portrait long format redige par la redaction. Ne peut etre obtenu par abonnement seul , la selection est editoriale.",
+      "Inclut un entretien avec le dirigeant, une verification terrain d'au moins une realisation recente, trois entretiens avec des clients finaux références. Medaille d'Or. Portrait long format redige par la rédaction. Ne peut etre obtenu par abonnement seul , la selection est éditoriale.",
     categorie: "reglementation",
     voirAussi: ["score-de-confiance"],
   },

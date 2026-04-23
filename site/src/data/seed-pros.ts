@@ -31,7 +31,7 @@ export interface ProSeed {
 export const prosSeed: ProSeed[] = [
   // PLOMBIER , YONNE (89)
   {
-    slug: "dubois-fils-plomberie-generale",
+    slug: "dubois-fils-plomberie-générale",
     nom: "Dubois & Fils",
     metier: "plombier",
     ville: "Auxerre",
@@ -45,10 +45,10 @@ export const prosSeed: ProSeed[] = [
     specialites: ["Reseaux anciens", "Depannage urgence", "Salles de bain"],
     rge: true, qualibat: true,
     siteWeb: "https://dubois-plomberie.fr",
-    resumeCourt: "Entreprise familiale de plomberie generale, quatre generations d'artisans, deux compagnons du devoir, trois apprentis.",
-    portrait: "Entreprise familiale de plomberie generale basee a Auxerre depuis 1984. Specialisee en renovation de reseaux anciens et depannage d'urgence dans l'Yonne. Certifiee RGE et Qualibat depuis 2011.",
+    resumeCourt: "Entreprise familiale de plomberie générale, quatre generations d'artisans, deux compagnons du devoir, trois apprentis.",
+    portrait: "Entreprise familiale de plomberie générale basee a Auxerre depuis 1984. Specialisee en renovation de réseaux anciens et depannage d'urgence dans l'Yonne. Certifiee RGE et Qualibat depuis 2011.",
     citation: {
-      text: "Nous refusons un chantier sur trois. Cela etonne les clients. Mais refuser, c'est aussi proteger la reputation qu'on a mise quarante ans a construire.",
+      text: "Nous refusons un chantier sur trois. Cela etonne les clients. Mais refuser, c'est aussi protéger la reputation qu'on a mise quarante ans a construire.",
       auteur: "Jean-Paul Dubois, gerant",
     },
     avisMoyen: 4.7, avisNombre: 132,
@@ -66,7 +66,7 @@ export const prosSeed: ProSeed[] = [
     ancienneteAnnees: 22,
     specialites: ["Chaudieres gaz", "Pompes a chaleur", "Sanitaires"],
     rge: true, qualibat: false,
-    resumeCourt: "Specialiste PAC et chaudieres gaz a condensation, certifie RGE depuis 2014.",
+    resumeCourt: "Specialiste PAC et chaudieres gaz a condensation, certifié RGE depuis 2014.",
     avisMoyen: 4.5, avisNombre: 89,
   },
   {
@@ -178,7 +178,7 @@ export const prosSeed: ProSeed[] = [
     ancienneteAnnees: 24,
     specialites: ["Fenetres bois", "Parquets", "Amenagement interieur"],
     rge: true, qualibat: false,
-    resumeCourt: "Fabricant artisanal de fenetres bois et parquets, atelier pres de Beaune.",
+    resumeCourt: "Fabricant artisanal de fenetres bois et parquets, atelier près de Beaune.",
     avisMoyen: 4.5, avisNombre: 58,
   },
 
@@ -197,7 +197,7 @@ export const prosSeed: ProSeed[] = [
     specialites: ["ITE", "Combles perdus", "MaPrimeRenov'"],
     rge: true, qualibat: true,
     siteWeb: "https://ecoenergie-isolation.fr",
-    resumeCourt: "Entreprise d'isolation certifiee RGE Qualibat depuis 2012, specialisee ITE et combles perdus, accompagnement MaPrimeRenov' complet.",
+    resumeCourt: "Entreprise d'isolation certifiée RGE Qualibat depuis 2012, spécialisée ITE et combles perdus, accompagnement MaPrimeRenov' complet.",
     avisMoyen: 4.7, avisNombre: 104,
   },
 
@@ -233,7 +233,7 @@ export const prosSeed: ProSeed[] = [
     ancienneteAnnees: 21,
     specialites: ["Salles de bain design", "Renovation chauffage"],
     rge: true, qualibat: true,
-    resumeCourt: "Artisan specialise dans les salles de bain design et la renovation de chauffage collectif.",
+    resumeCourt: "Artisan spécialisé dans les salles de bain design et la renovation de chauffage collectif.",
     avisMoyen: 4.5, avisNombre: 132,
   },
 
@@ -270,7 +270,7 @@ export const prosSeed: ProSeed[] = [
     ancienneteAnnees: 26,
     specialites: ["Tuile bourguignonne", "Zinguerie", "Patrimoine"],
     rge: true, qualibat: true,
-    resumeCourt: "Couvreur traditionnel specialise dans la restauration de toitures patrimoniales en Cote-d'Or.",
+    resumeCourt: "Couvreur traditionnel spécialisé dans la restauration de toitures patrimoniales en Cote-d'Or.",
     avisMoyen: 4.4, avisNombre: 71,
   },
 
@@ -288,7 +288,7 @@ export const prosSeed: ProSeed[] = [
     ancienneteAnnees: 11,
     specialites: ["Combles", "ITE", "Cellulose"],
     rge: true, qualibat: false,
-    resumeCourt: "Jeune entreprise d'isolation RGE specialisee combles perdus et ITE en Cote-d'Or.",
+    resumeCourt: "Jeune entreprise d'isolation RGE spécialisée combles perdus et ITE en Cote-d'Or.",
     avisMoyen: 4.3, avisNombre: 54,
   },
 ];

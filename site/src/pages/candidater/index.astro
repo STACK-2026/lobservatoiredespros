@@ -8,14 +8,14 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "Candidater a l'edition 2026 , L'Observatoire des Pros";
-const description = "Soumettez la candidature de votre entreprise a l'edition annuelle de L'Observatoire. Recommandation, Vérifié, Laureat : trois niveaux de distinction.";
+const description = "Soumettez la candidature de votre entreprise a l'édition annuelle de L'Observatoire. Recommandation, Vérifié, Lauréat : trois niveaux de distinction.";
 const url = `${siteConfig.url}/candidater/`;
 
 const processus = [
-  { n: 1, nom: "Soumission", desc: "Vous remplissez le formulaire de candidature avec SIRET, spécialités, années d'activité, pièces justificatives." },
+  { n: 1, nom: "Soumission", desc: "Vous remplissez le formulaire de candidature avec SIRET, specialites, années d'activité, pièces justificatives." },
   { n: 2, nom: "Examen", desc: "Notre rédaction examine le dossier, croise avec les sources publiques, vérifié la coherence des declarations." },
   { n: 3, nom: "Verification", desc: "Pour les Laureats, entretien avec le dirigeant et verification terrain d'au moins une réalisation recente." },
-  { n: 4, nom: "Publication", desc: "Le portrait est publié a la prochaine edition mensuelle, avec medaille si elle a été attribuee." },
+  { n: 4, nom: "Publication", desc: "Le portrait est publié à la prochaine édition mensuelle, avec médaille si elle a été attribuée." },
 ];
 
 const jsonLd = [
@@ -74,7 +74,7 @@ const jsonLd = [
 
   <section id="offres" class="section-offres">
     <div class="container-wide">
-      <EditorialHeader category="TROIS FORMULES" title="Recommande. Vérifié. Laureat." subtitle="Tous les professionnels éligibles figurent gratuitement dans nos classements. Deux formules optionnelles enrichissent le portrait." align="center" />
+      <EditorialHeader category="TROIS FORMULES" title="Recommandé. Vérifié. Lauréat." subtitle="Tous les professionnels éligibles figurent gratuitement dans nos classements. Deux formules optionnelles enrichissent le portrait." align="center" />
 
       <div class="offres-grid stagger-children">
         {siteConfig.candidature.offres.map((o) => (
@@ -154,7 +154,7 @@ const jsonLd = [
           <select id="metier" name="metier" required>
             <option value="">Selectionnez un metier</option>
             {siteConfig.metiersPilote.map((m) => <option value={m.slug}>{m.nom}</option>)}
-            <option value="autre">Autre (preciser dans les spécialités)</option>
+            <option value="autre">Autre (preciser dans les specialites)</option>
           </select>
         </div>
         <div class="form-row">

@@ -28,7 +28,7 @@ const { verdict, anciennete, rge, qualibat, score = 0, nom = "", ville = "", sir
 function generateVerdict(): string {
   const parts: string[] = [];
 
-  // Ancrage local / ancienneté
+  // Ancrage local / anciennete
   if (anciennete !== undefined && anciennete >= 25) {
     parts.push(`Ancrage local solide (${anciennete} ans au registre)`);
   } else if (anciennete !== undefined && anciennete >= 10) {

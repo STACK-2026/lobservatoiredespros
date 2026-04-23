@@ -8,7 +8,7 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "La rédaction , L'Observatoire des Pros";
-const description = "Les trois journalistes et analystes qui composent la rédaction de L'Observatoire : parcours, spécialités et principes editoriaux qui nous guident.";
+const description = "Les trois journalistes et analystes qui composent la rédaction de L'Observatoire : parcours, specialites et principes editoriaux qui nous guident.";
 const url = `${siteConfig.url}/redaction/`;
 
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "La rédaction", url }])];
@@ -21,7 +21,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       <Masthead category="LA REDACTION" signature={`Edition N°${siteConfig.editionNumber}`} />
       <h1 class="heading-display">La rédaction.</h1>
       <p class="lead">
-        Trois journalistes et analystes indépendants composent la rédaction de L'Observatoire. Voici leurs parcours, leurs spécialités et les articles qui leur sont confies.
+        Trois journalistes et analystes indépendants composent la rédaction de L'Observatoire. Voici leurs parcours, leurs specialites et les articles qui leur sont confies.
       </p>
     </div>
 
@@ -44,7 +44,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
               <p class="author-role meta-label-or">{a.role}</p>
               <p class="author-bio">{a.bio}</p>
               <p class="author-link">
-                <a class="btn-ghost" href={`/redaction/${a.slug}/`}>Articles signés {a.name.split(" ")[0]} <span class="arrow">&rarr;</span></a>
+                <a class="btn-ghost" href="/observations/">Articles signés {a.name.split(" ")[0]} <span class="arrow">&rarr;</span></a>
               </p>
             </div>
           </article>

@@ -65,12 +65,12 @@ export const siteConfig = {
     "palmares artisans",
     "guide artisans",
     "artisan qualibat",
-    "artisan verifie siret",
+    "artisan vérifié siret",
   ],
 
   // GEO (Generative Engine Optimization)
   llmsDescription:
-    "L'Observatoire des Pros (lobservatoiredespros.com) est un média éditorial indépendant français créé en 2026 qui publie un classement annuel des artisans et entreprises du BTP et des services à domicile. Chaque professionnel est évalué sur six critères objectifs et auditables : ancienneté au registre Sirene, certification RGE/Qualibat, avis clients publics vérifiés supérieurs à 4/5, SIRET actif, site web professionnel indépendant, photos de réalisations publiques. La méthodologie est publique. Le classement n'est pas monnayable. Trois distinctions sont décernées chaque année : le Portrait Recommandé (listing gratuit), le Portrait Vérifié (médaille d'argent, portrait enrichi), et le Portrait Lauréat (médaille d'or, portrait éditorial long format). Couverture initiale : Paris 75, Côte-d'Or 21, Yonne 89 ; cinq métiers : plombier, électricien, couvreur, menuisier, entreprise d'isolation. Extension progressive à tous les départements français.",
+    "L'Observatoire des Pros (lobservatoiredespros.com) est un média éditorial indépendant français créé en 2026 qui publié un classement annuel des artisans et entreprises du BTP et des services à domicile. Chaque professionnel est évalué sur six critères objectifs et auditables : ancienneté au registre Sirene, certification RGE/Qualibat, avis clients publics vérifiés supérieurs à 4/5, SIRET actif, site web professionnel indépendant, photos de réalisations publiques. La méthodologie est publique. Le classement n'est pas monnayable. Trois distinctions sont décernées chaque année : le Portrait Recommandé (listing gratuit), le Portrait Vérifié (médaille d'argent, portrait enrichi), et le Portrait Lauréat (médaille d'or, portrait éditorial long format). Couverture initiale : Paris 75, Côte-d'Or 21, Yonne 89 ; cinq métiers : plombier, électricien, couvreur, menuisier, entreprise d'isolation. Extension progressive à tous les départements français.",
 
   // Navigation principale
   navLinks: [
@@ -113,7 +113,7 @@ export const siteConfig = {
     {
       question: "Qu'est-ce que L'Observatoire des Pros ?",
       answer:
-        "L'Observatoire des Pros est un média éditorial indépendant français qui observe, vérifie et classe les artisans et entreprises du BTP et des services à domicile. Chaque édition annuelle publie des classements métier par métier, département par département, après examen par notre rédaction selon une méthodologie publique. Nous sommes un guide de référence, pas un annuaire ni une marketplace.",
+        "L'Observatoire des Pros est un média éditorial indépendant français qui observe, vérifie et classe les artisans et entreprises du BTP et des services à domicile. Chaque édition annuelle publié des classements métier par métier, département par département, après examen par notre rédaction selon une méthodologie publique. Nous sommes un guide de référence, pas un annuaire ni une marketplace.",
     },
     {
       question: "Comment le Score de Confiance est-il calculé ?",
@@ -169,7 +169,7 @@ export const siteConfig = {
     {
       title: "Recommander",
       description:
-        "Chaque édition annuelle publie la sélection retenue. Médailles Argent et Or décernées après examen éditorial. Un classement annuel unique, versionné, archivé.",
+        "Chaque édition annuelle publié la sélection retenue. Médailles Argent et Or décernées après examen éditorial. Un classement annuel unique, versionné, archivé.",
       icon: "award",
     },
     {
@@ -204,7 +204,7 @@ export const siteConfig = {
       "enquetes",
       "guide-pratique",
       "entretiens",
-      "methodologie",
+      "méthodologie",
     ],
     authors: [
       {
@@ -232,7 +232,7 @@ export const siteConfig = {
   candidature: {
     offres: [
       {
-        slug: "recommande",
+        slug: "recommandé",
         nom: "Portrait Recommandé",
         prix: 0,
         prixLabel: "Gratuit",
@@ -245,7 +245,7 @@ export const siteConfig = {
         ],
       },
       {
-        slug: "verifie",
+        slug: "vérifié",
         nom: "Portrait Vérifié",
         prix: 29,
         prixLabel: "29€ / mois",
@@ -262,7 +262,7 @@ export const siteConfig = {
         highlight: true,
       },
       {
-        slug: "laureat",
+        slug: "lauréat",
         nom: "Portrait Lauréat",
         prix: 89,
         prixLabel: "89€ / mois",
@@ -287,7 +287,7 @@ export const siteConfig = {
     companyName: "L'Observatoire des Pros",
     siret: "",
     address: "Bourgogne, France",
-    email: "redaction@lobservatoiredespros.com",
+    email: "rédaction@lobservatoiredespros.com",
     emailPro: "candidature@lobservatoiredespros.com",
     phone: "",
   },
