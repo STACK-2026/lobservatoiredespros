@@ -75,7 +75,7 @@ const jsonLd = [
 ];
 ---
 
-<BaseLayout title={`${obs.titre} , L'Observatoire des Pros`} description={obs.sousTitre} jsonLd={jsonLd} ogType="article" publishedTime={obs.datePublication}>
+<BaseLayout title={`${obs.titre} , L'Observatoire des Pros`} description={obs.sousTitre} jsonLd={jsonLd} ogType="article" publishedTime={obs.datePublication} ogImage={`/og/observations/${obs.slug}.png`}>
   <article class="obs-article" itemscope itemtype="https://schema.org/NewsArticle">
     <header class="container-editorial obs-head">
       <Breadcrumbs
