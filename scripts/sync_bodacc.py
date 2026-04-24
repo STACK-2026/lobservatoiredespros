@@ -96,6 +96,25 @@ def sb_get(path: str) -> list[dict]:
         return json.loads(r.read().decode("utf-8"))
 
 
+def sb_get_paged(path_no_limit: str, cap: int = 200000, page: int = 1000) -> list[dict]:
+    """PostgREST Supabase cap = 1000 rows/requête ; on pagine jusqu'à cap."""
+    out: list[dict] = []
+    start = 0
+    sep = "&" if "?" in path_no_limit else "?"
+    while start < cap:
+        url = f"{SUPABASE_URL}/rest/v1/{path_no_limit}{sep}offset={start}&limit={page}"
+        req = urllib.request.Request(url, headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            batch = json.loads(r.read().decode("utf-8"))
+        if not batch:
+            break
+        out.extend(batch)
+        if len(batch) < page:
+            break
+        start += page
+    return out
+
+
 def sb_patch(path: str, body: dict):
     url = f"{SUPABASE_URL}/rest/v1/{path}"
     data = json.dumps(body).encode("utf-8")
@@ -129,12 +148,11 @@ def fetch_pros(only_missing: bool, siren_filter: str | None, limit: int) -> list
         where.append("last_trust_sync=is.null")
     if siren_filter:
         where.append(f"siren=eq.{siren_filter}")
+    where.append("order=id")
     q = f"pros?select={select}&" + "&".join(where)
-    if limit:
-        q += f"&limit={limit}"
-    else:
-        q += "&limit=5000"
-    return sb_get(q)
+    # Paginé : cap PostgREST 1000/page, on itère jusqu'au `limit` fourni ou 200k.
+    cap = limit if limit else 200000
+    return sb_get_paged(q, cap=cap)
 
 
 def count_qualifications(pro_id: str) -> tuple[int, int, int, int]:

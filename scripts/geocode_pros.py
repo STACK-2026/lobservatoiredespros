@@ -76,15 +76,29 @@ def _patch(url: str, body: dict):
         return r.read()
 
 
-def fetch_pros(only_missing: bool = False) -> list[dict]:
-    """Fetch tous les pros avec adresse + ville."""
+def fetch_pros(only_missing: bool = False, cap: int = 200000) -> list[dict]:
+    """Fetch tous les pros avec adresse + ville. Paginé par 1000 (cap PostgREST)
+    jusqu'à `cap` lignes pour absorber le volume post-import national.
+    """
     base = f"{SUPABASE_URL}/rest/v1/pros?select=id,slug,adresse,code_postal,ville"
     if only_missing:
         base += "&lat=is.null"
-    base += "&active=eq.true&limit=5000"
-    req = urllib.request.Request(base, headers=HEADERS_SB)
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read().decode("utf-8"))
+    base += "&active=eq.true&order=id"
+    page = 1000
+    out: list[dict] = []
+    start = 0
+    while start < cap:
+        url = f"{base}&offset={start}&limit={page}"
+        req = urllib.request.Request(url, headers=HEADERS_SB)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            batch = json.loads(r.read().decode("utf-8"))
+        if not batch:
+            break
+        out.extend(batch)
+        if len(batch) < page:
+            break
+        start += page
+    return out
 
 
 def geocode_one(adresse: str, cp: str, ville: str) -> Optional[tuple[float, float, float]]:

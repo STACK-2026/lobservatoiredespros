@@ -88,6 +88,27 @@ def sb_get(path: str) -> list:
         return json.loads(r.read().decode("utf-8"))
 
 
+def sb_get_paged(path_no_limit: str, cap: int = 200000, page: int = 1000) -> list:
+    """Paginé : PostgREST Supabase cap hardcodé = 1000 rows par requête.
+    path_no_limit : query string SANS &limit / &offset.
+    """
+    out: list = []
+    start = 0
+    sep = "&" if "?" in path_no_limit else "?"
+    while start < cap:
+        url = f"{SUPABASE_URL}/rest/v1/{path_no_limit}{sep}offset={start}&limit={page}"
+        req = urllib.request.Request(url, headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            batch = json.loads(r.read().decode("utf-8"))
+        if not batch:
+            break
+        out.extend(batch)
+        if len(batch) < page:
+            break
+        start += page
+    return out
+
+
 def sb_patch(path: str, body: dict):
     url = f"{SUPABASE_URL}/rest/v1/{path}"
     data = json.dumps(body).encode("utf-8")
@@ -154,9 +175,12 @@ def main():
     where = ["active=eq.true", "siren=not.is.null"]
     if args.only_missing:
         where.append("enriched_at=is.null")
+    # order=id stable pour pagination fiable
+    where.append("order=id")
     q = "pros?select=id,slug,siren&" + "&".join(where)
-    q += f"&limit={args.limit if args.limit else 5000}"
-    pros = sb_get(q)
+    # Paginé pour absorber le volume post-import national (cap PostgREST = 1000/page)
+    cap = args.limit if args.limit else 200000
+    pros = sb_get_paged(q, cap=cap)
     print(f"[info] {len(pros)} pros to enrich (commit={args.commit})")
 
     ok = 0
