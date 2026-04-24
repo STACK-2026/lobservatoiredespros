@@ -112,21 +112,43 @@ def fetch_rge_by_siret(siret):
 # ---------------------------------------------------------------------------
 # Supabase
 # ---------------------------------------------------------------------------
-def supabase_fetch_pros(service_key, siret=None, dept=None, all_active=False):
+def supabase_fetch_pros(service_key, siret=None, dept=None, all_active=False, cap=200000):
+    """PostgREST Supabase cap 1000 rows/requête : on pagine pour absorber
+    le volume (12k IDF, 50k national)."""
+    sel = "id,siret,siren,score_confiance,date_creation_entreprise"
     if siret:
         clean = re.sub(r"\D", "", siret)
-        url = f"{SUPABASE_URL}/rest/v1/pros?select=id,siret,siren,score_confiance,date_creation_entreprise&siret=eq.{clean}"
-    elif dept:
-        url = f"{SUPABASE_URL}/rest/v1/pros?select=id,siret,siren,score_confiance,date_creation_entreprise&code_postal=like.{dept}*&active=eq.true&limit=5000"
-    else:
-        url = f"{SUPABASE_URL}/rest/v1/pros?select=id,siret,siren,score_confiance,date_creation_entreprise&active=eq.true&limit=10000"
-    req = urllib.request.Request(url, headers={
-        "apikey": service_key,
-        "Authorization": f"Bearer {service_key}",
-        "User-Agent": USER_AGENT,
-    })
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read())
+        url = f"{SUPABASE_URL}/rest/v1/pros?select={sel}&siret=eq.{clean}"
+        req = urllib.request.Request(url, headers={
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}",
+            "User-Agent": USER_AGENT,
+        })
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+    # Branche paginée (dept ou all_active)
+    base = f"{SUPABASE_URL}/rest/v1/pros?select={sel}&active=eq.true&order=id"
+    if dept:
+        base += f"&code_postal=like.{dept}*"
+    out = []
+    page = 1000
+    start = 0
+    while start < cap:
+        url = f"{base}&offset={start}&limit={page}"
+        req = urllib.request.Request(url, headers={
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}",
+            "User-Agent": USER_AGENT,
+        })
+        with urllib.request.urlopen(req, timeout=30) as r:
+            batch = json.loads(r.read())
+        if not batch:
+            break
+        out.extend(batch)
+        if len(batch) < page:
+            break
+        start += page
+    return out
 
 
 def supabase_upsert(table, rows, service_key, on_conflict):
