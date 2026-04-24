@@ -1,5 +1,6 @@
 ---
 import { siteConfig, fontsUrl } from "../utils/config";
+import { jsonLdOrganization, jsonLdHomepage } from "../utils/seo";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import CookieBanner from "../components/CookieBanner.astro";
@@ -34,37 +35,8 @@ const {
 const imageUrl = ogImage?.startsWith("http") ? ogImage : `${siteConfig.url}${ogImage}`;
 const jsonLdArray = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
-const jsonLdBase = [
-  {
-    "@context": "https://schema.org",
-    "@type": "NewsMediaOrganization",
-    "@id": `${siteConfig.url}#organization`,
-    name: siteConfig.name,
-    alternateName: siteConfig.shortName,
-    url: siteConfig.url,
-    logo: `${siteConfig.url}/favicon.svg`,
-    foundingDate: String(siteConfig.foundedYear),
-    description: siteConfig.description,
-    sameAs: [],
-    publishingPrinciples: `${siteConfig.url}/methode/`,
-    diversityPolicy: `${siteConfig.url}/a-propos/`,
-    ethicsPolicy: `${siteConfig.url}/methode/`,
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${siteConfig.url}#website`,
-    url: siteConfig.url,
-    name: siteConfig.name,
-    inLanguage: siteConfig.locale,
-    publisher: { "@id": `${siteConfig.url}#organization` },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${siteConfig.url}/recherche/?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
-  },
-];
+// Schémas organisation globaux (émis sur chaque page, référencés partout via @id)
+const jsonLdBase = [jsonLdOrganization(), jsonLdHomepage()];
 const allJsonLd = [...jsonLdBase, ...jsonLdArray];
 ---
 

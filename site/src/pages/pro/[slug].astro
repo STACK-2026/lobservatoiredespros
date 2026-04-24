@@ -21,7 +21,14 @@ import UnknownsCard from "../../components/UnknownsCard.astro";
 import QualificationsBlock from "../../components/QualificationsBlock.astro";
 import { siteConfig } from "../../utils/config";
 import { supabase } from "../../lib/supabase";
-import { jsonLdBreadcrumbs, jsonLdLocalBusiness } from "../../utils/seo";
+import {
+  jsonLdBreadcrumbs,
+  jsonLdLocalBusiness,
+  jsonLdEditorialReview,
+  jsonLdSpeakable,
+  schemaTypeForNaf,
+} from "../../utils/seo";
+import { REGION_BY_DEPT_CODE } from "../../data/geo_fr";
 
 export async function getStaticPaths() {
   // Paginé : Supabase cap 1000 rows par défaut. Post-import national 50k+ pros.
@@ -168,7 +175,10 @@ function generateVerdictText(): string {
 }
 const richDescription = generateVerdictText();
 
-const jsonLd = [
+const region = deptCode ? REGION_BY_DEPT_CODE[deptCode] : undefined;
+const fullDescription = richDescription + ` ${metierNom} à ${p.ville} (${deptCode}). Inscrit au registre Sirene de l'INSEE, code NAF ${metierNaf}.`;
+
+const jsonLd: Record<string, unknown>[] = [
   jsonLdBreadcrumbs([
     { name: "Accueil", url: siteConfig.url },
     ...(metierSlug ? [{ name: metierNomPluriel, url: `${siteConfig.url}/${metierSlug}/` }] : []),
@@ -178,17 +188,43 @@ const jsonLd = [
   jsonLdLocalBusiness({
     name: p.nom_entreprise,
     url,
-    description: richDescription + ` ${metierNom} à ${p.ville} (${deptCode}). Inscrit au registre Sirene de l'INSEE, code NAF ${metierNaf}.`,
+    description: fullDescription,
     phone: p.telephone,
+    email: p.email || undefined,
+    naf: metierNaf,
     address: {
-      streetAddress: p.adresse,
-      addressLocality: p.ville,
-      postalCode: p.code_postal,
+      streetAddress: p.adresse || undefined,
+      addressLocality: p.ville || undefined,
+      postalCode: p.code_postal || undefined,
+      addressRegion: region,
       addressCountry: "FR",
     },
-    aggregateRating: p.score_confiance && p.score_confiance >= 4 ? { ratingValue: p.score_confiance, ratingCount: 1 } : undefined,
+    geo: p.lat && p.lng ? { lat: Number(p.lat), lng: Number(p.lng) } : null,
+    sameAs: [p.site_web],
+    identifier: { siret: p.siret, siren: p.siren },
+  }),
+  jsonLdSpeakable({
+    url,
+    cssSelectors: [".portrait-hero", ".speakable-tldr", "h1", ".editorial-verdict"],
   }),
 ];
+
+// Review éditorial (remplace l'AggregateRating falsifié) quand la rédaction
+// a statué avec un score robuste. Seuil 6/10 : en deçà, on affiche la jauge
+// de complétude mais pas d'avis formel publié.
+if (p.score_confiance && p.score_confiance >= 6) {
+  jsonLd.push(
+    jsonLdEditorialReview({
+      itemUrl: url,
+      itemName: p.nom_entreprise,
+      itemType: schemaTypeForNaf(metierNaf),
+      ratingValue: p.score_confiance,
+      bestRating: 10,
+      reviewBody: richDescription,
+      datePublished: new Date().toISOString().slice(0, 10),
+    })
+  );
+}
 ---
 
 <BaseLayout title={title} description={description} jsonLd={jsonLd}>

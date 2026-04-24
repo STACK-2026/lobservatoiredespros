@@ -15,8 +15,12 @@
     "postinstall": "echo 'L-Observatoire-des-Pros install OK'"
   },
   "dependencies": {
+    "@fontsource/fraunces": "^5.2.9",
+    "@fontsource/inter": "^5.2.8",
+    "@resvg/resvg-js": "^2.6.2",
     "@supabase/supabase-js": "2.45.4",
-    "astro": "6.1.5"
+    "astro": "6.1.5",
+    "satori": "^0.26.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.4",

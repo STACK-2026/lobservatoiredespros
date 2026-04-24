@@ -16,7 +16,14 @@ import SpeakableTLDR from "../../../components/SpeakableTLDR.astro";
 import DropCap from "../../../components/DropCap.astro";
 import { siteConfig } from "../../../utils/config";
 import { getMetiers, getZones, getProsByMetierDept, getMetierDeptCombos } from "../../../lib/supabase";
-import { jsonLdBreadcrumbs, jsonLdRanking, jsonLdFAQ } from "../../../utils/seo";
+import {
+  jsonLdBreadcrumbs,
+  jsonLdRanking,
+  jsonLdFAQ,
+  jsonLdAdministrativeArea,
+  jsonLdSpeakable,
+} from "../../../utils/seo";
+import { REGION_BY_DEPT_CODE, neighborDepts } from "../../../data/geo_fr";
 import { deptGrammar } from "../../../utils/grammar";
 
 export async function getStaticPaths() {
@@ -109,6 +116,8 @@ const faq = [
   },
 ];
 
+const region = REGION_BY_DEPT_CODE[deptObj.code] || undefined;
+
 const jsonLd = [
   jsonLdBreadcrumbs([
     { name: "Accueil", url: siteConfig.url },
@@ -117,14 +126,32 @@ const jsonLd = [
   ]),
   jsonLdRanking({
     name: `Classement ${metierObj.nom_pluriel} ${dg.the}`,
-    items: pros.slice(0, 50).map((p, i) => ({
+    description: `Classement éditorial ${siteConfig.editionYear} des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of}, scoré selon 6 critères publics (Sirene, ADEME RGE, BODACC, ancienneté).`,
+    items: pros.slice(0, 50).map((p: any, i: number) => ({
       name: p.nom_entreprise,
       url: `${siteConfig.url}/pro/${p.slug}/`,
       position: i + 1,
+      description: p.ville
+        ? `${metierObj.nom} à ${p.ville}${p.rge ? ", certifié RGE" : ""}${p.qualibat ? ", qualifié Qualibat" : ""}.`
+        : undefined,
+      ratingValue: p.score_confiance && p.score_confiance >= 6 ? p.score_confiance : undefined,
+      bestRating: 10,
     })),
   }),
   jsonLdFAQ(faq),
+  jsonLdAdministrativeArea({
+    name: deptObj.nom,
+    code: deptObj.code,
+    region,
+  }),
+  jsonLdSpeakable({
+    url,
+    cssSelectors: [".speakable-tldr", ".cl-summary", "h1"],
+  }),
 ];
+
+// Départements voisins (même région) pour maillage inter-dpts
+const voisins = neighborDepts(deptObj.code).slice(0, 6);
 
 const anciennete = (p: any) => {
   if (!p.date_creation_entreprise) return null;
