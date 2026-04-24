@@ -106,26 +106,42 @@ const topClassementMisEnAvant = [
 const title = `${siteConfig.name} , Classement des artisans de France`;
 const description = siteConfig.description;
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  name: siteConfig.name,
-  description: siteConfig.description,
-  publisher: { "@type": "NewsMediaOrganization", name: siteConfig.name, url: siteConfig.url },
-  hasPart: classementsPopulaires.map((c) => ({
-    "@type": "ItemList",
-    name: `Classement ${c.metier} ${c.dept}`,
-    url: `${siteConfig.url}/${c.slug}/${c.deptSlug}/`,
-  })),
-  mainEntity: {
-    "@type": "FAQPage",
-    mainEntity: siteConfig.faq.map((q) => ({
-      "@type": "Question",
-      name: q.question,
-      acceptedAnswer: { "@type": "Answer", text: q.answer },
+const homeUrl = `${siteConfig.url}/`;
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${homeUrl}#collectionpage`,
+    url: homeUrl,
+    name: siteConfig.name,
+    description: siteConfig.description,
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    publisher: { "@id": `${siteConfig.url}/#organization` },
+    hasPart: classementsPopulaires.map((c) => ({
+      "@type": "ItemList",
+      name: `Classement ${c.metier} ${c.dept}`,
+      url: `${siteConfig.url}/${c.slug}/${c.deptSlug}/`,
     })),
+    mainEntity: {
+      "@type": "FAQPage",
+      mainEntity: siteConfig.faq.map((q) => ({
+        "@type": "Question",
+        name: q.question,
+        acceptedAnswer: { "@type": "Answer", text: q.answer },
+      })),
+    },
   },
-};
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${homeUrl}#webpage`,
+    url: homeUrl,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["[data-speakable]", ".hero-lead", ".stat-num-v2", ".section-intro"],
+    },
+  },
+];
 ---
 
 <BaseLayout title={title} description={description} jsonLd={jsonLd}>
