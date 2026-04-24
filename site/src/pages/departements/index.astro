@@ -4,60 +4,149 @@ import Masthead from "../../components/Masthead.astro";
 import EditorialHeader from "../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import { siteConfig } from "../../utils/config";
-import { jsonLdBreadcrumbs } from "../../utils/seo";
-import { prosSeed } from "../../data/seed-pros";
+import { getZones, getMetierDeptCombos, supabase } from "../../lib/supabase";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../utils/seo";
+import { REGION_BY_DEPT_CODE } from "../../data/geo_fr";
 
-const title = "Departements couverts , L'Observatoire des Pros";
-const description = "Les departements couverts par L'Observatoire : Paris, Cote-d'Or, Yonne pour l'edition 1. Extension trimestrielle a l'ensemble du territoire francais.";
+const title = "Départements couverts , L'Observatoire des Pros";
+const description = "Tous les départements observés par L'Observatoire. Classement par région, par métier. Observation éditoriale mensuelle, données publiques Sirene INSEE.";
 const url = `${siteConfig.url}/departements/`;
-const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Departements", url }])];
+
+// Source de vérité : zones DB avec au moins un combo (métier × dpt) valide.
+const allZones = await getZones("departement");
+const combos = await getMetierDeptCombos();
+const deptsWithPros = new Set<string>();
+const metiersByDept = new Map<string, Set<string>>();
+for (const c of combos) {
+  const [m, d] = c.split(":");
+  deptsWithPros.add(d);
+  if (!metiersByDept.has(d)) metiersByDept.set(d, new Set());
+  metiersByDept.get(d)!.add(m);
+}
+
+// Count pros par zone (pagination pro_zones pour bypass PostgREST 1000 cap)
+const countsByZoneId = new Map<string, number>();
+{
+  const page = 1000;
+  for (let start = 0; ; start += page) {
+    const { data } = await supabase
+      .from("pro_zones")
+      .select("zone_id")
+      .range(start, start + page - 1);
+    if (!data || data.length === 0) break;
+    for (const row of data as { zone_id: string }[]) {
+      countsByZoneId.set(row.zone_id, (countsByZoneId.get(row.zone_id) || 0) + 1);
+    }
+    if (data.length < page) break;
+  }
+}
+
+const deptsActifs = allZones
+  .filter((z) => deptsWithPros.has(z.slug))
+  .map((z) => ({
+    ...z,
+    region: REGION_BY_DEPT_CODE[z.code || ""] || "France",
+    count: countsByZoneId.get(z.id) || 0,
+    metierCount: metiersByDept.get(z.slug)?.size || 0,
+    firstMetier: Array.from(metiersByDept.get(z.slug) || []).sort()[0] || "",
+  }))
+  .sort((a, b) => b.count - a.count);
+
+// Groupement par région
+const byRegion = new Map<string, typeof deptsActifs>();
+for (const d of deptsActifs) {
+  if (!byRegion.has(d.region)) byRegion.set(d.region, []);
+  byRegion.get(d.region)!.push(d);
+}
+const regionsActives = Array.from(byRegion.keys()).sort();
+
+const totalPros = deptsActifs.reduce((n, d) => n + d.count, 0);
+const totalDepts = deptsActifs.length;
+const totalRegions = regionsActives.length;
+const deptsEnAttente = allZones.filter((z) => !deptsWithPros.has(z.slug)).length;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Départements", url }]),
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${url}#collection`,
+    url,
+    name: "Départements couverts par L'Observatoire des Pros",
+    description,
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    publisher: { "@id": ORG_ID },
+    hasPart: deptsActifs.map((d) => ({
+      "@type": "AdministrativeArea",
+      name: d.nom,
+      identifier: d.code,
+      containedInPlace: { "@type": "AdministrativeArea", name: d.region },
+    })),
+  },
+];
 ---
 
 <BaseLayout title={title} description={description} jsonLd={jsonLd}>
   <div class="container-wide" style="padding: 2rem 0 4rem;">
-    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Departements" }]} />
-    <Masthead category="COUVERTURE NATIONALE" signature={`Edition N°${siteConfig.editionNumber}`} />
-    <h1 class="heading-display">Trois departements pilotes, deux regions.</h1>
-    <p class="lead">
-      L'édition {siteConfig.editionNumber} de L'Observatoire couvre Paris (75), la Cote-d'Or (21) et l'Yonne (89). Extension a 15 departements supplementaires prevue chaque trimestre.
+    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Départements" }]} />
+    <Masthead category="COUVERTURE NATIONALE" signature={`Édition N°${siteConfig.editionNumber}`} />
+    <h1 class="heading-display">{totalDepts} départements, {totalRegions} région{totalRegions > 1 ? "s" : ""}.</h1>
+    <p class="lead" data-speakable>
+      {totalPros.toLocaleString("fr-FR")} professionnels observés dans {totalDepts} départements, {totalRegions} région{totalRegions > 1 ? "s" : ""} française{totalRegions > 1 ? "s" : ""}. {deptsEnAttente > 0 ? `Extension progressive prévue aux ${deptsEnAttente} départements métropolitains restants.` : "Couverture nationale complète."}
     </p>
 
-    <section style="margin-top: 3rem;">
-      <EditorialHeader category="EDITION EN COURS" title="Nos zones d'observation" />
-      <div class="depts-national">
-        {siteConfig.departementsPilote.map((d) => {
-          const count = prosSeed.filter((p) => p.departement === d.slug).length;
-          return (
-            <article class="dept-national card-editorial curl">
-              <span class="meta-label-or">{d.region}</span>
-              <h2 class="italic-fraunces">{d.nom}</h2>
-              <p class="folio">Code {d.code} &middot; {count} professionnels observes</p>
-              <div class="dept-links">
-                {siteConfig.metiersPilote.map((m) => (
-                  <a href={`/${m.slug}/${d.slug}/`}>{m.nomPluriel} {d.nom}</a>
-                ))}
-              </div>
-            </article>
-          );
-        })}
-      </div>
+    {regionsActives.map((region) => {
+      const depts = byRegion.get(region)!;
+      return (
+        <section class="region-section" style="margin-top: 3rem;">
+          <EditorialHeader
+            category={region.toUpperCase()}
+            title={`${depts.length} département${depts.length > 1 ? "s" : ""} observé${depts.length > 1 ? "s" : ""}`}
+          />
+          <div class="depts-national stagger-children">
+            {depts.map((d) => (
+              <article class="dept-national card-editorial curl">
+                <span class="meta-label-or">{d.region}</span>
+                <h2 class="italic-fraunces">{d.nom}</h2>
+                <p class="folio">
+                  Code {d.code} · {d.count.toLocaleString("fr-FR")} professionnels · {d.metierCount} métier{d.metierCount > 1 ? "s" : ""}
+                </p>
+                {d.firstMetier && (
+                  <a class="dept-link" href={`/${d.firstMetier}/${d.slug}/`}>
+                    Consulter les classements <span aria-hidden="true">-&gt;</span>
+                  </a>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      );
+    })}
 
-      <p class="meta-label" style="margin-top: 3rem; text-align: center; max-width: 32rem; margin-inline: auto;">
-        Prochaine édition : extension prevue aux departements 69 Rhone, 33 Gironde, 13 Bouches-du-Rhone et 44 Loire-Atlantique.
+    {deptsEnAttente > 0 && (
+      <p class="meta-label" style="margin-top: 3rem; text-align: center; max-width: 34rem; margin-inline: auto;">
+        Prochaine édition : extension progressive aux {deptsEnAttente} départements métropolitains restants.
       </p>
-    </section>
+    )}
   </div>
 </BaseLayout>
 
 <style>
-  .depts-national { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.3rem; margin-top: 1.6rem; }
-  @media (max-width: 860px) { .depts-national { grid-template-columns: 1fr; } }
-  .dept-national { padding: 1.6rem 1.7rem 1.8rem; display: grid; gap: 0.4rem; }
-  .dept-national h2 { font-size: 1.7rem; margin: 0.2rem 0; font-weight: 500; color: var(--ink); }
-  .dept-links { display: grid; gap: 0.4rem; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid rgba(26, 22, 20, 0.08); }
-  .dept-links a {
-    font-family: var(--font-body); font-size: 0.88rem; color: var(--ink-soft);
-    text-decoration: none; padding: 0.2rem 0; transition: color 200ms;
+  .region-section { max-width: 62rem; margin-inline: auto; }
+  .depts-national {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3rem; margin-top: 1.6rem;
   }
-  .dept-links a:hover { color: var(--or-deep); }
+  @media (max-width: 860px) { .depts-national { grid-template-columns: 1fr; } }
+  .dept-national {
+    padding: 1.6rem 1.7rem 1.8rem;
+    display: grid; gap: 0.4rem;
+  }
+  .dept-national h2 { font-size: 1.7rem; margin: 0.2rem 0; font-weight: 500; color: var(--ink); }
+  .dept-link {
+    display: inline-flex; margin-top: 0.8rem; padding-top: 0.7rem;
+    border-top: 1px solid rgba(26, 22, 20, 0.08);
+    font-family: var(--font-body); font-size: 0.88rem; color: var(--or-deep);
+    text-decoration: none;
+  }
+  .dept-link:hover { text-decoration: underline; }
 </style>

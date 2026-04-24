@@ -4,43 +4,115 @@ import Masthead from "../../components/Masthead.astro";
 import EditorialHeader from "../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import { siteConfig } from "../../utils/config";
-import { prosByMetier } from "../../data/seed-pros";
-import { jsonLdBreadcrumbs } from "../../utils/seo";
+import { getMetiers, getMetierDeptCombos } from "../../lib/supabase";
+import { supabase } from "../../lib/supabase";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../utils/seo";
 
-const title = "Metiers couverts , L'Observatoire des Pros";
-const description = "Liste des métiers couverts par l'édition en cours : plombier, électricien, couvreur, menuisier, entreprise d'isolation. Extension à venir.";
+const title = "Métiers couverts , L'Observatoire des Pros";
+const description = "Liste complète des métiers du BTP et des services à domicile observés par notre rédaction. Classement éditorial par département, sources officielles Sirene INSEE.";
 const url = `${siteConfig.url}/metiers/`;
 
-const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Metiers", url }])];
+// Source de vérité : métiers DB qui ont au moins un pro actif.
+const allMetiers = await getMetiers();
+const combos = await getMetierDeptCombos();
+const metiersWithPros = new Set<string>();
+const deptsByMetier = new Map<string, Set<string>>();
+for (const c of combos) {
+  const [m, d] = c.split(":");
+  metiersWithPros.add(m);
+  if (!deptsByMetier.has(m)) deptsByMetier.set(m, new Set());
+  deptsByMetier.get(m)!.add(d);
+}
+
+// Fetch counts par métier (une seule requête agrégée)
+const counts = new Map<string, number>();
+{
+  const page = 1000;
+  for (let start = 0; ; start += page) {
+    const { data } = await supabase
+      .from("pro_metiers")
+      .select("metier_id")
+      .range(start, start + page - 1);
+    if (!data || data.length === 0) break;
+    for (const row of data as { metier_id: string }[]) {
+      counts.set(row.metier_id, (counts.get(row.metier_id) || 0) + 1);
+    }
+    if (data.length < page) break;
+  }
+}
+
+const metiersActifs = allMetiers
+  .filter((m) => metiersWithPros.has(m.slug))
+  .map((m) => ({
+    ...m,
+    count: counts.get(m.id) || 0,
+    deptCount: deptsByMetier.get(m.slug)?.size || 0,
+  }))
+  .sort((a, b) => b.count - a.count);
+
+const metiersEnAttente = allMetiers.filter((m) => !metiersWithPros.has(m.slug));
+
+const totalPros = metiersActifs.reduce((n, m) => n + m.count, 0);
+const totalMetiers = metiersActifs.length;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Métiers", url }]),
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${url}#collection`,
+    url,
+    name: "Métiers couverts par L'Observatoire des Pros",
+    description,
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    publisher: { "@id": ORG_ID },
+    hasPart: metiersActifs.map((m) => ({
+      "@type": "ItemList",
+      name: m.nom_pluriel,
+      url: `${siteConfig.url}/${m.slug}/`,
+      numberOfItems: m.count,
+    })),
+  },
+];
 ---
 
 <BaseLayout title={title} description={description} jsonLd={jsonLd}>
   <div class="container-wide" style="padding: 2rem 0 4rem;">
-    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Metiers" }]} />
-    <Masthead category="METIERS COUVERTS" signature={`Edition N°${siteConfig.editionNumber}`} />
-    <h1 class="heading-display">Les metiers sous observation</h1>
-    <p class="lead">
-      L'édition {siteConfig.editionNumber} couvre cinq metiers prioritaires du BTP et des services à domicile. Extension prevue trimestre après trimestre.
+    <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Métiers" }]} />
+    <Masthead category="MÉTIERS COUVERTS" signature={`Édition N°${siteConfig.editionNumber}`} />
+    <h1 class="heading-display">Les métiers sous observation.</h1>
+    <p class="lead" data-speakable>
+      {totalMetiers} métiers, {totalPros.toLocaleString("fr-FR")} professionnels observés par notre rédaction. Chaque métier est classé département par département, selon {siteConfig.scoringCriteres.length} critères publics et auditables. Extension trimestrielle à l'ensemble du territoire français.
     </p>
 
     <section style="margin-top: 3rem;">
-      <EditorialHeader category="EDITION EN COURS" title="Cinq metiers classes" />
-      <div class="metiers-list">
-        {siteConfig.metiersPilote.map((m) => {
-          const count = prosByMetier(m.slug).length;
-          return (
-            <a href={`/${m.slug}/`} class="metier-row card-editorial curl">
-              <div>
-                <span class="meta-label">Code NAF {m.naf}</span>
-                <h2 class="italic-fraunces">{m.nomPluriel}</h2>
-                <p class="folio">{count} professionnels observes dans nos zones pilotes</p>
-              </div>
-              <span class="metier-arrow">&rarr;</span>
-            </a>
-          );
-        })}
+      <EditorialHeader category="ÉDITION EN COURS" title={`${totalMetiers} métiers classés`} />
+      <div class="metiers-list stagger-children">
+        {metiersActifs.map((m) => (
+          <a href={`/${m.slug}/`} class="metier-row card-editorial curl">
+            <div>
+              <span class="meta-label">Code NAF {m.code_naf || "-"}</span>
+              <h2 class="italic-fraunces">{m.nom_pluriel}</h2>
+              <p class="folio">
+                {m.count.toLocaleString("fr-FR")} professionnels observés · {m.deptCount} département{m.deptCount > 1 ? "s" : ""}
+              </p>
+            </div>
+            <span class="metier-arrow" aria-hidden="true">-&gt;</span>
+          </a>
+        ))}
       </div>
     </section>
+
+    {metiersEnAttente.length > 0 && (
+      <section style="margin-top: 3rem;">
+        <EditorialHeader category="EN ATTENTE" title="Métiers à venir" subtitle="Dans les prochaines éditions, ces métiers rejoindront l'Observatoire." />
+        <div class="metiers-attente">
+          {metiersEnAttente.map((m) => (
+            <span class="metier-attente">{m.nom_pluriel}</span>
+          ))}
+        </div>
+      </section>
+    )}
   </div>
 </BaseLayout>
 
@@ -55,4 +127,12 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
   .metier-row p { margin: 0; color: var(--ink-muted); }
   .metier-arrow { font-size: 1.4rem; color: var(--or-deep); transition: transform 280ms var(--ease-out-quart); }
   .metier-row:hover .metier-arrow { transform: translateX(5px); }
+
+  .metiers-attente { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.4rem; max-width: 54rem; }
+  .metier-attente {
+    display: inline-flex; padding: 0.35rem 0.8rem;
+    font-family: var(--font-body); font-size: 0.85rem; color: var(--ink-muted);
+    background: rgba(26, 22, 20, 0.04); border: 1px dashed rgba(26, 22, 20, 0.18);
+    border-radius: 999px;
+  }
 </style>
