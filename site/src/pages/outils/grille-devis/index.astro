@@ -41,16 +41,19 @@ const jsonLd = [
     { name: "Outils", url: `${siteConfig.url}/outils/` },
     { name: "Grille de lecture d'un devis", url },
   ]),
+  // HowTo deprecated par Google (sept 2023, plus de rich results).
+  // Remplacé par ItemList pour conserver la structuration sémantique.
   {
     "@context": "https://schema.org",
-    "@type": "HowTo",
-    name: "Lire un devis d'artisan",
+    "@type": "ItemList",
+    name: "Mentions obligatoires d'un devis d'artisan",
     description,
-    step: mentions.map((m, i) => ({
-      "@type": "HowToStep",
+    numberOfItems: mentions.length,
+    itemListElement: mentions.map((m, i) => ({
+      "@type": "ListItem",
       position: i + 1,
       name: m.nom,
-      text: m.details,
+      description: m.details,
     })),
   },
 ];

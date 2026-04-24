@@ -150,8 +150,18 @@ const jsonLd = [
   }),
 ];
 
-// Départements voisins (même région) pour maillage inter-dpts
-const voisins = neighborDepts(deptObj.code).slice(0, 6);
+// Départements voisins (même région) pour maillage inter-dpts.
+// On ne linke QUE ceux qui ont déjà des pros pour ce métier (évite 404 et
+// maillage vers pages thin).
+const voisinsCodes = neighborDepts(deptObj.code);
+const combosSet = await getMetierDeptCombos();
+const allZones = await getZones("departement");
+const zoneByCode = new Map(allZones.map((z) => [z.code, z]));
+const voisins = voisinsCodes
+  .map((code) => zoneByCode.get(code))
+  .filter((z): z is NonNullable<typeof z> => z !== undefined)
+  .filter((z) => combosSet.has(`${metier}:${z.slug}`))
+  .slice(0, 6);
 
 const anciennete = (p: any) => {
   if (!p.date_creation_entreprise) return null;
@@ -159,6 +169,23 @@ const anciennete = (p: any) => {
   return new Date().getFullYear() - y;
 };
 const hasPros = pros.length > 0;
+
+/** Génère un résumé court unique par pro, évite duplicate content. */
+function uniqueResume(p: any): string {
+  if (p.description && p.description.length > 10) return p.description;
+  const age = anciennete(p);
+  const certifs = [p.rge ? "RGE" : null, p.qualibat ? "Qualibat" : null].filter(Boolean);
+  const parts: string[] = [];
+  if (age !== null && age >= 20) parts.push(`${metierObj.nom} ${dg.in}, ${age} ans d'ancrage Sirene`);
+  else if (age !== null && age >= 10) parts.push(`${metierObj.nom} établi ${dg.in}, ${age} ans d'activité`);
+  else if (age !== null && age >= 3) parts.push(`${metierObj.nom} ${dg.in}, activité confirmée (${age} ans)`);
+  else if (age !== null) parts.push(`${metierObj.nom} ${dg.in}, immatriculation récente`);
+  else parts.push(`${metierObj.nom} actif au registre Sirene ${dg.in}`);
+  if (certifs.length === 2) parts.push("double qualification RGE et Qualibat");
+  else if (certifs.length === 1) parts.push(`qualification ${certifs[0]} active`);
+  if (p.ville) parts.push(`basé à ${p.ville}`);
+  return parts.join(", ") + ".";
+}
 
 // Verdict editorial pour le Top 3 : une phrase qui differencie chaque pro
 // de ses concurrents. Signee "La redaction". Sert a eviter l'effet
@@ -301,7 +328,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
                     rge={p.rge}
                     qualibat={p.qualibat}
                     specialites={[]}
-                    resumeCourt={p.description || `Entreprise active au Sirene, NAF ${metierObj.code_naf}.`}
+                    resumeCourt={uniqueResume(p)}
                     verdictEditorial={generateTopVerdict(p, i + 1, pros.slice(0, 5), metierObj.nom.toLowerCase())}
                   />
                 </div>
@@ -362,7 +389,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
                     rge={p.rge}
                     qualibat={p.qualibat}
                     specialites={[]}
-                    resumeCourt={p.description || `Entreprise active au Sirene, NAF ${metierObj.code_naf}.`}
+                    resumeCourt={uniqueResume(p)}
                   />
                 </div>
               ))}
@@ -501,6 +528,25 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
         ))}
       </div>
     </section>
+
+    {voisins.length > 0 && (
+      <section class="container-editorial cl-voisins">
+        <EditorialHeader
+          category="DANS LA MÊME RÉGION"
+          title={`${metierObj.nom_pluriel} ${region || "à proximité"}`}
+          subtitle={`Autres départements de ${region || "la région"} couverts par nos classements.`}
+        />
+        <div class="voisins-grid stagger-children">
+          {voisins.map((v: any) => (
+            <a class="voisin-card card-editorial curl" href={`/${metier}/${v.slug}/`}>
+              <span class="meta-label">Dpt {v.code}</span>
+              <h3 class="italic-fraunces">{v.nom}</h3>
+              <p class="folio">Consulter le classement <span aria-hidden="true">-></span></p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
 
     <!-- CTA PRO -->
     <section class="cl-cta-pro">
@@ -774,6 +820,14 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
   .cl-tarifs-warning svg { flex-shrink: 0; margin-top: 2px; color: var(--observatoire); }
   .cl-tarifs-warning p { margin: 0; font-size: 0.93rem; line-height: 1.55; }
   .cl-tarifs-warning strong { color: var(--ink); }
+
+  /* Voisins , maillage inter-dpts même région */
+  .cl-voisins { padding: 2.5rem 0 3rem; max-width: 62rem; margin: 0 auto; }
+  .voisins-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.4rem; }
+  @media (max-width: 760px) { .voisins-grid { grid-template-columns: 1fr; } }
+  .voisin-card { padding: 1.1rem 1.2rem; text-decoration: none; color: var(--ink); display: grid; gap: 0.25rem; transition: border-color 200ms, transform 200ms; }
+  .voisin-card h3 { font-size: 1.15rem; margin: 0.1rem 0 0.2rem; font-weight: 500; color: var(--ink); }
+  .voisin-card:hover { transform: translateY(-2px); }
 
   /* FAQ */
   .cl-faq { padding: 3rem 0; max-width: 42rem; margin: 0 auto; }

@@ -63,11 +63,7 @@ const jsonLd = [
       url: `${siteConfig.url}/redaction/${auteur.slug}/`,
       jobTitle: auteur.role,
     } : { "@type": "Organization", name: siteConfig.name },
-    publisher: {
-      "@type": "NewsMediaOrganization",
-      name: siteConfig.name,
-      url: siteConfig.url,
-    },
+    publisher: { "@id": `${siteConfig.url}/#organization` },
     description: obs.tldr,
     keywords: obs.tags.join(", "),
     citation: obs.sources.map((s) => ({
