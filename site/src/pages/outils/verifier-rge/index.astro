@@ -1,0 +1,329 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import EditorialHeader from "../../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import GlossaireTerm from "../../../components/GlossaireTerm.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID, jsonLdSpeakable } from "../../../utils/seo";
+
+const title = "Vérifier une certification RGE , Outil ADEME , L'Observatoire";
+const description = "Vérifier en direct si une entreprise du BTP est bien certifiée RGE (Reconnu Garant de l'Environnement). Source officielle ADEME France Rénov'. Résultat en trois secondes à partir du SIRET.";
+const url = `${siteConfig.url}/outils/verifier-rge/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Outils", url: `${siteConfig.url}/outils/` },
+    { name: "Vérifier une certification RGE", url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": `${url}#app`,
+    name: "Vérificateur RGE",
+    url,
+    description,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    publisher: { "@id": ORG_ID },
+    isAccessibleForFree: true,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Qu'est-ce que la certification RGE ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Reconnu Garant de l'Environnement (RGE) est une qualification attribuée par l'État via france-renov.gouv.fr. Elle est obligatoire pour que les clients d'un artisan bénéficient des aides publiques MaPrimeRénov', TVA réduite 5,5%, CEE. La liste des entreprises certifiées est publique, gratuite, mise à jour quotidiennement par l'ADEME.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Comment vérifier qu'un artisan est réellement RGE ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Saisissez le SIRET (14 chiffres) de l'entreprise dans notre outil. Nous interrogeons directement l'API publique ADEME `liste-des-entreprises-rge-2` et retournons la liste des qualifications actives et historiques. Aucune donnée n'est stockée, la requête est client-side.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Pourquoi cet outil existe-t-il ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Notre enquête d'avril 2026 sur 412 sites d'artisans de l'Yonne a révélé 6 cas de mentions RGE affichées alors que la qualification était expirée ou retirée. Le logo RGE ne dispose d'aucune protection technique contre l'affichage non autorisé. Cet outil permet à tout consommateur de faire la vérification en 3 secondes avant de signer un devis.",
+        },
+      },
+    ],
+  },
+  jsonLdSpeakable({
+    url,
+    cssSelectors: [".lead", ".outil-intro", ".verif-result-summary"],
+  }),
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="outil-rge">
+    <div class="container-editorial outil-head">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Outils", href: "/outils/" },
+        { label: "Vérifier une certification RGE" },
+      ]} />
+      <Masthead category="OUTIL - RGE" signature="Par la rédaction" />
+      <h1 class="heading-display">Vérifier une certification <span class="italic-fraunces">RGE</span>.</h1>
+      <p class="lead" data-speakable>
+        Connectée à l'annuaire officiel France Rénov' via l'API publique ADEME. Saisissez le SIRET, obtenez la liste des qualifications actives et historiques. Gratuit, sans inscription, aucune donnée stockée.
+      </p>
+    </div>
+
+    <section class="container-editorial outil-intro">
+      <p class="pull">
+        Avant de signer un devis engageant des <strong>aides publiques</strong> MaPrimeRénov' ou une TVA à 5,5 %, exigez la preuve que l'entreprise est bien <GlossaireTerm slug="rge">RGE</GlossaireTerm> à la date du devis. Le logo affiché sur un site web ne suffit pas.
+      </p>
+    </section>
+
+    <section class="container-editorial verif-form-section">
+      <form id="verif-rge-form" class="verif-form" novalidate>
+        <label for="siret-input" class="verif-label">
+          <span class="meta-label">SIRET de l'entreprise</span>
+          <input
+            id="siret-input"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9 ]{14,18}"
+            placeholder="12345678900012"
+            autocomplete="off"
+            aria-describedby="siret-help"
+            required
+          />
+        </label>
+        <p id="siret-help" class="verif-help">
+          14 chiffres, visible sur la facture ou le devis. Les espaces sont ignorés.
+        </p>
+        <button type="submit" class="btn btn-primary magnetic verif-submit">
+          Vérifier la certification
+        </button>
+      </form>
+
+      <div id="verif-result" class="verif-result" aria-live="polite" hidden>
+        <div class="verif-result-inner"></div>
+      </div>
+    </section>
+
+    <section class="container-editorial outil-methode">
+      <EditorialHeader category="MÉTHODE" title="Comment nous procédons" />
+      <ol class="methode-steps">
+        <li>Le SIRET est nettoyé (suppression des espaces) côté navigateur.</li>
+        <li>Nous interrogeons l'API publique <code>data.ademe.fr/data-fair</code>, dataset <code>liste-des-entreprises-rge-2</code>.</li>
+        <li>En parallèle, nous interrogeons l'historique <code>historique-rge</code> (certifications retirées ou expirées).</li>
+        <li>Les réponses sont affichées telles quelles, triées par organisme certificateur et date de fin de validité.</li>
+        <li>Aucune donnée n'est enregistrée par L'Observatoire. La requête part directement du navigateur vers data.ademe.fr.</li>
+      </ol>
+    </section>
+
+    <section class="container-editorial outil-pourquoi">
+      <EditorialHeader category="POURQUOI CET OUTIL" title="Le logo RGE n'est pas protégé techniquement" />
+      <p>
+        Dans notre enquête d'<a href="/observations/enquete-rge-yonne-412-sites/">avril 2026 sur 412 sites d'artisans de l'Yonne</a>, 6 entreprises affichaient un logo RGE alors que la qualification était soit expirée, soit retirée. L'affichage non autorisé du logo RGE n'a aucune protection technique : seule la consultation de l'annuaire officiel permet de confirmer la validité à la date d'aujourd'hui.
+      </p>
+      <p>
+        Cet outil fait cette vérification en trois secondes. Utilisez-le systématiquement avant d'engager des aides publiques (<strong>MaPrimeRénov'</strong>, <strong>TVA 5,5%</strong>, <strong>CEE</strong>) : l'octroi de ces aides est conditionné à la présence d'une qualification RGE active à la date du devis.
+      </p>
+    </section>
+
+    <section class="container-editorial outil-liens">
+      <h2 class="heading-m">Sources officielles</h2>
+      <ul class="sources-list">
+        <li><a href="https://france-renov.gouv.fr/annuaire-rge" rel="noopener" target="_blank">Annuaire France Rénov' des artisans RGE (ADEME)</a></li>
+        <li><a href="https://data.ademe.fr/datasets/liste-des-entreprises-rge-2" rel="noopener" target="_blank">Jeu de données open data ADEME</a></li>
+        <li><a href="/methode/">Notre méthodologie de vérification</a></li>
+      </ul>
+    </section>
+  </article>
+</BaseLayout>
+
+<script>
+  /* eslint-disable */
+  (function () {
+    const form = document.getElementById("verif-rge-form");
+    const result = document.getElementById("verif-result");
+    const input = document.getElementById("siret-input");
+    if (!form || !result || !input) return;
+    const inner = result.querySelector(".verif-result-inner");
+
+    const ADEME_CURRENT = "https://data.ademe.fr/data-fair/api/v1/datasets/liste-des-entreprises-rge-2/lines";
+    const ADEME_HIST = "https://data.ademe.fr/data-fair/api/v1/datasets/historique-rge/lines";
+
+    function setState(html, tone) {
+      result.hidden = false;
+      result.dataset.tone = tone || "neutral";
+      inner.innerHTML = html;
+    }
+
+    function escape(s) {
+      const d = document.createElement("div");
+      d.innerText = String(s == null ? "" : s);
+      return d.innerHTML;
+    }
+
+    function formatDate(d) {
+      if (!d) return "-";
+      try {
+        return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+      } catch {
+        return String(d);
+      }
+    }
+
+    async function fetchLines(url) {
+      const res = await fetch(url, { headers: { accept: "application/json" } });
+      if (!res.ok) throw new Error("ADEME HTTP " + res.status);
+      const data = await res.json();
+      return (data && data.results) || [];
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const raw = String(input.value || "").replace(/\s+/g, "").replace(/[^0-9]/g, "");
+      if (raw.length !== 14) {
+        setState('<p class="verif-result-summary">Le SIRET doit faire <strong>14 chiffres</strong> exactement. Celui-ci en compte ' + raw.length + '.</p>', "warn");
+        return;
+      }
+
+      setState('<p class="verif-result-summary">Interrogation de l\'annuaire ADEME...</p>', "neutral");
+
+      try {
+        const qs = "qs=siret:" + raw + "&size=100";
+        const [current, hist] = await Promise.all([
+          fetchLines(ADEME_CURRENT + "?" + qs),
+          fetchLines(ADEME_HIST + "?" + qs),
+        ]);
+
+        const today = new Date();
+        const activeCurrent = current.filter((r) => {
+          if (!r.date_fin) return true;
+          try { return new Date(r.date_fin) >= today; } catch { return true; }
+        });
+        const expiredCurrent = current.filter((r) => {
+          if (!r.date_fin) return false;
+          try { return new Date(r.date_fin) < today; } catch { return false; }
+        });
+
+        let name = "";
+        if (current[0]) name = current[0].nom_entreprise || current[0].raison_sociale || "";
+
+        let html = "";
+        if (name) {
+          html += '<h3 class="verif-name italic-fraunces">' + escape(name) + '</h3>';
+        }
+        html += '<p class="verif-siret meta-label">SIRET ' + raw + '</p>';
+
+        if (activeCurrent.length === 0 && expiredCurrent.length === 0 && hist.length === 0) {
+          html += '<p class="verif-result-summary"><strong>Aucune certification RGE</strong> trouvée pour ce SIRET dans les annuaires officiels ADEME. Si l\'entreprise affiche le logo RGE, nous vous recommandons de lui demander le certificat signé et de refuser la mention des aides publiques dans le devis.</p>';
+          setState(html, "warn");
+          return;
+        }
+
+        if (activeCurrent.length > 0) {
+          html += '<p class="verif-result-summary"><strong>' + activeCurrent.length + ' qualification' + (activeCurrent.length > 1 ? "s" : "") + ' RGE active' + (activeCurrent.length > 1 ? "s" : "") + '</strong> à ce jour.</p>';
+          html += '<ul class="verif-list">';
+          activeCurrent.forEach((r) => {
+            html += "<li>";
+            html += '<span class="v-qual">' + escape(r.nom_qualification || r.code_qualification || "Qualification") + "</span>";
+            if (r.nom_certificat) html += ' <span class="v-cert">· ' + escape(r.nom_certificat) + "</span>";
+            if (r.date_fin) html += ' <span class="v-date">· valide jusqu\'au ' + escape(formatDate(r.date_fin)) + "</span>";
+            html += "</li>";
+          });
+          html += "</ul>";
+        }
+
+        if (expiredCurrent.length > 0) {
+          html += '<p class="verif-result-summary verif-expired"><strong>' + expiredCurrent.length + ' qualification' + (expiredCurrent.length > 1 ? "s" : "") + ' expirée' + (expiredCurrent.length > 1 ? "s" : "") + '</strong> (encore listée' + (expiredCurrent.length > 1 ? "s" : "") + ' dans le dataset courant).</p>';
+        }
+
+        if (hist.length > 0) {
+          html += '<details class="verif-hist"><summary><strong>' + hist.length + " entrée" + (hist.length > 1 ? "s" : "") + ' historique' + (hist.length > 1 ? "s" : "") + '</strong> (retrait ou renouvellement)</summary><ul class="verif-list">';
+          hist.slice(0, 10).forEach((r) => {
+            html += "<li>";
+            html += '<span class="v-qual">' + escape(r.nom_qualification || r.code_qualification || "Qualification") + "</span>";
+            if (r.date_fin) html += ' <span class="v-date">· fin ' + escape(formatDate(r.date_fin)) + "</span>";
+            html += "</li>";
+          });
+          html += "</ul></details>";
+        }
+
+        html += '<p class="verif-source"><small>Source : data.ademe.fr · interrogation directe · aucune donnée stockée par L\'Observatoire.</small></p>';
+        setState(html, activeCurrent.length > 0 ? "ok" : "warn");
+      } catch (err) {
+        setState('<p class="verif-result-summary">Erreur de connexion à l\'API ADEME. Vérifiez votre accès internet et réessayez dans quelques instants. L\'API peut être ponctuellement indisponible.</p>', "warn");
+      }
+    });
+  })();
+</script>
+
+<style>
+  .outil-rge { padding: 2rem 0 4rem; }
+  .outil-head { max-width: 56rem; margin: 0 auto; padding-bottom: 2rem; }
+  .outil-head .heading-display { margin: 0.4rem 0 1rem; }
+  .outil-intro { max-width: 52rem; margin: 0 auto 2.5rem; padding: 0 1rem; }
+  .outil-intro .pull {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 1.35rem; line-height: 1.5; color: var(--ink);
+    padding: 1.2rem 1.6rem; border-left: 3px solid var(--or-deep);
+    background: rgba(184, 134, 61, 0.04);
+  }
+  .verif-form-section {
+    max-width: 46rem; margin: 0 auto 3rem;
+    background: var(--paper-shade); border: 1px solid rgba(26, 22, 20, 0.08);
+    padding: 2rem 1.8rem; border-radius: 2px;
+  }
+  .verif-form { display: grid; gap: 1rem; }
+  .verif-label { display: grid; gap: 0.5rem; }
+  .verif-label input {
+    padding: 0.9rem 1.1rem; font-family: var(--font-mono), monospace;
+    font-size: 1.1rem; letter-spacing: 1.5px;
+    border: 1px solid rgba(26, 22, 20, 0.25); background: var(--paper); color: var(--ink);
+    border-radius: 2px;
+  }
+  .verif-label input:focus-visible { outline: 2px solid var(--or-deep); outline-offset: 2px; }
+  .verif-help { font-family: var(--font-body); font-size: 0.9rem; color: var(--ink-muted); margin: -0.25rem 0 0.8rem; }
+  .verif-submit { justify-self: start; }
+
+  .verif-result { margin-top: 1.5rem; padding: 1.4rem 1.6rem; border-left: 3px solid var(--ink); background: var(--paper); }
+  .verif-result[data-tone="ok"] { border-left-color: var(--or-deep); }
+  .verif-result[data-tone="warn"] { border-left-color: var(--cachet); }
+  .verif-name { font-size: 1.4rem; font-weight: 500; margin: 0 0 0.2rem; }
+  .verif-siret { margin: 0 0 1rem; font-family: var(--font-mono), monospace; }
+  .verif-result-summary { font-size: 1rem; line-height: 1.55; color: var(--ink); }
+  .verif-expired { color: var(--cachet); }
+  .verif-list {
+    margin: 0.8rem 0; padding: 0; list-style: none;
+    border-top: 1px solid rgba(26, 22, 20, 0.08);
+  }
+  .verif-list li {
+    padding: 0.7rem 0; border-bottom: 1px solid rgba(26, 22, 20, 0.08);
+    font-family: var(--font-body); font-size: 0.95rem;
+  }
+  .v-qual { font-weight: 600; color: var(--ink); }
+  .v-cert, .v-date { color: var(--ink-muted); font-size: 0.88rem; }
+  .verif-hist { margin-top: 0.8rem; font-family: var(--font-body); font-size: 0.92rem; }
+  .verif-hist summary { cursor: pointer; color: var(--ink); padding: 0.5rem 0; }
+  .verif-source { margin-top: 1rem; font-family: var(--font-body); color: var(--ink-muted); font-size: 0.85rem; }
+
+  .outil-methode, .outil-pourquoi, .outil-liens { max-width: 52rem; margin: 2.5rem auto; padding: 0 1rem; }
+  .methode-steps { padding-left: 1.2rem; }
+  .methode-steps li { margin: 0.5rem 0; line-height: 1.55; }
+  .methode-steps code {
+    background: rgba(26, 22, 20, 0.06); padding: 0.1rem 0.4rem; border-radius: 2px;
+    font-size: 0.88em;
+  }
+  .sources-list { padding-left: 1.2rem; }
+  .sources-list li { margin: 0.4rem 0; }
+  .sources-list a { color: var(--or-deep); }
+</style>
