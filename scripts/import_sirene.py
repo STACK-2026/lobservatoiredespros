@@ -11,13 +11,17 @@ Source : https://object.files.data.gouv.fr/data-pipeline-open/siren/stock/StockE
 Usage :
   python3 scripts/import_sirene.py --dry-run              # comptage only
   python3 scripts/import_sirene.py --metier plombier --dept 89
-  python3 scripts/import_sirene.py --all-pilots           # 5 metiers x 3 depts
-  python3 scripts/import_sirene.py --all-pilots --insert  # + INSERT Supabase
+  python3 scripts/import_sirene.py --metier plombier --depts 75,77,78,91,92,93,94,95  # IDF
+  python3 scripts/import_sirene.py --metier plombier --all-depts --insert              # national 1 metier
+  python3 scripts/import_sirene.py --all-metiers --dept 75 --insert                    # Paris, tous metiers
+  python3 scripts/import_sirene.py --all-metiers --all-depts --insert                  # national complet
+  python3 scripts/import_sirene.py --all-pilots                                        # legacy : 5 metiers x 3 depts
   python3 scripts/import_sirene.py --metier plombier --dept 89 --insert --limit 50
 
-ETAT 2026-04-23 :
-  , pilote : plombier, electricien, couvreur, menuisier, isolation
-  , depts pilote : 75 (Paris), 21 (Cote-d'Or), 89 (Yonne)
+ETAT 2026-04-24 :
+  , metiers : 15 codes NAF BTP (5 pilotes + 10 nouveaux)
+  , depts : 96 (metropole complet via lib_geo_fr.DEPARTEMENTS_FR)
+  , pilote historique : plombier/electricien/couvreur/menuisier/isolation sur 75/21/89
 """
 
 import argparse
@@ -51,21 +55,37 @@ UNITE_LEGALE_PARQUET = "https://object.files.data.gouv.fr/data-pipeline-open/sir
 
 SUPABASE_URL = "https://apuyeakgxjgdcfssrtek.supabase.co"
 
-# Codes NAF pour les metiers du BTP pilote
+# Codes NAF pour les metiers du BTP (5 pilotes historiques + 10 nouveaux Phase 2)
+# Note : plusieurs metiers peuvent partager un NAF (chauffagiste/climaticien sur 43.22B,
+# carreleur/parqueteur sur 43.33Z). L'import filtre par NAF mais la table metiers
+# conserve les labels distincts pour la presentation editoriale.
 METIERS = {
-    "plombier":    {"naf": "43.22A", "nom": "Plombier",                  "nom_pluriel": "Plombiers"},
-    "electricien": {"naf": "43.21A", "nom": "Electricien",               "nom_pluriel": "Electriciens"},
-    "couvreur":    {"naf": "43.91B", "nom": "Couvreur",                  "nom_pluriel": "Couvreurs"},
-    "menuisier":   {"naf": "43.32A", "nom": "Menuisier",                 "nom_pluriel": "Menuisiers"},
-    "isolation":   {"naf": "43.29A", "nom": "Entreprise d'isolation",    "nom_pluriel": "Entreprises d'isolation"},
+    # Pilotes historiques (Yonne 89 livre Phase 1)
+    "plombier":     {"naf": "43.22A", "nom": "Plombier",                    "nom_pluriel": "Plombiers"},
+    "electricien":  {"naf": "43.21A", "nom": "Electricien",                 "nom_pluriel": "Electriciens"},
+    "couvreur":     {"naf": "43.91B", "nom": "Couvreur",                    "nom_pluriel": "Couvreurs"},
+    "menuisier":    {"naf": "43.32A", "nom": "Menuisier",                   "nom_pluriel": "Menuisiers"},
+    "isolation":    {"naf": "43.29A", "nom": "Entreprise d'isolation",     "nom_pluriel": "Entreprises d'isolation"},
+    # Nouveaux Phase 2 (extension nationale)
+    "chauffagiste": {"naf": "43.22B", "nom": "Chauffagiste",                "nom_pluriel": "Chauffagistes"},
+    "plaquiste":    {"naf": "43.39Z", "nom": "Plaquiste",                   "nom_pluriel": "Plaquistes"},
+    "carreleur":    {"naf": "43.33Z", "nom": "Carreleur",                   "nom_pluriel": "Carreleurs"},
+    "peintre":      {"naf": "43.34Z", "nom": "Peintre en batiment",         "nom_pluriel": "Peintres en batiment"},
+    "serrurier":    {"naf": "43.32B", "nom": "Serrurier-metallier",         "nom_pluriel": "Serruriers-metalliers"},
+    "macon":        {"naf": "43.99C", "nom": "Macon",                       "nom_pluriel": "Macons"},
+    "jardinier":    {"naf": "81.30Z", "nom": "Jardinier paysagiste",        "nom_pluriel": "Jardiniers paysagistes"},
+    "climaticien":  {"naf": "43.22B", "nom": "Climaticien",                 "nom_pluriel": "Climaticiens"},  # partage NAF avec chauffagiste
+    "cuisiniste":   {"naf": "47.59A", "nom": "Cuisiniste",                  "nom_pluriel": "Cuisinistes"},   # retail specialisee
+    "parqueteur":   {"naf": "43.33Z", "nom": "Parqueteur",                  "nom_pluriel": "Parqueteurs"},    # partage NAF avec carreleur
 }
 
-# Departements pilote (code INSEE dept + nom + slug pour site)
-DEPARTEMENTS = {
-    "75": {"nom": "Paris",      "slug": "paris-75"},
-    "21": {"nom": "Côte-d'Or",  "slug": "cote-dor-21"},
-    "89": {"nom": "Yonne",      "slug": "yonne-89"},
-}
+# Couverture nationale : 96 departements metropole via lib_geo_fr
+# Import uniformise : DEPARTEMENTS[code] = {nom, slug, region_code}
+from lib_geo_fr import DEPARTEMENTS_FR as DEPARTEMENTS, REGIONS_FR
+
+# Sous-ensemble pilote historique (retrocompat --all-pilots, 5 metiers x 3 depts)
+PILOT_METIERS = ("plombier", "electricien", "couvreur", "menuisier", "isolation")
+PILOT_DEPTS = ("75", "21", "89")
 
 SIRENE_COLUMNS = [
     "etab.siret",
@@ -525,32 +545,84 @@ def run_one(metier_key, dept_code, insert=False, limit=None, csv_out=None):
     return total_upserted
 
 
+def resolve_dept_targets(args):
+    """Retourne la liste des codes dept cibles selon les flags CLI."""
+    if args.all_depts:
+        return sorted(DEPARTEMENTS.keys())
+    if args.depts:
+        codes = [c.strip().upper() for c in args.depts.split(",") if c.strip()]
+        unknown = [c for c in codes if c not in DEPARTEMENTS]
+        if unknown:
+            raise SystemExit(f"Dept(s) inconnu(s) : {', '.join(unknown)}")
+        return codes
+    if args.dept:
+        return [args.dept]
+    return []
+
+
+def resolve_metier_targets(args):
+    """Retourne la liste des slugs metier cibles selon les flags CLI."""
+    if args.all_metiers:
+        return list(METIERS.keys())
+    if args.metiers:
+        slugs = [s.strip().lower() for s in args.metiers.split(",") if s.strip()]
+        unknown = [s for s in slugs if s not in METIERS]
+        if unknown:
+            raise SystemExit(f"Metier(s) inconnu(s) : {', '.join(unknown)}")
+        return slugs
+    if args.metier:
+        return [args.metier]
+    return []
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.strip().split("\n\n")[0])
-    ap.add_argument("--metier", choices=list(METIERS.keys()))
-    ap.add_argument("--dept", choices=list(DEPARTEMENTS.keys()))
-    ap.add_argument("--all-pilots", action="store_true", help="Tous les metiers x tous les depts pilote")
+    # Selection metier
+    ap.add_argument("--metier", choices=list(METIERS.keys()), help="Un seul metier")
+    ap.add_argument("--metiers", help="Liste CSV de slugs metier (ex: plombier,electricien)")
+    ap.add_argument("--all-metiers", action="store_true", help="Tous les metiers (15)")
+    # Selection dept
+    ap.add_argument("--dept", choices=list(DEPARTEMENTS.keys()), help="Un seul dept (code INSEE)")
+    ap.add_argument("--depts", help="Liste CSV de codes dept (ex: 75,77,78,91,92,93,94,95 pour IDF)")
+    ap.add_argument("--all-depts", action="store_true", help="Les 96 dpts metropole")
+    # Retro-compat
+    ap.add_argument("--all-pilots", action="store_true", help="Legacy : 5 metiers pilote x 3 depts pilote (75/21/89)")
+    # Flags execution
     ap.add_argument("--insert", action="store_true", help="Insert dans Supabase")
-    ap.add_argument("--dry-run", action="store_true", help="Comptage only, pas d'output CSV")
-    ap.add_argument("--limit", type=int, default=None, help="Limit per query (default: no limit)")
+    ap.add_argument("--dry-run", action="store_true", help="Comptage only")
+    ap.add_argument("--limit", type=int, default=None, help="Limit par query (default: no limit)")
     args = ap.parse_args()
 
+    # Mode legacy retro-compat
     if args.all_pilots:
         total = 0
-        for m_key in METIERS:
-            for d_code in DEPARTEMENTS:
+        for m_key in PILOT_METIERS:
+            for d_code in PILOT_DEPTS:
                 log("=" * 72)
                 log(f"METIER={m_key}  |  DEPT={d_code}")
                 n = run_one(m_key, d_code, insert=args.insert, limit=args.limit)
                 total += n
         log("=" * 72)
-        log(f"TOTAL : {total:,} pros (5 metiers x 3 depts)")
+        log(f"TOTAL : {total:,} pros ({len(PILOT_METIERS)} metiers x {len(PILOT_DEPTS)} depts pilote)")
         return
 
-    if not args.metier or not args.dept:
-        ap.error("Sans --all-pilots, il faut specifier --metier ET --dept.")
+    metiers = resolve_metier_targets(args)
+    depts = resolve_dept_targets(args)
+    if not metiers or not depts:
+        ap.error("Il faut specifier metier(s) ET dept(s) : --metier/--metiers/--all-metiers + --dept/--depts/--all-depts")
 
-    run_one(args.metier, args.dept, insert=args.insert, limit=args.limit)
+    total = 0
+    for m_key in metiers:
+        for d_code in depts:
+            log("=" * 72)
+            log(f"METIER={m_key}  |  DEPT={d_code}")
+            try:
+                n = run_one(m_key, d_code, insert=args.insert, limit=args.limit)
+                total += n
+            except Exception as e:
+                log(f"ERREUR combo {m_key}/{d_code} : {e}", "ERROR")
+    log("=" * 72)
+    log(f"TOTAL : {total:,} pros ({len(metiers)} metiers x {len(depts)} depts)")
 
 
 if __name__ == "__main__":
