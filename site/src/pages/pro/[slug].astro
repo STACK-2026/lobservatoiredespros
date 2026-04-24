@@ -254,14 +254,14 @@ const jsonLd = [
             <InfoPill
               variant="verified"
               label="SIRET actif INSEE"
-              value={p.siret || "—"}
+              value={p.siret || "-"}
               glossaireSlug="siret"
               pulse={true}
             />
             <InfoPill
               variant="neutral"
               label="Code NAF"
-              value={metierNaf || "—"}
+              value={metierNaf || "-"}
               glossaireSlug="naf"
             />
             {p.rge && (
@@ -313,7 +313,7 @@ const jsonLd = [
     <section class="container-wide portrait-tldr">
       <SpeakableTLDR label="En résumé">
         <p>
-          <strong>{p.nom_entreprise}</strong>, {metierNom.toLowerCase()} à {p.ville || "—"}{deptCode && ` (${deptCode})`},
+          <strong>{p.nom_entreprise}</strong>, {metierNom.toLowerCase()} à {p.ville || "-"}{deptCode && ` (${deptCode})`},
           {anciennete ? ` inscrit au Sirene depuis ${anciennete} ans` : " récemment inscrit au Sirene"}.
           Fiche éditoriale fondée sur <strong>{critVerifies} critères publics vérifiés</strong> à ce jour,
           {p.rge ? " dont une certification RGE active" : " sans certification RGE affichée"}
@@ -355,7 +355,7 @@ const jsonLd = [
             <dd>{p.nom_entreprise}</dd>
 
             <dt><GlossaireTerm slug="siret">SIRET</GlossaireTerm></dt>
-            <dd class="mono">{p.siret || "—"}</dd>
+            <dd class="mono">{p.siret || "-"}</dd>
 
             {p.siren && (
               <>
@@ -494,7 +494,7 @@ const jsonLd = [
 
         {(p.rge || p.qualibat) && (
           <div class="ant-item ant-item-past ant-item-certif">
-            <span class="ant-date folio">—</span>
+            <span class="ant-date folio">·</span>
             <div class="ant-body">
               <p class="ant-action-label">Certifications obtenues</p>
               <p class="ant-action">
