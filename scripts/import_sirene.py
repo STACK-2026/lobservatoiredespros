@@ -432,16 +432,22 @@ def supabase_get_zones(service_key):
     return {z["slug"]: z["id"] for z in zones}, {z["code"]: z["id"] for z in zones}
 
 
-def supabase_get_pros_ids(service_key, sirens):
-    """Fetch pros par SIREN pour recuperer les UUID."""
-    if not sirens:
+def supabase_get_pros_ids(service_key, sirets):
+    """Fetch pros UUID par SIRET (clé unique, vs SIREN partageable entre
+    etablissements du meme groupe). Retourne dict siret -> id.
+
+    Bug fix 2026-04-24 : le mapping siren->id perdait 1 entree par SIREN
+    duplique entre 2 etablissements actifs, ce qui laissait des pros
+    orphelins (sans pro_metiers / pro_zones link).
+    """
+    if not sirets:
         return {}
     ids = {}
     # Batch par 200
-    for i in range(0, len(sirens), 200):
-        batch = sirens[i:i+200]
+    for i in range(0, len(sirets), 200):
+        batch = sirets[i:i+200]
         in_clause = ",".join(f'"{s}"' for s in batch)
-        url = f"{SUPABASE_URL}/rest/v1/pros?select=id,siren&siren=in.({in_clause})"
+        url = f"{SUPABASE_URL}/rest/v1/pros?select=id,siret&siret=in.({in_clause})"
         req = urllib.request.Request(url, headers={
             "apikey": service_key,
             "Authorization": f"Bearer {service_key}",
@@ -450,7 +456,7 @@ def supabase_get_pros_ids(service_key, sirens):
         try:
             with urllib.request.urlopen(req, timeout=20) as resp:
                 for row in json.loads(resp.read()):
-                    ids[row["siren"]] = row["id"]
+                    ids[row["siret"]] = row["id"]
         except urllib.error.HTTPError as e:
             log(f"  pros query HTTP {e.code}", "ERROR")
     return ids
@@ -514,14 +520,14 @@ def run_one(metier_key, dept_code, insert=False, limit=None, csv_out=None):
         log(f"    pros batch {i//100 + 1} : +{n}")
     log(f"  pros upserted : {total_upserted}")
 
-    # 2. Fetch pros IDs by SIREN
-    sirens = [p["siren"] for p in pros]
-    id_map = supabase_get_pros_ids(service_key, sirens)
+    # 2. Fetch pros IDs by SIRET (unique key, contrairement a SIREN)
+    sirets = [p["siret"] for p in pros if p.get("siret")]
+    id_map = supabase_get_pros_ids(service_key, sirets)
 
     # 3. Upsert pro_metiers relation
     pro_metiers_rows = [
         {"pro_id": pro_id, "metier_id": metier_id}
-        for siren, pro_id in id_map.items()
+        for siret, pro_id in id_map.items()
     ]
     total_pm = 0
     for i in range(0, len(pro_metiers_rows), 100):
