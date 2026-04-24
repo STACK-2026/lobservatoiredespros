@@ -6,7 +6,7 @@ import DropCap from "../../components/DropCap.astro";
 import PullQuote from "../../components/PullQuote.astro";
 import TelescopeWatermark from "../../components/TelescopeWatermark.astro";
 import { siteConfig } from "../../utils/config";
-import { jsonLdBreadcrumbs } from "../../utils/seo";
+import { jsonLdBreadcrumbs, jsonLdSpeakable, ORG_ID } from "../../utils/seo";
 
 const title = "Méthodologie , L'Observatoire des Pros";
 const description = "La méthodologie complete de L'Observatoire : six critères de notation, sources officielles, pondération et processus d'examen des candidatures.";
@@ -25,8 +25,13 @@ const jsonLd = [
     name: "Méthodologie",
     url,
     description,
-    publisher: { "@type": "NewsMediaOrganization", name: siteConfig.name, url: siteConfig.url },
+    publisher: { "@id": ORG_ID },
+    mainEntity: { "@id": ORG_ID },
   },
+  jsonLdSpeakable({
+    url,
+    cssSelectors: ["[data-speakable]", ".lead", ".methode-criteres h3", ".methode-criteres p"],
+  }),
 ];
 ---
 
