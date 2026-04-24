@@ -1,0 +1,303 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import EditorialHeader from "../../../components/EditorialHeader.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import GlossaireTerm from "../../../components/GlossaireTerm.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID, jsonLdSpeakable } from "../../../utils/seo";
+
+const title = "Vérifier un SIRET , Fiche Sirene INSEE en direct , L'Observatoire";
+const description = "Vérifier en direct la fiche officielle d'une entreprise française : date de création, état, NAF, dirigeants, effectif, adresse. Source publique recherche-entreprises.api.gouv.fr. Gratuit, sans inscription.";
+const url = `${siteConfig.url}/outils/verifier-siret/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Outils", url: `${siteConfig.url}/outils/` },
+    { name: "Vérifier un SIRET", url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": `${url}#app`,
+    name: "Vérificateur SIRET",
+    url,
+    description,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    publisher: { "@id": ORG_ID },
+    isAccessibleForFree: true,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Comment vérifier qu'une entreprise existe réellement ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Demandez son SIRET (14 chiffres) ou son SIREN (9 chiffres). Saisissez-le dans cet outil. Nous interrogeons l'API publique recherche-entreprises.api.gouv.fr qui agrège Sirene INSEE + BODACC + Infogreffe. Vous obtenez la fiche officielle : date de création, état (active ou radiée), code NAF, adresse, dirigeants, effectif, catégorie PME/ETI/GE.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Quelle est la différence entre SIRET et SIREN ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Le SIREN (9 chiffres) identifie l'entreprise (unique en France). Le SIRET (14 chiffres = SIREN + 5) identifie un établissement spécifique de l'entreprise. Une entreprise avec plusieurs établissements a plusieurs SIRET mais un seul SIREN. Cet outil accepte les deux.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Pourquoi cet outil existe-t-il ?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "L'INSEE expose ces données publiquement mais l'interface officielle n'est pas grand-public (pas de recherche textuelle, pas de mise en forme claire). Notre outil interroge directement l'API data.gouv.fr et présente les informations essentielles en un coup d'œil. Aucune donnée n'est stockée par L'Observatoire.",
+        },
+      },
+    ],
+  },
+  jsonLdSpeakable({
+    url,
+    cssSelectors: [".lead", ".outil-intro", ".verif-result-summary"],
+  }),
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="outil-siret">
+    <div class="container-editorial outil-head">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Outils", href: "/outils/" },
+        { label: "Vérifier un SIRET" },
+      ]} />
+      <Masthead category="OUTIL - SIRET" signature="Par la rédaction" />
+      <h1 class="heading-display">Vérifier un <span class="italic-fraunces">SIRET</span>.</h1>
+      <p class="lead" data-speakable>
+        Fiche officielle Sirene INSEE en direct. Saisissez le SIRET (14 chiffres) ou le SIREN (9 chiffres), obtenez date de création, état administratif, code <GlossaireTerm slug="naf">NAF</GlossaireTerm>, adresse, dirigeants et effectif. Gratuit, sans inscription, aucune donnée stockée.
+      </p>
+    </div>
+
+    <section class="container-editorial outil-intro">
+      <p class="pull">
+        Avant toute transaction au-dessus de <strong>1 500 euros</strong>, exigez le SIRET. Une entreprise sans SIRET ou avec un SIRET radié ne peut pas vous délivrer de facture valide.
+      </p>
+    </section>
+
+    <section class="container-editorial verif-form-section">
+      <form id="verif-siret-form" class="verif-form" novalidate>
+        <label for="siret-input" class="verif-label">
+          <span class="meta-label">SIRET (14 chiffres) ou SIREN (9 chiffres)</span>
+          <input
+            id="siret-input"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9 ]{9,18}"
+            placeholder="123 456 789 00012"
+            autocomplete="off"
+            aria-describedby="siret-help"
+            required
+          />
+        </label>
+        <p id="siret-help" class="verif-help">
+          Les espaces sont ignorés. Le SIRET figure sur la facture, le devis ou les mentions légales d'un site web.
+        </p>
+        <button type="submit" class="btn btn-primary magnetic verif-submit">
+          Consulter la fiche officielle
+        </button>
+      </form>
+
+      <div id="verif-result" class="verif-result" aria-live="polite" hidden>
+        <div class="verif-result-inner"></div>
+      </div>
+    </section>
+
+    <section class="container-editorial outil-methode">
+      <EditorialHeader category="MÉTHODE" title="Comment nous procédons" />
+      <ol class="methode-steps">
+        <li>Votre SIRET ou SIREN est nettoyé (espaces supprimés) côté navigateur.</li>
+        <li>Nous interrogeons l'API publique <code>recherche-entreprises.api.gouv.fr</code>, gratuite, sans clé, agrégation Sirene INSEE + BODACC + Infogreffe.</li>
+        <li>La première entreprise correspondante est affichée : dénomination, dirigeants, état, catégorie, effectif, code NAF, adresse du siège.</li>
+        <li>Si plusieurs établissements correspondent (SIREN avec plusieurs SIRET), ils sont listés en dessous.</li>
+        <li>Aucune donnée n'est enregistrée par L'Observatoire. La requête part directement du navigateur vers data.gouv.fr.</li>
+      </ol>
+    </section>
+
+    <section class="container-editorial outil-liens">
+      <h2 class="heading-m">Sources officielles</h2>
+      <ul class="sources-list">
+        <li><a href="https://recherche-entreprises.api.gouv.fr/" rel="noopener" target="_blank">API Recherche d'entreprises (data.gouv.fr)</a></li>
+        <li><a href="https://annuaire-entreprises.data.gouv.fr/" rel="noopener" target="_blank">Annuaire des entreprises (interface officielle)</a></li>
+        <li><a href="/outils/verifier-rge/">Vérifier une certification RGE</a></li>
+        <li><a href="/methode/">Notre méthodologie</a></li>
+      </ul>
+    </section>
+  </article>
+</BaseLayout>
+
+<script>
+  /* eslint-disable */
+  (function () {
+    const form = document.getElementById("verif-siret-form");
+    const result = document.getElementById("verif-result");
+    const input = document.getElementById("siret-input");
+    if (!form || !result || !input) return;
+    const inner = result.querySelector(".verif-result-inner");
+
+    const API = "https://recherche-entreprises.api.gouv.fr/search";
+
+    function setState(html, tone) {
+      result.hidden = false;
+      result.dataset.tone = tone || "neutral";
+      inner.innerHTML = html;
+    }
+
+    function escape(s) {
+      const d = document.createElement("div");
+      d.innerText = String(s == null ? "" : s);
+      return d.innerHTML;
+    }
+
+    function formatDate(d) {
+      if (!d) return "-";
+      try {
+        return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+      } catch {
+        return String(d);
+      }
+    }
+
+    const EFF = {
+      NN: "Non renseigné", "00": "0 salarié", "01": "1 à 2 salariés", "02": "3 à 5 salariés",
+      "03": "6 à 9 salariés", "11": "10 à 19 salariés", "12": "20 à 49 salariés",
+      "21": "50 à 99 salariés", "22": "100 à 199 salariés", "31": "200 à 249 salariés",
+      "32": "250 à 499 salariés", "41": "500 à 999 salariés", "42": "1 000 à 1 999 salariés",
+      "51": "2 000 à 4 999 salariés", "52": "5 000 à 9 999 salariés", "53": "10 000+ salariés",
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const raw = String(input.value || "").replace(/\s+/g, "").replace(/[^0-9]/g, "");
+      if (raw.length !== 9 && raw.length !== 14) {
+        setState('<p class="verif-result-summary">L\'identifiant doit faire <strong>9 chiffres (SIREN)</strong> ou <strong>14 chiffres (SIRET)</strong>. Celui-ci en compte ' + raw.length + '.</p>', "warn");
+        return;
+      }
+
+      setState('<p class="verif-result-summary">Consultation Sirene INSEE...</p>', "neutral");
+
+      try {
+        const res = await fetch(API + "?q=" + raw + "&page=1&per_page=1", { headers: { accept: "application/json" } });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const ent = (data && data.results && data.results[0]) || null;
+        if (!ent) {
+          setState('<p class="verif-result-summary">Aucune entreprise trouvée pour <strong>' + raw + '</strong>. Vérifiez le numéro : 9 chiffres pour un SIREN, 14 pour un SIRET.</p>', "warn");
+          return;
+        }
+
+        const nom = ent.nom_complete || ent.nom_raison_sociale || "Entreprise";
+        const etat = ent.etat_administratif || "A";
+        const etatLabel = etat === "A" ? "Active" : "Cessée";
+        const nafLabel = [ent.activite_principale, ent.section_activite_principale].filter(Boolean).join(" · ");
+        const adr = ent.siege && ent.siege.adresse ? ent.siege.adresse : "-";
+        const cat = ent.categorie_entreprise || "-";
+        const eff = ent.tranche_effectif_salarie ? (EFF[ent.tranche_effectif_salarie] || ent.tranche_effectif_salarie) : "-";
+        const dateCreation = ent.date_creation;
+        const siren = ent.siren;
+        const siretSiege = ent.siege && ent.siege.siret;
+        const dirigeants = (ent.dirigeants || []).slice(0, 6);
+
+        let html = '<h3 class="verif-name italic-fraunces">' + escape(nom) + "</h3>";
+        html += '<p class="verif-siret meta-label">SIREN ' + escape(siren) + (siretSiege ? " · SIRET siège " + escape(siretSiege) : "") + "</p>";
+        html += '<p class="verif-result-summary verif-etat ' + (etat === "A" ? "verif-ok" : "verif-ko") + '"><strong>Entreprise ' + etatLabel + "</strong>" + (dateCreation ? " depuis le " + escape(formatDate(dateCreation)) : "") + ".</p>";
+
+        html += '<dl class="verif-dl">';
+        if (nafLabel) html += '<dt>Activité (NAF)</dt><dd>' + escape(nafLabel) + "</dd>";
+        html += '<dt>Catégorie</dt><dd>' + escape(cat) + "</dd>";
+        html += '<dt>Effectif</dt><dd>' + escape(eff) + "</dd>";
+        html += '<dt>Adresse siège</dt><dd>' + escape(adr) + "</dd>";
+        html += "</dl>";
+
+        if (dirigeants.length > 0) {
+          html += '<h4 class="verif-sub">Dirigeant' + (dirigeants.length > 1 ? "s" : "") + "</h4><ul class=\"verif-list\">";
+          dirigeants.forEach((d) => {
+            const parts = [];
+            if (d.prenoms) parts.push(d.prenoms);
+            if (d.nom) parts.push(d.nom);
+            if (d.denomination) parts.push(d.denomination);
+            const who = parts.join(" ").trim() || "Dirigeant";
+            const role = d.qualite || "";
+            html += '<li><strong>' + escape(who) + "</strong>" + (role ? ' <span class="v-cert">· ' + escape(role) + "</span>" : "") + "</li>";
+          });
+          html += "</ul>";
+        }
+
+        html += '<p class="verif-source"><small>Source : recherche-entreprises.api.gouv.fr (agrégation Sirene INSEE + BODACC + Infogreffe) · aucune donnée stockée par L\'Observatoire.</small></p>';
+        setState(html, etat === "A" ? "ok" : "warn");
+      } catch (err) {
+        setState('<p class="verif-result-summary">Erreur de connexion à l\'API recherche-entreprises.api.gouv.fr. Vérifiez votre accès internet et réessayez.</p>', "warn");
+      }
+    });
+  })();
+</script>
+
+<style>
+  .outil-siret { padding: 2rem 0 4rem; }
+  .outil-head { max-width: 56rem; margin: 0 auto; padding-bottom: 2rem; }
+  .outil-head .heading-display { margin: 0.4rem 0 1rem; }
+  .outil-intro { max-width: 52rem; margin: 0 auto 2.5rem; padding: 0 1rem; }
+  .outil-intro .pull {
+    font-family: var(--font-display); font-style: italic;
+    font-size: 1.35rem; line-height: 1.5; color: var(--ink);
+    padding: 1.2rem 1.6rem; border-left: 3px solid var(--or-deep);
+    background: rgba(184, 134, 61, 0.04);
+  }
+  .verif-form-section {
+    max-width: 46rem; margin: 0 auto 3rem;
+    background: var(--paper-shade); border: 1px solid rgba(26, 22, 20, 0.08);
+    padding: 2rem 1.8rem; border-radius: 2px;
+  }
+  .verif-form { display: grid; gap: 1rem; }
+  .verif-label { display: grid; gap: 0.5rem; }
+  .verif-label input {
+    padding: 0.9rem 1.1rem; font-family: var(--font-mono), monospace;
+    font-size: 1.1rem; letter-spacing: 1.5px;
+    border: 1px solid rgba(26, 22, 20, 0.25); background: var(--paper); color: var(--ink);
+    border-radius: 2px;
+  }
+  .verif-label input:focus-visible { outline: 2px solid var(--or-deep); outline-offset: 2px; }
+  .verif-help { font-family: var(--font-body); font-size: 0.9rem; color: var(--ink-muted); margin: -0.25rem 0 0.8rem; }
+  .verif-submit { justify-self: start; }
+
+  .verif-result { margin-top: 1.5rem; padding: 1.4rem 1.6rem; border-left: 3px solid var(--ink); background: var(--paper); }
+  .verif-result[data-tone="ok"] { border-left-color: var(--or-deep); }
+  .verif-result[data-tone="warn"] { border-left-color: var(--cachet); }
+  .verif-name { font-size: 1.4rem; font-weight: 500; margin: 0 0 0.2rem; }
+  .verif-siret { margin: 0 0 1rem; font-family: var(--font-mono), monospace; }
+  .verif-result-summary { font-size: 1rem; line-height: 1.55; color: var(--ink); }
+  .verif-ok { color: var(--or-deep); }
+  .verif-ko { color: var(--cachet); }
+  .verif-dl { margin: 1rem 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1.2rem; font-family: var(--font-body); font-size: 0.95rem; }
+  .verif-dl dt { color: var(--ink-muted); font-weight: 600; }
+  .verif-dl dd { margin: 0; color: var(--ink); }
+  .verif-sub { font-family: var(--font-body); font-size: 1rem; margin: 1.2rem 0 0.4rem; color: var(--ink); }
+  .verif-list { margin: 0.4rem 0; padding: 0; list-style: none; border-top: 1px solid rgba(26, 22, 20, 0.08); }
+  .verif-list li { padding: 0.5rem 0; border-bottom: 1px solid rgba(26, 22, 20, 0.08); font-family: var(--font-body); font-size: 0.95rem; }
+  .v-cert { color: var(--ink-muted); font-size: 0.88rem; }
+  .verif-source { margin-top: 1rem; font-family: var(--font-body); color: var(--ink-muted); font-size: 0.85rem; }
+
+  .outil-methode, .outil-liens { max-width: 52rem; margin: 2.5rem auto; padding: 0 1rem; }
+  .methode-steps { padding-left: 1.2rem; }
+  .methode-steps li { margin: 0.5rem 0; line-height: 1.55; }
+  .methode-steps code {
+    background: rgba(26, 22, 20, 0.06); padding: 0.1rem 0.4rem; border-radius: 2px;
+    font-size: 0.88em;
+  }
+  .sources-list { padding-left: 1.2rem; }
+  .sources-list li { margin: 0.4rem 0; }
+  .sources-list a { color: var(--or-deep); }
+</style>
