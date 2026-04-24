@@ -15,16 +15,19 @@ import InfoPill from "../../../components/InfoPill.astro";
 import SpeakableTLDR from "../../../components/SpeakableTLDR.astro";
 import DropCap from "../../../components/DropCap.astro";
 import { siteConfig } from "../../../utils/config";
-import { getMetiers, getZones, getProsByMetierDept } from "../../../lib/supabase";
+import { getMetiers, getZones, getProsByMetierDept, getMetierDeptCombos } from "../../../lib/supabase";
 import { jsonLdBreadcrumbs, jsonLdRanking, jsonLdFAQ } from "../../../utils/seo";
 import { deptGrammar } from "../../../utils/grammar";
 
 export async function getStaticPaths() {
   const metiers = await getMetiers();
   const zones = await getZones("departement");
+  const combos = await getMetierDeptCombos();
   const paths = [];
   for (const m of metiers) {
     for (const d of zones) {
+      // Skip les combos sans pros actifs : évite thin content + index bloat
+      if (!combos.has(`${m.slug}:${d.slug}`)) continue;
       paths.push({
         params: { metier: m.slug, departement: d.slug },
         props: { metier: m, zone: d },

@@ -155,3 +155,63 @@ export async function getClassementCount(metierSlug: string, deptSlug: string): 
   const pros = await getProsByMetierDept(metierSlug, deptSlug);
   return pros.length;
 }
+
+/**
+ * Combos (metierSlug, deptSlug) qui ont au moins un pro actif.
+ * Unique requête, évite 1440 pages vides (15 métiers × 96 dpts seed national).
+ * Retourne un Set de clés "metierSlug:deptSlug".
+ */
+let _comboCache: Set<string> | null = null;
+export async function getMetierDeptCombos(): Promise<Set<string>> {
+  if (_comboCache) return _comboCache;
+  const metiers = await getMetiers();
+  const zones = await getZones("departement");
+  const metierById = new Map(metiers.map((m) => [m.id, m.slug]));
+  const zoneById = new Map(zones.map((z) => [z.id, z.slug]));
+
+  // Jointure 2-tables : fetch pro_metiers + pro_zones séparés puis joindre en mémoire.
+  // Supabase cap default = 1000 rows ; on pagine par range(start, end) pour absorber
+  // le volume national (50k+ pros × 1-2 liens chaque = jusqu'à ~100k rows chacun).
+  const fetchAll = async <T,>(table: string, cols: string): Promise<T[]> => {
+    const page = 1000;
+    const all: T[] = [];
+    for (let start = 0; ; start += page) {
+      const { data, error } = await supabase
+        .from(table)
+        .select(cols)
+        .range(start, start + page - 1);
+      if (error) {
+        console.error(`getMetierDeptCombos ${table} error`, error);
+        return all;
+      }
+      if (!data || data.length === 0) break;
+      all.push(...(data as T[]));
+      if (data.length < page) break;
+    }
+    return all;
+  };
+  const [pm, pz] = await Promise.all([
+    fetchAll<{ pro_id: string; metier_id: string }>("pro_metiers", "pro_id, metier_id"),
+    fetchAll<{ pro_id: string; zone_id: string }>("pro_zones", "pro_id, zone_id"),
+  ]);
+  // Map pro_id → zone_ids[]
+  const proToZones = new Map<string, string[]>();
+  for (const row of pz) {
+    const arr = proToZones.get(row.pro_id) || [];
+    arr.push(row.zone_id);
+    proToZones.set(row.pro_id, arr);
+  }
+  const combos = new Set<string>();
+  for (const row of pm) {
+    const mSlug = metierById.get(row.metier_id);
+    if (!mSlug) continue;
+    const zoneIds = proToZones.get(row.pro_id) || [];
+    for (const zid of zoneIds) {
+      const zSlug = zoneById.get(zid);
+      if (!zSlug) continue;
+      combos.add(`${mSlug}:${zSlug}`);
+    }
+  }
+  _comboCache = combos;
+  return combos;
+}

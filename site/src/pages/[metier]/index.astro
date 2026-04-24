@@ -1,80 +1,123 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Masthead from "../../components/Masthead.astro";
-import DropCap from "../../components/DropCap.astro";
 import EditorialHeader from "../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import ProCard from "../../components/ProCard.astro";
 import MethodologyBlock from "../../components/MethodologyBlock.astro";
 import { siteConfig } from "../../utils/config";
-import { prosByMetier, countProsByMetierDept } from "../../data/seed-pros";
+import {
+  getMetiers,
+  getZones,
+  getMetierBySlug,
+  getProsByMetier,
+  getMetierDeptCombos,
+} from "../../lib/supabase";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
-export function getStaticPaths() {
-  return siteConfig.metiersPilote.map((m) => ({ params: { metier: m.slug } }));
+export async function getStaticPaths() {
+  const metiers = await getMetiers();
+  const combos = await getMetierDeptCombos();
+  const metiersWithPros = new Set<string>();
+  for (const c of combos) metiersWithPros.add(c.split(":")[0]);
+  return metiers
+    .filter((m) => metiersWithPros.has(m.slug))
+    .map((m) => ({ params: { metier: m.slug } }));
 }
 
 const { metier } = Astro.params as { metier: string };
-const metierObj = siteConfig.metiersPilote.find((m) => m.slug === metier)!;
-const tous = prosByMetier(metier);
-const top10 = tous.slice(0, 10);
+const metierObj = await getMetierBySlug(metier);
+if (!metierObj) {
+  return new Response("Métier introuvable", { status: 404 });
+}
+const nomPluriel = metierObj.nom_pluriel;
+const nom = metierObj.nom;
 
-const title = `${metierObj.nomPluriel} en France , Classement ${siteConfig.editionYear} , L'Observatoire des Pros`;
-const description = `Classement editorial des ${metierObj.nomPluriel.toLowerCase()} en France, par departement. ${tous.length} professionnels retenus dans notre selection ${siteConfig.editionYear}.`;
+// Top pros nationaux (toutes zones) pour ce métier
+const allPros = await getProsByMetier(metier);
+const top10 = allPros.slice(0, 10);
+
+// Départements où ce métier a au moins un pro actif (via combos)
+const combos = await getMetierDeptCombos();
+const zones = await getZones("departement");
+const zoneBySlug = new Map(zones.map((z) => [z.slug, z]));
+const deptSlugsPourCeMetier = Array.from(combos)
+  .filter((c) => c.startsWith(`${metier}:`))
+  .map((c) => c.split(":")[1])
+  .filter((slug) => zoneBySlug.has(slug));
+const depts = deptSlugsPourCeMetier
+  .map((slug) => zoneBySlug.get(slug)!)
+  .sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+
+const title = `${nomPluriel} en France , Classement ${siteConfig.editionYear} , L'Observatoire des Pros`;
+const description = `Classement éditorial des ${nomPluriel.toLowerCase()} en France, par département. ${allPros.length} professionnels observés dans l'édition N°${siteConfig.editionNumber}.`;
 const url = `${siteConfig.url}/${metier}/`;
 
 const jsonLd = [
   jsonLdBreadcrumbs([
     { name: "Accueil", url: siteConfig.url },
-    { name: metierObj.nomPluriel, url },
+    { name: nomPluriel, url },
   ]),
 ];
+
+// Ancienneté (années) depuis date_creation_entreprise
+function ancienneteAnnees(dateStr: string | null): number | undefined {
+  if (!dateStr) return undefined;
+  const year = parseInt(dateStr.substring(0, 4), 10);
+  if (!year || isNaN(year)) return undefined;
+  return Math.max(0, new Date().getFullYear() - year);
+}
 ---
 
 <BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
   <article class="metier-page">
     <div class="container-wide metier-head">
-      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: metierObj.nomPluriel }]} />
-      <Masthead category={`METIER , ${metierObj.nomPluriel.toUpperCase()}`} signature="France entiere" />
-      <h1 class="heading-display">Les meilleurs <span class="italic-fraunces">{metierObj.nomPluriel.toLowerCase()}</span> de France</h1>
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: nomPluriel }]} />
+      <Masthead category={`METIER , ${nomPluriel.toUpperCase()}`} signature="France entière" />
+      <h1 class="heading-display">Les meilleurs <span class="italic-fraunces">{nomPluriel.toLowerCase()}</span> de France</h1>
       <p class="lead">
-        {tous.length} professionnels retenus par notre rédaction dans l'édition N°{siteConfig.editionNumber}. Classement departement par departement, score par score.
+        {allPros.length} professionnels retenus par notre rédaction dans l'édition N°{siteConfig.editionNumber}. Classement département par département, score par score.
       </p>
     </div>
 
-    <section class="container-wide metier-depts">
-      <EditorialHeader category="PAR DEPARTEMENT" title={`${metierObj.nomPluriel} par zone geographique`} />
-      <div class="depts-grid stagger-children">
-        {siteConfig.departementsPilote.map((d) => (
-          <a class="dept-card card-editorial curl" href={`/${metier}/${d.slug}/`}>
-            <span class="meta-label">{d.region}</span>
-            <h3 class="italic-fraunces">{d.nom} ({d.code})</h3>
-            <p class="folio">{countProsByMetierDept(metier, d.slug)} observations &middot; consulter le classement &rarr;</p>
-          </a>
-        ))}
-      </div>
-    </section>
+    {depts.length > 0 && (
+      <section class="container-wide metier-depts">
+        <EditorialHeader category="PAR DÉPARTEMENT" title={`${nomPluriel} par zone géographique`} />
+        <div class="depts-grid stagger-children">
+          {depts.map((d) => (
+            <a class="dept-card card-editorial curl" href={`/${metier}/${d.slug}/`}>
+              <h3 class="italic-fraunces">{d.nom} ({d.code})</h3>
+              <p class="folio">Consulter le classement &rarr;</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
 
-    <section class="container-wide metier-top">
-      <EditorialHeader category="TOP FRANCE" title={`Les ${Math.min(10, top10.length)} ${metierObj.nomPluriel.toLowerCase()} les mieux notes, toutes zones confondues`} subtitle={`Extrait transversal. Pour le classement complet departemental, choisissez une zone ci-dessus.`} />
-      <div class="top-list">
-        {top10.map((p, i) => (
-          <ProCard
-            rank={i + 1}
-            name={p.nom}
-            slug={p.slug}
-            score={p.score}
-            tier={p.tier}
-            ville={p.ville}
-            ancienneteAnnees={p.ancienneteAnnees}
-            rge={p.rge}
-            qualibat={p.qualibat}
-            specialites={p.specialites}
-            resumeCourt={p.resumeCourt}
-          />
-        ))}
-      </div>
-    </section>
+    {top10.length > 0 && (
+      <section class="container-wide metier-top">
+        <EditorialHeader
+          category="TOP FRANCE"
+          title={`Les ${top10.length} ${nomPluriel.toLowerCase()} les mieux notés, toutes zones confondues`}
+          subtitle="Extrait transversal. Pour le classement complet départemental, choisissez une zone ci-dessus."
+        />
+        <div class="top-list">
+          {top10.map((p, i) => (
+            <ProCard
+              rank={i + 1}
+              name={p.nom_entreprise}
+              slug={p.slug}
+              score={p.score_confiance}
+              tier={p.tier}
+              ville={p.ville || undefined}
+              ancienneteAnnees={ancienneteAnnees(p.date_creation_entreprise)}
+              rge={p.rge}
+              qualibat={p.qualibat}
+            />
+          ))}
+        </div>
+      </section>
+    )}
 
     <section class="container-wide"><MethodologyBlock /></section>
   </article>

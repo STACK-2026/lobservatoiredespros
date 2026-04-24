@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { siteConfig } from "../utils/config";
-import { supabase } from "../lib/supabase";
+import { supabase, getMetiers, getZones, getMetierDeptCombos } from "../lib/supabase";
 import { observations } from "../data/observations";
 import { redaction } from "../data/redaction";
 
@@ -37,14 +37,48 @@ export const GET: APIRoute = async () => {
 
   const urls: SitemapEntry[] = [...STATIC_URLS];
 
-  // URLs pSEO , pages metier nationales
-  for (const m of siteConfig.metiersPilote) {
-    urls.push({ loc: `/${m.slug}/`, priority: 0.8, changefreq: "weekly", lastmod: now });
-  }
-  // URLs pSEO , classement metier/departement
-  for (const m of siteConfig.metiersPilote) {
-    for (const d of siteConfig.departementsPilote) {
-      urls.push({ loc: `/${m.slug}/${d.slug}/`, priority: 0.85, changefreq: "weekly", lastmod: now });
+  // URLs pSEO , DB-backed : seuls les combos avec au moins un pro actif
+  // sont listés (évite thin content + index bloat après seed 15×96=1440).
+  try {
+    const [metiers, zones, combos] = await Promise.all([
+      getMetiers(),
+      getZones("departement"),
+      getMetierDeptCombos(),
+    ]);
+
+    const metiersWithPros = new Set<string>();
+    for (const combo of combos) {
+      metiersWithPros.add(combo.split(":")[0]);
+    }
+
+    // /[metier]/ , seulement les métiers ayant au moins un pro
+    for (const m of metiers) {
+      if (!metiersWithPros.has(m.slug)) continue;
+      urls.push({ loc: `/${m.slug}/`, priority: 0.8, changefreq: "weekly", lastmod: now });
+    }
+
+    // /[metier]/[departement]/ , seulement les combos réels
+    const zoneBySlug = new Map(zones.map((z) => [z.slug, z]));
+    for (const combo of combos) {
+      const [metierSlug, deptSlug] = combo.split(":");
+      if (!zoneBySlug.has(deptSlug)) continue;
+      urls.push({
+        loc: `/${metierSlug}/${deptSlug}/`,
+        priority: 0.85,
+        changefreq: "weekly",
+        lastmod: now,
+      });
+    }
+  } catch (e) {
+    console.warn("Sitemap: failed to fetch metiers/combos, fallback to pilotes", e);
+    // Fallback en cas d'erreur DB : pilote historique (5×3)
+    for (const m of siteConfig.metiersPilote) {
+      urls.push({ loc: `/${m.slug}/`, priority: 0.8, changefreq: "weekly", lastmod: now });
+    }
+    for (const m of siteConfig.metiersPilote) {
+      for (const d of siteConfig.departementsPilote) {
+        urls.push({ loc: `/${m.slug}/${d.slug}/`, priority: 0.85, changefreq: "weekly", lastmod: now });
+      }
     }
   }
 
@@ -67,15 +101,17 @@ export const GET: APIRoute = async () => {
     });
   }
 
-  // URLs pros , fetch depuis Supabase au build time
+  // URLs pros , fetch depuis Supabase au build time (paginé pour passer le cap 1000)
   try {
-    const { data: pros } = await supabase
-      .from("pros")
-      .select("slug, updated_at")
-      .eq("active", true)
-      .not("slug", "is", null)
-      .limit(5000);
-    if (pros) {
+    const page = 1000;
+    for (let start = 0; ; start += page) {
+      const { data: pros, error } = await supabase
+        .from("pros")
+        .select("slug, updated_at")
+        .eq("active", true)
+        .not("slug", "is", null)
+        .range(start, start + page - 1);
+      if (error || !pros || pros.length === 0) break;
       for (const p of pros) {
         urls.push({
           loc: `/pro/${p.slug}/`,
@@ -84,6 +120,7 @@ export const GET: APIRoute = async () => {
           lastmod: p.updated_at ? p.updated_at.split("T")[0] : now,
         });
       }
+      if (pros.length < page) break;
     }
   } catch (e) {
     console.warn("Sitemap: failed to fetch pros, skipping", e);
