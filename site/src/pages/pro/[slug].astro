@@ -697,6 +697,27 @@ if (p.score_confiance && p.score_confiance >= 6) {
       </div>
     </section>
 
+    <!-- LIENS COMPLEMENTAIRES -->
+    {metierSlug && (
+      <section class="container-wide portrait-related">
+        <div class="hairline"></div>
+        <div class="related-grid">
+          <a class="related-card" href={`/tarifs/${metierSlug}/`}>
+            <span class="related-eyebrow">TARIFS , {metierNom?.toUpperCase()}</span>
+            <span class="related-title">Combien coute un {metierNom?.toLowerCase()} ?</span>
+            <span class="related-desc">Fourchettes verifiees pour 4 prestations courantes.</span>
+          </a>
+          {deptSlug && (
+            <a class="related-card" href={`/observations/etat-du-marche/${deptSlug}/`}>
+              <span class="related-eyebrow">SNAPSHOT , {deptNom?.toUpperCase()}</span>
+              <span class="related-title">Etat du marche BTP en {deptNom}</span>
+              <span class="related-desc">Synthese mensuelle : nb pros, RGE, age moyen, top 5.</span>
+            </a>
+          )}
+        </div>
+      </section>
+    )}
+
     <!-- FOOTER EDITORIAL -->
     <footer class="container-wide portrait-foot-v2">
       <div class="hairline"></div>
@@ -1287,5 +1308,49 @@ if (p.score_confiance && p.score_confiance >= 6) {
     font-family: var(--font-mono);
     font-size: 0.88em;
     letter-spacing: 0.02em;
+  }
+
+  /* ═══════ RELATED ═══════ */
+  .portrait-related { max-width: 72rem; margin: 0 auto; padding: 0 clamp(1.25rem, 5vw, 4rem) 2rem; }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .related-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(30, 58, 82, 0.08);
+    border-color: var(--observatoire, #1e3a52);
+  }
+  .related-eyebrow {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--observatoire);
+    font-weight: 500;
+  }
+  .related-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.2rem;
+    margin: 0.35rem 0 0.5rem;
+    line-height: 1.2;
+  }
+  .related-desc {
+    font-size: 0.9rem;
+    color: var(--text-soft);
+    line-height: 1.5;
   }
 </style>

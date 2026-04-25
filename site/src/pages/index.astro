@@ -399,6 +399,43 @@ const jsonLd = [
 
   <InkBleedDivider variant="ornament" />
 
+  <!-- ═══════════════════ TARIFS , GUIDE PUBLIC ═══════════════════ -->
+  <section class="section-tarifs container-wide">
+    <EditorialHeader
+      category="GUIDE TARIFAIRE"
+      title="Combien coute un artisan en France ?"
+      subtitle="Soixante prestations chiffrees, sources publiques France Renov', ADEME, Capeb. Mises a jour 2026."
+      align="center"
+    />
+    <div class="tarifs-cta-grid stagger-children">
+      <a href="/tarifs/plombier/" class="tarif-card card-editorial">
+        <span class="meta-label">PLOMBERIE</span>
+        <h3 class="tarif-card-title">4 prestations chiffrees</h3>
+        <p class="folio">Chauffe-eau, depannage, douche, PAC eau chaude.</p>
+      </a>
+      <a href="/tarifs/electricien/" class="tarif-card card-editorial">
+        <span class="meta-label">ELECTRICITE</span>
+        <h3 class="tarif-card-title">4 prestations chiffrees</h3>
+        <p class="folio">Tableau, prise, luminaire, borne IRVE.</p>
+      </a>
+      <a href="/tarifs/couvreur/" class="tarif-card card-editorial">
+        <span class="meta-label">COUVERTURE</span>
+        <h3 class="tarif-card-title">4 prestations chiffrees</h3>
+        <p class="folio">Refection, demoussage, tuiles, isolation combles.</p>
+      </a>
+      <a href="/tarifs/isolation/" class="tarif-card card-editorial">
+        <span class="meta-label">ISOLATION</span>
+        <h3 class="tarif-card-title">4 prestations chiffrees</h3>
+        <p class="folio">Combles soufflage, ITE, rampants, sous-sol.</p>
+      </a>
+    </div>
+    <p class="classements-tous">
+      <a href="/tarifs/" class="btn-ghost">Voir les 60 tarifs (15 metiers) <span class="arrow">&rarr;</span></a>
+    </p>
+  </section>
+
+  <InkBleedDivider variant="ornament" />
+
   <!-- ═══════════════════ TOP 3 , EXTRAIT D'UN CLASSEMENT ═══════════════════ -->
   <section class="section-top3 container-wide">
     <EditorialHeader category="EXTRAIT DU CLASSEMENT" title="Plomberie générale dans l'Yonne" subtitle="Trois premières places du classement, extrait de l'édition mensuelle." align="center" />
@@ -1067,6 +1104,38 @@ const jsonLd = [
   .methode-temps h3 { font-size: 1.5rem; margin: 0; font-weight: 500; }
   .methode-temps p { font-size: 0.96rem; color: var(--ink-soft); margin: 0; }
   .methode-foot-cta { text-align: center; margin-top: 1.5rem; }
+
+  /* ═══════ TARIFS HUB ═══════ */
+  .section-tarifs { padding: clamp(1rem, 2vw, 2rem) 0; }
+  .tarifs-cta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+  @media (max-width: 960px) { .tarifs-cta-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .tarifs-cta-grid { grid-template-columns: 1fr; } }
+  .tarif-card {
+    padding: 1.3rem 1.3rem 1.4rem;
+    text-decoration: none;
+    color: var(--ink);
+    display: grid;
+    gap: 0.35rem;
+    border-radius: 4px;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .tarif-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(30, 58, 82, 0.08);
+    border-color: var(--observatoire, #1e3a52);
+  }
+  .tarif-card-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin: 0.2rem 0;
+  }
 
   /* ═══════ CLASSEMENTS POPULAIRES ═══════ */
   .section-classements { padding: clamp(1rem, 2vw, 2rem) 0 clamp(1rem, 2vw, 2rem); }

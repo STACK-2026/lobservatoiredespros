@@ -387,3 +387,20 @@ Metier : plombier
 STATUS : OK
 
 ```
+
+## Phase 2.D , audit `electricien` , 2026-04-25 12:33
+
+```
+Metier : electricien
+  Dpts couverts   : 94 / 96 metropole
+  Pros total      : 9400
+  Moyenne / dpt   : 100.0
+  Top 3 dpts      : 01=100, 02=100, 03=100
+  Bottom 3 dpts   : 01=100, 02=100, 03=100
+  SIRET dupliques : 0
+  Pros orphelins  : 0 (sans pro_zones)
+  Geocodes        : 800/9400 (8.5%)
+
+STATUS : OK
+
+```
