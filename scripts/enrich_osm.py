@@ -262,11 +262,24 @@ def main():
 
     # Build pro_by_siret index
     pros_by_siret = {p["siret"]: p for p in pros if p.get("siret")}
+    # Aussi indexer par SIREN (9 premiers chiffres) pour matcher l'etablissement siege
+    pros_by_siren: Dict[str, dict] = {}
+    for p in pros:
+        siret = p.get("siret") or ""
+        if len(siret) >= 9:
+            pros_by_siren.setdefault(siret[:9], p)
 
-    # Compute updates
+    # Compute updates : match exact SIRET d'abord, fallback SIREN
     updates = []
+    matched_siret = matched_siren = 0
     for siret, contact in osm_by_siret.items():
         pro = pros_by_siret.get(siret)
+        if pro:
+            matched_siret += 1
+        elif len(siret) >= 9:
+            pro = pros_by_siren.get(siret[:9])
+            if pro:
+                matched_siren += 1
         if not pro:
             continue
         update = {}
@@ -276,11 +289,13 @@ def main():
             update["site_web"] = contact["website"]
         if not pro.get("email") and contact.get("email"):
             update["email"] = contact["email"]
+        if not pro.get("opening_hours") and contact.get("opening_hours"):
+            update["opening_hours"] = contact["opening_hours"]
         if update:
             update["pro_id"] = pro["id"]
             update["siret"] = siret
             updates.append(update)
-    log(f"Updates a appliquer : {len(updates)} pros")
+    log(f"Updates a appliquer : {len(updates)} pros (match SIRET={matched_siret}, fallback SIREN={matched_siren})")
 
     if args.dry_run:
         for u in updates[:10]:
