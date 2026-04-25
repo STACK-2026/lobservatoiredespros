@@ -1,7 +1,7 @@
 # État actuel , L'Observatoire des Pros
 
-**Dernière mise à jour** : 2026-04-24 00:00
-**Statut** : Site LIVE · prêt pour indexation GSC · pré-extension nationale
+**Dernière mise à jour** : 2026-04-25 05:00 (post-Phase 2.1 IDF + SEO/GEO overhaul)
+**Statut** : Site LIVE · Extension IDF déployée · pré-Phase 2.D (national)
 
 ---
 
@@ -22,21 +22,23 @@
 
 ---
 
-## 📊 Données actuelles
+## 📊 Données actuelles (post-Phase 2.1 IDF)
 
-| Métrique | Valeur |
-|---|---|
-| Pages buildées | **335** |
-| URLs sitemap principal | **333** |
-| URLs ai-sitemap | **12** (filtré AI-citable) |
-| Pros actifs | **290** (Yonne 89, plombiers) |
-| Pros géocodés | **290/290** |
-| Pros enrichis (Recherche Entreprises) | **290/290** |
-| Pros synchronisés BODACC | **290/290** |
-| Événements BODACC stockés | **310+** |
-| Répartition Trust Score v2 | 253 bronze · 32 argent · 5 or · 0 platine |
-| Articles observations | **3** (enquête, méthodologie, portrait) |
-| Pages auteurs | **3** (Camille Fabre, Antoine Delaunay, Sarah Poitevin) |
+| Métrique | Valeur | Δ vs Phase 1 |
+|---|---|---|
+| Pros actifs | **10 694** | +10 404 |
+| Départements couverts | **9** (89 Yonne + 8 IDF) | +8 |
+| Métiers couverts (avec pros) | **15** (5 pilotes + 10 Phase 2) | +10 |
+| Combos (metier × dpt) classements | **~121** (1 Yonne + 120 IDF) | +120 |
+| Pros géocodés | **10 686 / 10 694** (99.9%) | |
+| Pros enrichis (Recherche Entreprises) | **10 572 / 10 694** (98.9%) | |
+| Pros synchronisés BODACC | **10 694 / 10 694** (100%) | |
+| Pros RGE actifs | **230** (2.2%) | |
+| Pros etat=cessée détectés | **74** (à arbitrer) | |
+| Répartition Trust Score v2 | 5 or · 32 argent · 10 657 bronze | |
+| Articles observations | **3** | |
+| Pages auteurs | **3** | |
+| Outils interactifs | **3** (grille-devis + verifier-rge + verifier-siret) | +2 |
 
 ---
 
