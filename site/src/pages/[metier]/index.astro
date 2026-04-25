@@ -119,12 +119,64 @@ function ancienneteAnnees(dateStr: string | null): number | undefined {
       </section>
     )}
 
+    <section class="container-wide metier-guide-cta">
+      <div class="guide-cta-inner">
+        <p class="guide-cta-eyebrow">GUIDE PRATIQUE</p>
+        <h2 class="guide-cta-title">Avant de choisir un {nom.toLowerCase()}, lisez notre guide</h2>
+        <p class="guide-cta-desc">
+          Critères vérifiables, drapeaux rouges à fuir, questions à poser au devis : la grille
+          éditoriale complète de notre rédaction.
+        </p>
+        <a href={`/guide/comment-choisir-un-${metier}/`} class="guide-cta-btn">Lire le guide complet &rarr;</a>
+      </div>
+    </section>
+
     <section class="container-wide"><MethodologyBlock /></section>
   </article>
 </BaseLayout>
 
 <style>
   .metier-page { padding: 2rem 0 4rem; }
+  .metier-guide-cta {
+    max-width: 60rem;
+    margin: 3rem auto;
+    padding: 2.5rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--or, #b8863d);
+    border-radius: 6px;
+  }
+  .guide-cta-inner { max-width: 50rem; }
+  .guide-cta-eyebrow {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--observatoire);
+    margin: 0 0 0.5rem;
+  }
+  .guide-cta-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 400;
+    margin: 0.4rem 0 0.75rem;
+    color: var(--ink);
+  }
+  .guide-cta-desc {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+    margin: 0 0 1.25rem;
+  }
+  .guide-cta-btn {
+    display: inline-block;
+    padding: 0.85rem 1.5rem;
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper);
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .guide-cta-btn:hover { background: var(--ink); }
   .metier-head { max-width: 60rem; margin: 0 auto; padding-bottom: 2rem; }
   .metier-head .heading-display { margin: 0.4rem 0 1rem; }
 
