@@ -20,9 +20,11 @@ import json
 import os
 import re
 import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, date
 from pathlib import Path
 
@@ -305,12 +307,17 @@ def sync_pro(pro, service_key, dry_run=False):
     }
 
 
+_rge_lock = threading.Lock()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--siret", help="Un SIRET specifique (test)")
     ap.add_argument("--dept", help="Tous les pros d'un departement (ex: 89)")
     ap.add_argument("--all", action="store_true", help="Tous les pros actifs")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--workers", type=int, default=5, help="threads paralleles (default 5, ADEME ~6 req/s max)")
+    ap.add_argument("--sleep", type=float, default=0.05, help="sleep par worker (s)")
     args = ap.parse_args()
 
     service_key = get_service_key()
@@ -319,25 +326,43 @@ def main():
     if not pros:
         log("Aucun pro trouve", "WARN")
         return
-    log(f"{len(pros)} pros a synchroniser")
+    log(f"{len(pros)} pros a synchroniser (workers={args.workers})")
 
     total_qualifs = 0
     total_actives = 0
     pros_with_rge = 0
-    for i, p in enumerate(pros, 1):
-        result = sync_pro(p, service_key, dry_run=args.dry_run)
-        if "skip" in result:
-            continue
-        total_qualifs += result.get("qualifs_total", 0)
-        total_actives += result.get("qualifs_actives", 0)
-        if result.get("qualifs_actives", 0) > 0:
-            pros_with_rge += 1
-        if i % 25 == 0:
-            log(f"  {i}/{len(pros)} , {pros_with_rge} avec RGE, {total_qualifs} qualifs")
-        # Rate limit ADEME : ~6 req/s max
-        time.sleep(0.2)
+    done = 0
+    t0 = time.time()
 
-    log(f"\n=== Sync terminee ===")
+    def _worker(p):
+        try:
+            res = sync_pro(p, service_key, dry_run=args.dry_run)
+            if args.sleep:
+                time.sleep(args.sleep)
+            return res
+        except Exception:
+            return {"skip": True}
+
+    with ThreadPoolExecutor(max_workers=max(1, args.workers)) as ex:
+        futures = [ex.submit(_worker, p) for p in pros]
+        for f in as_completed(futures):
+            try:
+                result = f.result()
+            except Exception:
+                result = {"skip": True}
+            with _rge_lock:
+                done += 1
+                if "skip" not in result:
+                    total_qualifs += result.get("qualifs_total", 0)
+                    total_actives += result.get("qualifs_actives", 0)
+                    if result.get("qualifs_actives", 0) > 0:
+                        pros_with_rge += 1
+                if done % 200 == 0:
+                    elapsed = time.time() - t0
+                    rate = done / elapsed if elapsed > 0 else 0
+                    log(f"  {done}/{len(pros)} , {pros_with_rge} avec RGE, {total_qualifs} qualifs ({rate:.1f}/s)")
+
+    log(f"\n=== Sync terminee en {time.time()-t0:.0f}s ===")
     log(f"  Pros traites          : {len(pros)}")
     log(f"  Pros avec RGE actif   : {pros_with_rge} ({100*pros_with_rge//max(1,len(pros))}%)")
     log(f"  Qualifs total         : {total_qualifs}")
