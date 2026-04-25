@@ -1,0 +1,212 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../utils/seo";
+import { GUIDES_METIERS } from "../../data/guides_metiers";
+import { getMetiers } from "../../lib/supabase";
+
+const allMetiers = await getMetiers();
+const guides = GUIDES_METIERS
+  .map((g) => {
+    const m = allMetiers.find((mm) => mm.slug === g.metier);
+    return { ...g, label: m?.nom_pluriel || g.metier };
+  })
+  .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+
+const title = "Guides editoriaux : comment choisir son artisan BTP";
+const description = `${guides.length} guides editoriaux pour choisir un artisan BTP fiable. Criteres, drapeaux rouges, questions devis. Sources publiques verifiees.`;
+const url = `${siteConfig.url}/guide/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Guides", url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${url}#collection`,
+    url,
+    name: title,
+    description,
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    publisher: { "@id": ORG_ID },
+    inLanguage: "fr-FR",
+    hasPart: guides.map((g) => ({
+      "@type": "Article",
+      name: g.titre,
+      url: `${siteConfig.url}/guide/comment-choisir-un-${g.metier}/`,
+      description: g.meta_description,
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="container-wide" style="padding: 2rem 0 4rem;">
+    <Breadcrumbs items={[
+      { label: "Accueil", href: "/" },
+      { label: "Guides" },
+    ]} />
+
+    <Masthead category="GUIDES PRATIQUES , 2026" signature="Par la redaction" />
+
+    <header class="page-header">
+      <h1 class="heading-display">Comment choisir son artisan, métier par métier.</h1>
+      <p class="lead">
+        <strong>{guides.length} guides editoriaux</strong> pour choisir un artisan BTP fiable.
+        Criteres verifiables, drapeaux rouges, questions a poser au devis. Tout est source publiquement
+        verifiable (France Renov', ADEME, Capeb, DGCCRF).
+      </p>
+    </header>
+
+    <aside class="encart-methodologie" data-speakable>
+      <strong>La methode editoriale.</strong> Chaque guide structure le choix en 4 axes :
+      <strong>criteres</strong> (par niveau d'importance), <strong>drapeaux rouges</strong>
+      (signaux d'alerte a fuir), <strong>questions a poser au devis</strong> (filtre le pro
+      du bricoleur), <strong>cas concret</strong> (exemple terrain chiffre). Ces guides ne
+      remplacent pas un devis , ils l'eclairent.
+    </aside>
+
+    <section class="guides-grid">
+      <h2 class="section-title">Choisir un metier</h2>
+      <div class="grid">
+        {guides.map((g) => (
+          <a href={`/guide/comment-choisir-un-${g.metier}/`} class="guide-card">
+            <span class="guide-card-eyebrow">GUIDE , {g.label.toUpperCase()}</span>
+            <h3 class="guide-card-title">{g.titre}</h3>
+            <p class="guide-card-desc">{g.meta_description.slice(0, 130)}...</p>
+            <span class="guide-card-cta">Lire le guide &rarr;</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="encart-pourquoi">
+      <h2 class="section-title">Pourquoi un guide editorial ?</h2>
+      <p>
+        Le marche francais comprend des centaines de milliers d'entreprises BTP. Une part
+        non negligeable opere sans certification, sans assurance decennale valide, ou avec
+        des pratiques abusives (devis incomplets, surfacturation urgences, demarchage post-tempete).
+      </p>
+      <p>
+        Ces guides condensent ce que notre redaction a observe : <strong>quelles sont les certifications
+        verifiables, quelles sont les arnaques recurrentes, quelles questions filtrent le pro</strong>.
+        L'objectif : que vous arriviez en confrontation avec l'artisan en sachant ce qui compte vraiment.
+      </p>
+      <p>
+        Apres lecture, l'etape logique est de comparer les fourchettes de prix sur
+        <a href="/tarifs/">/tarifs/</a>, puis de consulter les <a href="/departements/">classements
+        editoriaux par departement</a>.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-header {
+    margin: 1.5rem 0 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border, #e8e3d8);
+  }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    color: var(--ink);
+  }
+  .lead {
+    font-size: 1.18rem;
+    line-height: 1.55;
+    color: var(--text-soft);
+    max-width: 65ch;
+  }
+  .encart-methodologie {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire);
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+  .section-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2rem;
+    margin: 2.5rem 0 1.5rem;
+    color: var(--ink);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .guide-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .guide-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(30, 58, 82, 0.08);
+    border-color: var(--observatoire);
+  }
+  .guide-card-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--observatoire);
+    font-weight: 500;
+  }
+  .guide-card-title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.35rem;
+    margin: 0.4rem 0 0.6rem;
+    line-height: 1.2;
+  }
+  .guide-card-desc {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--text-soft);
+    flex: 1;
+    margin: 0 0 1rem;
+  }
+  .guide-card-cta {
+    color: var(--observatoire);
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  .encart-pourquoi {
+    margin: 3rem 0 0;
+    padding: 2rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1.02rem;
+    line-height: 1.7;
+  }
+  .encart-pourquoi p {
+    margin: 0.75rem 0;
+  }
+  .encart-pourquoi a {
+    color: var(--observatoire);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

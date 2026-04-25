@@ -1,0 +1,546 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../utils/seo";
+import { GUIDES_METIERS } from "../../data/guides_metiers";
+import { PRESTATIONS_PAR_METIER, rangeFR } from "../../data/tarifs";
+import { getMetiers } from "../../lib/supabase";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { GUIDES_METIERS } = await import("../../data/guides_metiers");
+  return GUIDES_METIERS.map((g) => ({
+    params: { metier: g.metier },
+    props: { guide: g },
+  }));
+};
+
+const { guide } = Astro.props as { guide: any };
+
+const allMetiers = await getMetiers();
+const metierData = allMetiers.find((m) => m.slug === guide.metier);
+const tarifs = PRESTATIONS_PAR_METIER[guide.metier] || [];
+
+const dateUpdated = "2026-04-25";
+const dateUpdatedFR = "25 avril 2026";
+
+const url = `${siteConfig.url}/guide/comment-choisir-un-${guide.metier}/`;
+const ogImage = `${siteConfig.url}/og-default.png`;
+
+const niveauLabel: Record<string, string> = {
+  critique: "CRITIQUE",
+  elevee: "ÉLEVÉ",
+  utile: "UTILE",
+};
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Guides", url: `${siteConfig.url}/guide/` },
+    { name: guide.titre, url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}#article`,
+    url,
+    headline: guide.titre,
+    description: guide.meta_description,
+    inLanguage: "fr-FR",
+    datePublished: "2026-04-25",
+    dateModified: dateUpdated,
+    author: { "@id": ORG_ID },
+    publisher: { "@id": ORG_ID },
+    image: ogImage,
+    mainEntityOfPage: { "@id": url },
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    about: {
+      "@type": "Service",
+      serviceType: metierData?.nom || guide.metier,
+      provider: { "@id": ORG_ID },
+    },
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["[data-speakable]"],
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: (guide.faq || []).map((f: any) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.r },
+    })),
+  },
+];
+---
+
+<BaseLayout title={`${guide.titre} , Guide editorial 2026`} description={guide.meta_description} jsonLd={jsonLd} ogImage={ogImage}>
+  <article class="guide-page">
+    <div class="container-editorial">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Guides", href: "/guide/" },
+        { label: guide.titre },
+      ]} />
+
+      <Masthead category={`GUIDE PRATIQUE , ${(metierData?.nom || guide.metier).toUpperCase()}`} signature="Par la redaction" date={dateUpdatedFR} />
+
+      <header class="guide-header">
+        <h1 class="heading-display">{guide.titre}.</h1>
+        <p class="lead">{guide.intro}</p>
+      </header>
+
+      <aside class="guide-tldr" data-speakable>
+        <strong>L'enjeu en 30 secondes.</strong> {guide.enjeu}
+      </aside>
+
+      <nav class="guide-toc">
+        <p class="toc-label">Sommaire</p>
+        <ol>
+          <li><a href="#criteres">Les critères qui font la différence</a></li>
+          <li><a href="#drapeaux">Drapeaux rouges à éviter</a></li>
+          <li><a href="#questions">Questions à poser au devis</a></li>
+          <li><a href="#cas-concret">Cas concret éditorial</a></li>
+          <li><a href="#prix">Combien ça coûte ?</a></li>
+          <li><a href="#faq">Questions fréquentes</a></li>
+        </ol>
+      </nav>
+
+      <section id="criteres" class="guide-section">
+        <h2>Les critères qui font la différence</h2>
+        <p class="section-lead">
+          Vérifiables avant signature. Notre rédaction classe chaque critère par niveau d'importance.
+        </p>
+        <ol class="criteres-list">
+          {guide.criteres.map((c: any) => (
+            <li class={`critere critere-${c.niveau}`}>
+              <span class="critere-niveau">{niveauLabel[c.niveau] || c.niveau}</span>
+              <h3 class="critere-titre">{c.titre}</h3>
+              {c.description && <p class="critere-desc">{c.description}</p>}
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section id="drapeaux" class="guide-section">
+        <h2>Les {guide.drapeaux_rouges.length} drapeaux rouges à fuir</h2>
+        <p class="section-lead">
+          Si l'un de ces signaux apparaît dans le contact ou le devis, partez sans signer.
+        </p>
+        <ul class="drapeaux-list">
+          {guide.drapeaux_rouges.map((d: string) => (
+            <li class="drapeau">
+              <span class="drapeau-marker" aria-hidden="true">!</span>
+              <span class="drapeau-text">{d}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {guide.questions_devis && guide.questions_devis.length > 0 && (
+        <section id="questions" class="guide-section">
+          <h2>{guide.questions_devis.length} questions à poser avant de signer</h2>
+          <p class="section-lead">
+            La réponse de l'artisan trie le pro du bricoleur. Posez-les telles quelles.
+          </p>
+          <ol class="questions-list">
+            {guide.questions_devis.map((qd: any) => (
+              <li class="question">
+                <p class="question-q">{qd.q}</p>
+                <p class="question-r"><strong>Réponse attendue :</strong> {qd.r}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {guide.cas_concret && guide.cas_concret.titre && (
+        <section id="cas-concret" class="guide-section">
+          <h2>Cas concret éditorial</h2>
+          <article class="cas-concret">
+            <header class="cas-head">
+              <span class="meta-label-or">EXEMPLE TERRAIN</span>
+              <h3 class="cas-titre">{guide.cas_concret.titre}</h3>
+            </header>
+            <p class="cas-texte">{guide.cas_concret.texte}</p>
+          </article>
+        </section>
+      )}
+
+      {tarifs.length > 0 && (
+        <section id="prix" class="guide-section">
+          <h2>Combien ça coûte ? {tarifs.length} prestations chiffrées</h2>
+          <p class="section-lead">
+            Fourchettes vérifiées 2026, sources publiques (France Rénov', ADEME, Capeb).
+          </p>
+          <div class="tarifs-grid">
+            {tarifs.map((t: any) => (
+              <a href={`/tarifs/${guide.metier}/${t.slug}/`} class="tarif-mini-card">
+                <span class="tarif-mini-titre">{t.nom}</span>
+                <span class="tarif-mini-prix">{rangeFR(t.prix_min, t.prix_max, t.unite)}</span>
+              </a>
+            ))}
+          </div>
+          <p class="tarifs-cta">
+            <a href={`/tarifs/${guide.metier}/`} class="btn-secondary">Voir les détails complets &rarr;</a>
+          </p>
+        </section>
+      )}
+
+      <section id="faq" class="guide-section">
+        <h2>Questions fréquentes</h2>
+        {guide.faq.map((f: any) => (
+          <details class="faq-item">
+            <summary>{f.q}</summary>
+            <p>{f.r}</p>
+          </details>
+        ))}
+      </section>
+
+      <aside class="guide-sources">
+        <h2 class="sources-title">Sources et méthode</h2>
+        <p>
+          Cette grille éditoriale est mise à jour le <strong>{dateUpdatedFR}</strong>, à partir des sources publiques suivantes :
+        </p>
+        <ul>
+          {guide.sources.map((s: any) => (
+            <li><a href={s.url} rel="nofollow noopener" target="_blank">{s.label} &rarr;</a></li>
+          ))}
+        </ul>
+      </aside>
+
+      <nav class="guide-cta">
+        <a href={`/${guide.metier}/`} class="btn-primary">Voir les meilleurs {metierData?.nom_pluriel?.toLowerCase() || guide.metier} &rarr;</a>
+        <a href="/guide/" class="btn-secondary">&larr; Tous les guides métier</a>
+      </nav>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .guide-page { padding: 2rem 0 4rem; }
+  .container-editorial {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+  .guide-header { margin: 1.5rem 0 1rem; }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    color: var(--ink);
+  }
+  .lead {
+    font-size: 1.18rem;
+    line-height: 1.55;
+    color: var(--text-soft);
+  }
+  .guide-tldr {
+    margin: 2rem 0;
+    padding: 1.5rem 1.75rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire);
+    border-radius: 4px;
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
+  .guide-toc {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 4px;
+  }
+  .toc-label {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--observatoire);
+    margin: 0 0 0.5rem;
+  }
+  .guide-toc ol {
+    padding-left: 1.5rem;
+    line-height: 1.8;
+    margin: 0;
+  }
+  .guide-toc a {
+    color: var(--ink);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .guide-toc a:hover { color: var(--observatoire); }
+  .guide-section { margin: 3rem 0; scroll-margin-top: 100px; }
+  h2 {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+    margin: 0 0 0.75rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .section-lead {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+    margin: 0 0 1.5rem;
+  }
+  .criteres-list {
+    list-style: none;
+    counter-reset: critere;
+    padding: 0;
+  }
+  .critere {
+    counter-increment: critere;
+    margin: 1.25rem 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 4px;
+    position: relative;
+  }
+  .critere::before {
+    content: counter(critere, decimal-leading-zero);
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    opacity: 0.5;
+  }
+  .critere-niveau {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    background: var(--ink);
+    color: var(--paper);
+    margin-bottom: 0.5rem;
+  }
+  .critere-critique .critere-niveau { background: var(--rouge-cachet, #8b2e2a); }
+  .critere-elevee .critere-niveau { background: var(--observatoire); }
+  .critere-utile .critere-niveau { background: var(--vert-archive, #4a5d3a); }
+  .critere-titre {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.25rem;
+    font-weight: 400;
+    margin: 0.4rem 0 0.5rem;
+    color: var(--ink);
+  }
+  .critere-desc {
+    font-size: 0.97rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+    margin: 0;
+  }
+  .drapeaux-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .drapeau {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 1rem 1.25rem;
+    background: rgba(139, 46, 42, 0.05);
+    border-left: 3px solid var(--rouge-cachet, #8b2e2a);
+    border-radius: 4px;
+  }
+  .drapeau-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--rouge-cachet, #8b2e2a);
+    color: var(--paper);
+    font-weight: 600;
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+  .drapeau-text {
+    font-size: 0.97rem;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .questions-list {
+    list-style: none;
+    counter-reset: question;
+    padding: 0;
+  }
+  .question {
+    counter-increment: question;
+    margin: 1.25rem 0;
+    padding: 1.25rem 1.5rem 1.25rem 3.5rem;
+    background: var(--paper, #f7f3ec);
+    border-radius: 4px;
+    position: relative;
+  }
+  .question::before {
+    content: "Q" counter(question);
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--observatoire);
+    background: var(--paper-warm, #f1ebdf);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+  .question-q {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  .question-r {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-soft);
+    margin: 0;
+  }
+  .cas-concret {
+    margin: 1rem 0;
+    padding: 2rem;
+    background: var(--ink, #1a1614);
+    color: var(--paper, #f7f3ec);
+    border-radius: 6px;
+  }
+  .cas-head { margin-bottom: 1rem; }
+  .cas-titre {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.4rem;
+    font-weight: 400;
+    margin: 0.4rem 0;
+    color: var(--paper);
+  }
+  .cas-texte {
+    font-size: 1.02rem;
+    line-height: 1.7;
+    margin: 0;
+    opacity: 0.92;
+  }
+  .tarifs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .tarif-mini-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.25rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .tarif-mini-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--observatoire);
+  }
+  .tarif-mini-titre {
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+  .tarif-mini-prix {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--observatoire);
+  }
+  .tarifs-cta { text-align: center; margin: 1.5rem 0 0; }
+  .faq-item {
+    margin: 0.75rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .faq-item summary {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    font-weight: 400;
+    cursor: pointer;
+  }
+  .faq-item p {
+    margin: 0.75rem 0 0;
+    line-height: 1.6;
+    color: var(--text-soft);
+  }
+  .guide-sources {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-radius: 4px;
+  }
+  .sources-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin: 0 0 1rem;
+  }
+  .guide-sources ul {
+    padding-left: 1.5rem;
+    line-height: 1.8;
+    margin: 0;
+  }
+  .guide-sources a {
+    color: var(--observatoire);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .guide-cta {
+    margin: 3rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.85rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-primary {
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper);
+  }
+  .btn-primary:hover { background: var(--ink); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--observatoire); }
+</style>

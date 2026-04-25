@@ -404,3 +404,20 @@ Metier : electricien
 STATUS : OK
 
 ```
+
+## Phase 2.D , audit `couvreur` , 2026-04-25 14:05
+
+```
+Metier : couvreur
+  Dpts couverts   : 94 / 96 metropole
+  Pros total      : 9080
+  Moyenne / dpt   : 96.6
+  Top 3 dpts      : 01=100, 02=100, 03=100
+  Bottom 3 dpts   : 05=34, 04=39, 90=51
+  SIRET dupliques : 0
+  Pros orphelins  : 0 (sans pro_zones)
+  Geocodes        : 798/9080 (8.8%)
+
+STATUS : OK
+
+```
