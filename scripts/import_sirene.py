@@ -201,14 +201,14 @@ def slugify(text, max_len=70):
 
 
 def build_slug(name, siren, ville):
-    """Construit un slug unique : nom-ville-siren-last-6.
-    Exemple : 'etablissements-loof-moneteau-312646854' (unique via SIREN).
+    """Construit un slug propre : nom-ville (sans suffixe SIREN).
+    Si collision detectee plus tard, le caller appendra -2, -3, etc.
+    Le SIREN reste dans le champ p.siren pour traçabilite, mais pas dans l'URL.
     """
     base = slugify(name, max_len=40) if name else "pro"
-    ville_slug = slugify(ville or "", max_len=15)
-    siren_short = siren[-6:] if siren else ""
-    parts = [p for p in [base, ville_slug, siren_short] if p]
-    return "-".join(parts)[:80]
+    ville_slug = slugify(ville or "", max_len=20)
+    parts = [p for p in [base, ville_slug] if p]
+    return "-".join(parts)[:60]
 
 
 def compute_score_confiance(record):

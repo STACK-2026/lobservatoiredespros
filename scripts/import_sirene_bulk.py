@@ -158,14 +158,28 @@ def row_to_pro(record: dict) -> Optional[dict]:
 
 
 def deduplicate_slugs(pros: List[dict]) -> List[dict]:
-    """Si meme slug apparait pour 2 SIRETs differents, suffixer."""
+    """Dedup propre : meme slug pour 2 SIRETs differents -> -2, -3, etc."""
     seen = {}
+    counters: Dict[str, int] = {}
     out = []
     for p in pros:
-        slug = p["slug"]
-        if slug in seen and seen[slug] != p["siret"]:
-            p["slug"] = f"{slug}-{p['siret'][-5:]}"
-        seen[p["slug"]] = p["siret"]
+        base = p["slug"]
+        if base not in seen:
+            seen[base] = p["siret"]
+            out.append(p)
+            continue
+        # Meme slug pour 2 pros differents : numerote
+        if seen[base] == p["siret"]:
+            # Meme SIRET re-importe, garde slug original
+            out.append(p)
+            continue
+        counters[base] = counters.get(base, 1) + 1
+        new_slug = f"{base}-{counters[base]}"
+        while new_slug in seen:
+            counters[base] += 1
+            new_slug = f"{base}-{counters[base]}"
+        p["slug"] = new_slug
+        seen[new_slug] = p["siret"]
         out.append(p)
     return out
 
