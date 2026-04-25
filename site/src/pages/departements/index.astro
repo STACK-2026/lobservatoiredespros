@@ -116,6 +116,9 @@ const jsonLd = [
                     Consulter les classements <span aria-hidden="true">-&gt;</span>
                   </a>
                 )}
+                <a class="dept-link dept-link-snapshot" href={`/observations/etat-du-marche/${d.slug}/`}>
+                  Lire le snapshot du marché <span aria-hidden="true">-&gt;</span>
+                </a>
               </article>
             ))}
           </div>
@@ -149,4 +152,11 @@ const jsonLd = [
     text-decoration: none;
   }
   .dept-link:hover { text-decoration: underline; }
+  .dept-link-snapshot {
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: none;
+    color: var(--observatoire, #1e3a52);
+    font-style: italic;
+  }
 </style>

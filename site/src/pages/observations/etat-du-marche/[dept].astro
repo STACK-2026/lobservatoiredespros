@@ -1,0 +1,537 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import Masthead from "../../../components/Masthead.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../../utils/seo";
+import { supabase, getMetiers, getZones } from "../../../lib/supabase";
+import { REGION_BY_DEPT_CODE } from "../../../data/geo_fr";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { getZones } = await import("../../../lib/supabase");
+  const zones = await getZones("departement");
+  // Limiter au territoire metropole + dpts qui ont au moins quelques pros
+  const metropoleDpts = zones.filter((z) =>
+    z.code && !["971", "972", "973", "974", "976", "975", "977", "978"].includes(z.code),
+  );
+  return metropoleDpts.map((z) => ({
+    params: { dept: z.slug },
+    props: { dept: z },
+  }));
+};
+
+const { dept } = Astro.props as { dept: any };
+if (!dept) {
+  return Astro.redirect("/observations/");
+}
+
+const allMetiers = await getMetiers();
+const metierById = new Map(allMetiers.map((m) => [m.id, m]));
+
+// Recuperer tous les pros de ce departement (paginated cap 1000)
+const proIdsByZone: string[] = [];
+{
+  const page = 1000;
+  for (let start = 0; ; start += page) {
+    const { data } = await supabase
+      .from("pro_zones")
+      .select("pro_id")
+      .eq("zone_id", dept.id)
+      .range(start, start + page - 1);
+    if (!data || data.length === 0) break;
+    for (const row of data as { pro_id: string }[]) proIdsByZone.push(row.pro_id);
+    if (data.length < page) break;
+  }
+}
+
+interface ProLite {
+  id: string;
+  slug: string;
+  nom_entreprise: string;
+  ville: string | null;
+  rge: boolean;
+  qualibat: boolean;
+  score_confiance: number;
+  niveau_confiance: string | null;
+  etat_administratif: string | null;
+  date_creation_entreprise: string | null;
+  active: boolean;
+}
+
+const pros: ProLite[] = [];
+{
+  const ids = Array.from(new Set(proIdsByZone));
+  const chunkSize = 500;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    const { data } = await supabase
+      .from("pros")
+      .select("id,slug,nom_entreprise,ville,rge,qualibat,score_confiance,niveau_confiance,etat_administratif,date_creation_entreprise,active")
+      .in("id", chunk);
+    if (data) pros.push(...(data as ProLite[]));
+  }
+}
+
+const prosActifs = pros.filter((p) => p.active);
+
+// Stats
+const total = prosActifs.length;
+const totalRGE = prosActifs.filter((p) => p.rge).length;
+const totalQualibat = prosActifs.filter((p) => p.qualibat).length;
+const cesses = prosActifs.filter((p) => p.etat_administratif === "C" || p.etat_administratif === "F").length;
+const argent = prosActifs.filter((p) => p.niveau_confiance === "argent").length;
+const or = prosActifs.filter((p) => p.niveau_confiance === "or").length;
+
+// Anciennetes
+const now = new Date();
+const ages = prosActifs
+  .map((p) => p.date_creation_entreprise)
+  .filter(Boolean)
+  .map((d) => Math.floor((now.getTime() - new Date(d!).getTime()) / (365.25 * 86400000)));
+const ageMoyen = ages.length ? Math.round(ages.reduce((a, b) => a + b, 0) / ages.length) : 0;
+const plusDe10ans = ages.filter((a) => a >= 10).length;
+const plusDe20ans = ages.filter((a) => a >= 20).length;
+
+// Repartition par metier
+const metiersCounts: Record<string, number> = {};
+{
+  const ids = Array.from(new Set(proIdsByZone));
+  const chunkSize = 500;
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    const { data } = await supabase
+      .from("pro_metiers")
+      .select("metier_id, pro_id")
+      .in("pro_id", chunk);
+    if (data) {
+      for (const row of data as { metier_id: string }[]) {
+        const m = metierById.get(row.metier_id);
+        if (m) metiersCounts[m.slug] = (metiersCounts[m.slug] || 0) + 1;
+      }
+    }
+  }
+}
+const metiersTrie = Object.entries(metiersCounts)
+  .sort(([, a], [, b]) => b - a)
+  .map(([slug, count]) => {
+    const m = allMetiers.find((mm) => mm.slug === slug);
+    return { slug, nom_pluriel: m?.nom_pluriel || slug, count };
+  });
+
+// Top 5 par score
+const top5 = [...prosActifs]
+  .sort((a, b) => b.score_confiance - a.score_confiance)
+  .slice(0, 5);
+
+// Region
+const region = REGION_BY_DEPT_CODE[dept.code] || "France";
+
+const dateUpdated = new Date().toISOString().split("T")[0];
+const dateUpdatedFR = new Date().toLocaleDateString("fr-FR", {
+  day: "numeric", month: "long", year: "numeric",
+});
+
+const title = `Etat du marche BTP ${dept.nom} (${dept.code}) , ${siteConfig.editionMonth} ${siteConfig.editionYear}`;
+const description = total > 0
+  ? `${total} pros BTP actifs en ${dept.nom} : ${metiersTrie.length} metiers, ${totalRGE} certifies RGE, age moyen ${ageMoyen} ans. Snapshot mensuel.`
+  : `Marche BTP en ${dept.nom} : panorama editorial des artisans observes par L'Observatoire des Pros.`;
+const url = `${siteConfig.url}/observations/etat-du-marche/${dept.slug}/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Observations", url: `${siteConfig.url}/observations/` },
+    { name: `Etat du marche ${dept.nom}`, url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "ReportageNewsArticle",
+    "@id": `${url}#article`,
+    url,
+    headline: title,
+    description,
+    inLanguage: "fr-FR",
+    datePublished: dateUpdated,
+    dateModified: dateUpdated,
+    author: { "@id": ORG_ID },
+    publisher: { "@id": ORG_ID },
+    mainEntityOfPage: { "@id": url },
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    image: `${siteConfig.url}/og-default.png`,
+    spatialCoverage: {
+      "@type": "AdministrativeArea",
+      name: dept.nom,
+      identifier: dept.code,
+    },
+    about: {
+      "@type": "Service",
+      serviceType: "BTP et services a domicile",
+      areaServed: { "@type": "AdministrativeArea", name: dept.nom },
+    },
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["[data-speakable]"],
+    },
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <article class="market-page">
+    <div class="container-editorial">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Observations", href: "/observations/" },
+        { label: `Etat du marche ${dept.nom}` },
+      ]} />
+
+      <Masthead category="ETAT DU MARCHE , SNAPSHOT" signature="Par la redaction" date={dateUpdatedFR} />
+
+      <header class="market-header">
+        <h1 class="heading-display">Etat du marche BTP en {dept.nom} ({dept.code}).</h1>
+        <p class="lead">
+          Snapshot du marche des artisans et entreprises du batiment en {dept.nom},
+          {region}. Donnees agregees a partir des sources publiques Sirene INSEE,
+          ADEME RGE, BODACC et France Renov', mis a jour le {dateUpdatedFR}.
+        </p>
+      </header>
+
+      <aside class="tldr-block" data-speakable>
+        <strong>En 30 secondes.</strong>
+        {total > 0 ? (
+          <span>
+            {total.toLocaleString("fr-FR")} professionnels BTP actifs observes en {dept.nom}.
+            {metiersTrie.length} metiers couverts. {totalRGE} certifies RGE
+            ({Math.round(100 * totalRGE / total)} %). Age moyen des entreprises : {ageMoyen} ans.
+            {plusDe10ans} entreprises de plus de 10 ans, {plusDe20ans} de plus de 20 ans.
+          </span>
+        ) : (
+          <span>
+            La rédaction n'a pas encore observé de professionnels actifs en {dept.nom}.
+            Ce département rejoindra le classement dans une prochaine édition.
+          </span>
+        )}
+      </aside>
+
+      {total > 0 && (
+        <>
+          <section class="market-section">
+            <h2>Vue d'ensemble</h2>
+            <div class="stats-grid">
+              <div class="stat-block">
+                <span class="stat-number">{total.toLocaleString("fr-FR")}</span>
+                <span class="stat-label">Pros actifs observes</span>
+              </div>
+              <div class="stat-block">
+                <span class="stat-number">{metiersTrie.length}</span>
+                <span class="stat-label">Metiers couverts</span>
+              </div>
+              <div class="stat-block">
+                <span class="stat-number">{totalRGE.toLocaleString("fr-FR")}</span>
+                <span class="stat-label">Certifies RGE ({Math.round(100 * totalRGE / total)} %)</span>
+              </div>
+              <div class="stat-block">
+                <span class="stat-number">{ageMoyen}</span>
+                <span class="stat-label">ans en moyenne</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="market-section">
+            <h2>Repartition par metier</h2>
+            <div class="metiers-table-wrapper">
+              <table class="metiers-table">
+                <thead>
+                  <tr>
+                    <th>Metier</th>
+                    <th>Pros actifs</th>
+                    <th>Part</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metiersTrie.map((m) => (
+                    <tr>
+                      <td>{m.nom_pluriel}</td>
+                      <td>{m.count.toLocaleString("fr-FR")}</td>
+                      <td>{Math.round(100 * m.count / total)} %</td>
+                      <td><a href={`/${m.slug}/${dept.slug}/`} class="link-classement">Voir le classement &rarr;</a></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="market-section">
+            <h2>Certifications environnementales</h2>
+            <p>
+              <strong>{totalRGE.toLocaleString("fr-FR")} entreprises</strong> sont certifiees RGE
+              (Reconnu Garant de l'Environnement) en {dept.nom}, soit
+              <strong>{Math.round(100 * totalRGE / total)} %</strong> des professionnels observes.
+              Ce label, delivre par l'ADEME et France Renov', est requis pour permettre a leurs
+              clients de beneficier des aides MaPrimeRenov', CEE et eco-PTZ. {totalQualibat > 0 && (
+                <span> {totalQualibat} entreprises detiennent une qualification Qualibat (qualifications metier verifiees).</span>
+              )}
+            </p>
+          </section>
+
+          {(or > 0 || argent > 0) && (
+            <section class="market-section">
+              <h2>Distinctions editoriales</h2>
+              <p>
+                Sur les {total.toLocaleString("fr-FR")} pros observes, {or > 0 && (
+                  <><strong>{or}</strong> ont obtenu le niveau Or (Score de Confiance superieur a 8/10) </>
+                )}
+                {argent > 0 && (
+                  <>{or > 0 ? "et " : ""}<strong>{argent}</strong> le niveau Argent (Score 6 a 8/10)</>
+                )}
+                {(or > 0 || argent > 0) && " a la suite de la consolidation des sources publiques."}
+              </p>
+            </section>
+          )}
+
+          {top5.length > 0 && (
+            <section class="market-section">
+              <h2>Top 5 du departement</h2>
+              <ol class="top5-list">
+                {top5.map((p, i) => (
+                  <li class="top5-item">
+                    <span class="top5-rank">#{i + 1}</span>
+                    <a href={`/pro/${p.slug}/`} class="top5-link">
+                      <span class="top5-name">{p.nom_entreprise}</span>
+                      <span class="top5-meta">
+                        {p.ville && `${p.ville} , `}Score {p.score_confiance}/10
+                        {p.rge && " , RGE"}
+                        {p.qualibat && " , Qualibat"}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {cesses > 0 && (
+            <section class="market-section">
+              <h2>Sante du marche</h2>
+              <p>
+                {cesses} etablissements affichent un etat administratif cesse ou ferme dans la base Sirene.
+                Ils ne figurent pas dans nos classements actifs. Ce taux ({Math.round(100 * cesses / (total + cesses))} %)
+                est un indicateur prudent de la dynamique du marche local.
+              </p>
+            </section>
+          )}
+        </>
+      )}
+
+      <section class="market-section sources">
+        <h2>Sources et methode</h2>
+        <p>
+          Cette synthese est generee a partir des donnees publiques recoupees a la date du
+          {" "}{dateUpdatedFR}. Sources :
+        </p>
+        <ul>
+          <li><strong>Sirene INSEE</strong> , registre national des entreprises (etat civil, age, etat administratif).</li>
+          <li><strong>ADEME RGE</strong> , annuaire France Renov' des certifications environnementales.</li>
+          <li><strong>BODACC</strong> , Bulletin officiel des annonces civiles et commerciales (procedures).</li>
+          <li><strong>Recherche Entreprises</strong> , API officielle (categorie, effectif, dirigeants).</li>
+        </ul>
+        <p class="meta-note">
+          Le snapshot est mis a jour automatiquement chaque mois. La methodologie complete est
+          disponible sur la <a href="/methode/">page Methode</a>. Les classements detailles par
+          metier sont consultables via <a href={`/departements/`}>la liste des departements</a>.
+        </p>
+      </section>
+
+      <nav class="cta-suite">
+        <a href="/observations/" class="btn-secondary">&larr; Toutes les observations</a>
+        <a href="/methode/" class="btn-primary">Lire la methode &rarr;</a>
+      </nav>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .market-page { padding: 2rem 0 4rem; }
+  .container-editorial {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+  .market-header { margin: 1.5rem 0; }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    color: var(--ink, #1a1614);
+  }
+  .lead {
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--text-soft, #3a3530);
+  }
+  .tldr-block {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire, #1e3a52);
+    border-radius: 4px;
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+  .market-section { margin: 2.5rem 0; }
+  h2 {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.85rem;
+    margin: 0 0 1rem;
+    color: var(--ink);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .stat-block {
+    padding: 1.25rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 6px;
+    text-align: center;
+  }
+  .stat-number {
+    display: block;
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--observatoire, #1e3a52);
+  }
+  .stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    margin-top: 0.25rem;
+  }
+  .metiers-table-wrapper {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .metiers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .metiers-table th {
+    text-align: left;
+    padding: 0.75rem;
+    background: var(--paper-warm, #f1ebdf);
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--observatoire);
+  }
+  .metiers-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border, #e8e3d8);
+  }
+  .link-classement {
+    color: var(--observatoire);
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .link-classement:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .top5-list {
+    list-style: none;
+    padding: 0;
+    counter-reset: top5;
+  }
+  .top5-item {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .top5-rank {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--or, #b8863d);
+    min-width: 2.5rem;
+  }
+  .top5-link {
+    text-decoration: none;
+    color: var(--ink);
+    flex: 1;
+  }
+  .top5-link:hover .top5-name {
+    color: var(--observatoire);
+  }
+  .top5-name {
+    display: block;
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.15rem;
+    font-weight: 400;
+    transition: color 0.2s;
+  }
+  .top5-meta {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    margin-top: 0.15rem;
+  }
+  .sources p, .sources ul {
+    line-height: 1.65;
+  }
+  .sources ul {
+    padding-left: 1.5rem;
+  }
+  .sources li {
+    margin: 0.4rem 0;
+  }
+  .meta-note {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+  .cta-suite {
+    margin: 3rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+  .btn-primary, .btn-secondary {
+    padding: 0.85rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-primary {
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper);
+  }
+  .btn-primary:hover { background: var(--ink, #1a1614); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--observatoire); }
+</style>
