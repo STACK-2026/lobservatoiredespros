@@ -1,0 +1,155 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs } from "../../../utils/seo";
+
+const title = "Candidature recue , L'Observatoire des Pros";
+const description = "Votre candidature a bien ete recue. La redaction l'examine sous 15 jours ouvres.";
+const url = `${siteConfig.url}/candidater/merci/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Candidater", url: `${siteConfig.url}/candidater/` },
+    { name: "Merci", url },
+  ]),
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
+  <article class="merci-page">
+    <div class="container-editorial merci-content">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Candidater", href: "/candidater/" },
+        { label: "Merci" },
+      ]} />
+      <Masthead category="CANDIDATURE RECUE" signature="Par la redaction" />
+      <h1 class="heading-display">Merci, votre dossier nous est parvenu.</h1>
+      <p class="lead">
+        Notre redaction accuse reception et examinera votre candidature sous
+        <strong>quinze jours ouvres</strong>. Vous serez contacte par email a l'issue de l'examen.
+      </p>
+
+      <aside class="encart-suite">
+        <h2 class="section-title">Que se passe-t-il maintenant ?</h2>
+        <ol class="suite-list">
+          <li>
+            <strong>Verification automatique</strong> : SIRET croise avec Sirene, RGE croise avec ADEME,
+            BODACC consulte. Quelques heures.
+          </li>
+          <li>
+            <strong>Examen editorial</strong> : Camille Fabre ou Antoine Delaunay relisent le dossier,
+            verifient la coherence des declarations. Quelques jours.
+          </li>
+          <li>
+            <strong>Echange final</strong> : pour les Lauréats, entretien telephonique de 20 minutes.
+            Pour les Vérifié, email de confirmation. Notification par mail.
+          </li>
+          <li>
+            <strong>Publication</strong> : a la prochaine edition mensuelle, votre portrait apparait
+            dans les classements concernes avec medaille le cas echeant.
+          </li>
+        </ol>
+      </aside>
+
+      <section class="cta-section">
+        <p>
+          En attendant, vous pouvez consulter <a href="/methode/">notre methode</a>,
+          parcourir les <a href="/observations/">observations</a> deja publiees, ou decouvrir
+          les <a href="/tarifs/">tarifs des artisans</a> dans votre region.
+        </p>
+        <p>
+          Une question urgente ? Ecrivez a
+          <a href={`mailto:${siteConfig.legal.emailPro}`}>{siteConfig.legal.emailPro}</a>.
+        </p>
+      </section>
+
+      <nav class="cta-suite">
+        <a href="/" class="btn-secondary">Retour a l'accueil</a>
+        <a href="/methode/" class="btn-primary">Lire notre methode &rarr;</a>
+      </nav>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .merci-page { padding: 2rem 0 4rem; }
+  .container-editorial {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 1.5rem 0 1rem;
+    color: var(--ink, #1a1614);
+  }
+  .lead {
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--text-soft, #3a3530);
+  }
+  .encart-suite {
+    margin: 2.5rem 0;
+    padding: 2rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire, #1e3a52);
+    border-radius: 4px;
+  }
+  .section-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.6rem;
+    margin: 0 0 1rem;
+  }
+  .suite-list {
+    padding-left: 1.5rem;
+    line-height: 1.65;
+  }
+  .suite-list li {
+    margin: 0.75rem 0;
+  }
+  .cta-section {
+    margin: 2rem 0;
+    line-height: 1.65;
+  }
+  .cta-section a {
+    color: var(--observatoire);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .cta-suite {
+    margin: 3rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+  .btn-primary, .btn-secondary {
+    padding: 0.85rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-primary {
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper);
+  }
+  .btn-primary:hover { background: var(--ink, #1a1614); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--observatoire); }
+</style>
