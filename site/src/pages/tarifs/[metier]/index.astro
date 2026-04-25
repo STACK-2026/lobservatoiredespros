@@ -1,0 +1,279 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../../utils/seo";
+import { getMetiers } from "../../../lib/supabase";
+import { TARIFS, PRESTATIONS_PAR_METIER, rangeFR } from "../../../data/tarifs";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { TARIFS, PRESTATIONS_PAR_METIER } = await import("../../../data/tarifs");
+  const { getMetiers } = await import("../../../lib/supabase");
+  const allMetiers = await getMetiers();
+  return Object.keys(PRESTATIONS_PAR_METIER).map((slug) => {
+    const metier = allMetiers.find((m) => m.slug === slug);
+    return {
+      params: { metier: slug },
+      props: { metier, prestations: PRESTATIONS_PAR_METIER[slug] || [] },
+    };
+  });
+};
+
+const { metier, prestations } = Astro.props as { metier: any; prestations: any[] };
+
+if (!metier) {
+  return Astro.redirect("/tarifs/");
+}
+
+const title = `Tarifs ${metier.nom_pluriel.toLowerCase()} 2026 , Fourchettes de prix`;
+const description = `${prestations.length} prestations ${metier.nom.toLowerCase()} chiffrees 2026. Fourchettes verifiees, sources publiques. Comparez avant de signer un devis.`;
+const url = `${siteConfig.url}/tarifs/${metier.slug}/`;
+
+const minGlobal = Math.min(...prestations.map((p) => p.prix_min));
+const maxGlobal = Math.max(...prestations.map((p) => p.prix_max));
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Tarifs", url: `${siteConfig.url}/tarifs/` },
+    { name: metier.nom_pluriel, url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${url}#collection`,
+    url,
+    name: title,
+    description,
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    publisher: { "@id": ORG_ID },
+    inLanguage: "fr-FR",
+    about: {
+      "@type": "Service",
+      serviceType: metier.nom,
+      provider: { "@id": ORG_ID },
+    },
+    hasPart: prestations.map((p) => ({
+      "@type": "Article",
+      name: p.nom,
+      url: `${siteConfig.url}/tarifs/${metier.slug}/${p.slug}/`,
+      description: p.accroche,
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: prestations.flatMap((p) =>
+      p.faq.slice(0, 1).map((f: any) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.r },
+      })),
+    ),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="container-wide" style="padding: 2rem 0 4rem;">
+    <Breadcrumbs items={[
+      { label: "Accueil", href: "/" },
+      { label: "Tarifs", href: "/tarifs/" },
+      { label: metier.nom_pluriel },
+    ]} />
+
+    <Masthead category={`TARIFS , ${metier.nom_pluriel.toUpperCase()}`} signature="Par la redaction" />
+
+    <header class="page-header">
+      <h1 class="heading-display">Tarifs {metier.nom_pluriel.toLowerCase()} en France.</h1>
+      <p class="lead">
+        Fourchettes de prix transparentes pour <strong>{prestations.length} prestations courantes</strong>
+        de {metier.nom.toLowerCase()}. De {minGlobal.toLocaleString("fr-FR")} euros pour une intervention
+        simple a {maxGlobal.toLocaleString("fr-FR")} euros pour les prestations completes.
+      </p>
+    </header>
+
+    <aside class="encart-methodologie" data-speakable>
+      <strong>En 30 secondes.</strong> Ces fourchettes sont valides en France metropolitaine, 2026,
+      hors aides publiques. Ile-de-France majore de <strong>15 a 25 %</strong>, regions rurales
+      minorent de 5 a 15 %. Demandez 3 devis et exigez le detail des postes (main d'oeuvre, materiaux,
+      deplacement) avant signature.
+    </aside>
+
+    <section class="prestations-section">
+      <h2 class="section-title">Les {prestations.length} prestations chiffrees</h2>
+      <div class="prestations-grid">
+        {prestations.map((p) => (
+          <a href={`/tarifs/${metier.slug}/${p.slug}/`} class="prestation-card">
+            <div class="prestation-card-header">
+              <span class="prestation-card-eyebrow">{p.inclus.replace("-", " ").toUpperCase()}</span>
+              <h3 class="prestation-card-title">{p.nom}</h3>
+            </div>
+            <p class="prestation-card-accroche">{p.accroche}</p>
+            <div class="prestation-card-prix">
+              <span class="prix-range">{rangeFR(p.prix_min, p.prix_max, p.unite)}</span>
+            </div>
+            <span class="prestation-card-cta">Voir le detail &rarr;</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="encart-mesure" data-speakable>
+      <h2 class="section-title">Comment juger un devis {metier.nom.toLowerCase()}</h2>
+      <ol class="checklist">
+        <li><strong>Detail des postes</strong> : main d'oeuvre, materiaux, deplacement separes. Pas de "forfait global" sans decomposition.</li>
+        <li><strong>Acompte raisonnable</strong> : maximum 30 % a la commande. Au-dela : signal d'alerte.</li>
+        <li><strong>Assurance decennale</strong> : numero et compagnie sur le devis. Verifiable.</li>
+        <li><strong>Delai d'intervention</strong> : engagement ecrit avec penalites de retard.</li>
+        <li><strong>TVA correcte</strong> : 10 % renovation logement plus de 2 ans, 5,5 % renovation energetique avec RGE.</li>
+        <li><strong>Validite du devis</strong> : 1 a 3 mois standard, ne pas signer dans la precipitation.</li>
+      </ol>
+    </section>
+
+    <section class="cta-classement">
+      <p>
+        Vous cherchez les <a href={`/${metier.slug}/`}>meilleurs {metier.nom_pluriel.toLowerCase()}</a> dans votre departement ?
+        L'Observatoire publie chaque mois un classement editorial fonde sur 4 sources officielles
+        (Sirene, ADEME, BODACC, France Renov').
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-header {
+    margin: 1.5rem 0 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border, #e8e3d8);
+  }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    color: var(--ink, #1a1614);
+  }
+  .lead {
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--text-soft, #3a3530);
+    max-width: 60ch;
+  }
+  .encart-methodologie {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire, #1e3a52);
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .section-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2rem;
+    margin: 2.5rem 0 1.5rem;
+    color: var(--ink);
+  }
+  .prestations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+  .prestation-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .prestation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(30, 58, 82, 0.08);
+    border-color: var(--observatoire);
+  }
+  .prestation-card-eyebrow {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--observatoire, #1e3a52);
+    font-weight: 500;
+  }
+  .prestation-card-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.35rem;
+    margin: 0.35rem 0 0.85rem;
+    line-height: 1.15;
+  }
+  .prestation-card-accroche {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-soft);
+    margin: 0 0 1rem;
+    flex: 1;
+  }
+  .prestation-card-prix {
+    margin: 1rem 0 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(30, 58, 82, 0.05);
+    border-radius: 4px;
+  }
+  .prix-range {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .prestation-card-cta {
+    color: var(--observatoire);
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  .encart-mesure {
+    margin: 3rem 0 0;
+    padding: 2rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 6px;
+  }
+  .encart-mesure .section-title {
+    margin-top: 0;
+  }
+  .checklist {
+    padding-left: 1.5rem;
+    margin: 0;
+    line-height: 1.7;
+  }
+  .checklist li {
+    margin: 0.6rem 0;
+  }
+  .cta-classement {
+    margin: 3rem 0 0;
+    padding: 2rem;
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper);
+    border-radius: 6px;
+    font-size: 1.05rem;
+    line-height: 1.55;
+    text-align: center;
+  }
+  .cta-classement a {
+    color: var(--or, #b8863d);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+</style>

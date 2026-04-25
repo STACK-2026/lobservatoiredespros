@@ -1,0 +1,239 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../utils/seo";
+import { getMetiers } from "../../lib/supabase";
+import { TARIFS, PRESTATIONS_PAR_METIER } from "../../data/tarifs";
+
+const allMetiers = await getMetiers();
+const metiersWithTarifs = allMetiers
+  .filter((m) => PRESTATIONS_PAR_METIER[m.slug])
+  .map((m) => ({
+    ...m,
+    prestations: PRESTATIONS_PAR_METIER[m.slug] || [],
+  }))
+  .sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+
+const totalPrestations = TARIFS.length;
+
+const title = "Tarifs des artisans BTP en France , Guide 2026";
+const description = `Fourchettes de prix verifiees pour ${totalPrestations} prestations BTP. Plomberie, electricite, couverture, isolation. Sources France Renov', ADEME. 2026.`;
+const url = `${siteConfig.url}/tarifs/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Tarifs", url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${url}#collection`,
+    url,
+    name: title,
+    description,
+    isPartOf: { "@id": `${siteConfig.url}/#website` },
+    publisher: { "@id": ORG_ID },
+    inLanguage: "fr-FR",
+    hasPart: metiersWithTarifs.map((m) => ({
+      "@type": "ItemList",
+      name: `Tarifs ${m.nom_pluriel.toLowerCase()}`,
+      url: `${siteConfig.url}/tarifs/${m.slug}/`,
+      numberOfItems: m.prestations.length,
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="container-wide" style="padding: 2rem 0 4rem;">
+    <Breadcrumbs items={[
+      { label: "Accueil", href: "/" },
+      { label: "Tarifs" },
+    ]} />
+
+    <Masthead category="GUIDE TARIFS , 2026" signature="Par la redaction" />
+
+    <header class="page-header">
+      <h1 class="heading-display">Tarifs des artisans en France.</h1>
+      <p class="lead">
+        Fourchettes de prix transparentes pour <strong>{totalPrestations} prestations</strong> de
+        15 metiers du batiment et des services a domicile. Donnees sourcees aupres de France Renov',
+        ADEME, Capeb et federations metier. Mise a jour avril 2026.
+      </p>
+    </header>
+
+    <aside class="encart-methodologie" data-speakable>
+      <strong>Comment lire ces tarifs.</strong> Chaque fourchette indique
+      <strong>fourniture et pose comprises sauf mention contraire</strong>, hors aides MaPrimeRenov',
+      CEE et eco-PTZ. La large amplitude (souvent du simple au quintuple) reflete les options reelles :
+      gamme du materiau, complexite du chantier, region. Demandez systematiquement <strong>3 devis</strong>
+      pour une prestation. Ecart superieur a 30 % entre devis : signal a creuser.
+    </aside>
+
+    <section class="metiers-grid">
+      <h2 class="section-title">Choisir un metier</h2>
+      <div class="grid-cards">
+        {metiersWithTarifs.map((m) => (
+          <a href={`/tarifs/${m.slug}/`} class="metier-card">
+            <div class="metier-card-header">
+              <span class="metier-card-eyebrow">TARIFS {m.code_naf || ""}</span>
+              <h3 class="metier-card-title">{m.nom_pluriel}</h3>
+            </div>
+            <ul class="metier-card-prestations">
+              {m.prestations.slice(0, 4).map((p) => (
+                <li>{p.nom}</li>
+              ))}
+            </ul>
+            <span class="metier-card-cta">Voir les {m.prestations.length} tarifs &rarr;</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="encart-sources">
+      <h2 class="section-title">Nos sources</h2>
+      <ul class="sources-list">
+        <li><strong>France Renov'</strong> (Service Public) , bareme officiel des aides MaPrimeRenov' et CEE</li>
+        <li><strong>ADEME</strong> , Agence de la transition ecologique, guides techniques</li>
+        <li><strong>Capeb</strong> , Confederation de l'artisanat et des petites entreprises du batiment</li>
+        <li><strong>FFB</strong> , Federation Francaise du Batiment, statistiques metier</li>
+        <li><strong>DGCCRF</strong> , Direction generale de la concurrence pour les regles devis</li>
+        <li><strong>INSEE BTP</strong> , indices nationaux de prix construction</li>
+      </ul>
+      <p class="sources-note">
+        Toutes les fourchettes integrent les hausses materiaux 2024-2025. Les chiffres sont
+        donnes hors aides publiques (MaPrimeRenov', CEE, eco-PTZ, TVA reduite) sauf mention contraire.
+        Ces aides peuvent reduire la facture de 20 a 70 % selon revenus et travaux.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-header {
+    margin: 1.5rem 0 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border, #e8e3d8);
+  }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    color: var(--ink, #1a1614);
+  }
+  .lead {
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--text-soft, #3a3530);
+    max-width: 60ch;
+  }
+  .encart-methodologie {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire, #1e3a52);
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .section-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2rem;
+    margin: 2.5rem 0 1.5rem;
+    color: var(--ink);
+  }
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .metier-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border, #e8e3d8);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .metier-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(30, 58, 82, 0.08);
+    border-color: var(--observatoire);
+  }
+  .metier-card-eyebrow {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--observatoire, #1e3a52);
+    font-weight: 500;
+  }
+  .metier-card-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin: 0.25rem 0 1rem;
+    line-height: 1.15;
+  }
+  .metier-card-prestations {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-soft);
+    flex: 1;
+  }
+  .metier-card-prestations li {
+    padding: 0.25rem 0;
+    border-bottom: 1px dotted var(--border);
+  }
+  .metier-card-prestations li:last-child {
+    border-bottom: none;
+  }
+  .metier-card-cta {
+    color: var(--observatoire);
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-top: auto;
+  }
+  .encart-sources {
+    margin: 3rem 0 0;
+    padding: 2rem;
+    background: var(--ink, #1a1614);
+    color: var(--paper, #f7f3ec);
+    border-radius: 6px;
+  }
+  .encart-sources .section-title {
+    color: var(--paper);
+    margin-top: 0;
+  }
+  .sources-list {
+    list-style: none;
+    padding: 0;
+    line-height: 1.8;
+  }
+  .sources-list strong {
+    color: var(--or, #b8863d);
+  }
+  .sources-note {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    opacity: 0.85;
+    border-top: 1px solid rgba(247, 243, 236, 0.15);
+    padding-top: 1.25rem;
+  }
+</style>

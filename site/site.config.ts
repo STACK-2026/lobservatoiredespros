@@ -77,6 +77,7 @@ export const siteConfig = {
     { label: "La sélection", href: "/selection/" },
     { label: "Métiers", href: "/metiers/" },
     { label: "Départements", href: "/departements/" },
+    { label: "Tarifs", href: "/tarifs/" },
     { label: "Méthode", href: "/methode/" },
     { label: "Observations", href: "/observations/" },
     { label: "Candidater", href: "/candidater/" },

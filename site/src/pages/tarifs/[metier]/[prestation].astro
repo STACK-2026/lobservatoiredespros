@@ -1,0 +1,387 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../../utils/seo";
+import { getMetiers } from "../../../lib/supabase";
+import { TARIFS, rangeFR } from "../../../data/tarifs";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const { TARIFS } = await import("../../../data/tarifs");
+  const { getMetiers } = await import("../../../lib/supabase");
+  const allMetiers = await getMetiers();
+  return TARIFS.map((t) => {
+    const metier = allMetiers.find((m) => m.slug === t.metier);
+    return {
+      params: { metier: t.metier, prestation: t.slug },
+      props: { tarif: t, metier },
+    };
+  });
+};
+
+const { tarif, metier } = Astro.props as { tarif: any; metier: any };
+
+if (!tarif || !metier) {
+  return Astro.redirect("/tarifs/");
+}
+
+const title = `${tarif.nom} : prix 2026 , ${tarif.prix_min.toLocaleString("fr-FR")} a ${tarif.prix_max.toLocaleString("fr-FR")} euros`;
+const description = `${tarif.accroche} Variantes, facteurs de variation, FAQ, conseils pour reduire la facture. Source : ${tarif.source.label}.`;
+const url = `${siteConfig.url}/tarifs/${tarif.metier}/${tarif.slug}/`;
+const ogImage = `${siteConfig.url}/og-default.png`;
+
+const dateUpdated = "2026-04-25";
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Tarifs", url: `${siteConfig.url}/tarifs/` },
+    { name: metier.nom_pluriel, url: `${siteConfig.url}/tarifs/${tarif.metier}/` },
+    { name: tarif.nom, url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}#article`,
+    url,
+    headline: tarif.nom,
+    description: tarif.accroche,
+    inLanguage: "fr-FR",
+    datePublished: dateUpdated,
+    dateModified: dateUpdated,
+    author: { "@id": ORG_ID },
+    publisher: { "@id": ORG_ID },
+    image: ogImage,
+    mainEntityOfPage: { "@id": url },
+    about: {
+      "@type": "Service",
+      serviceType: tarif.nom,
+      provider: { "@id": ORG_ID },
+      areaServed: { "@type": "Country", name: "France" },
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "EUR",
+        lowPrice: tarif.prix_min,
+        highPrice: tarif.prix_max,
+        offerCount: tarif.variantes ? tarif.variantes.length : 1,
+        availability: "https://schema.org/InStock",
+      },
+    },
+    citation: {
+      "@type": "CreativeWork",
+      name: tarif.source.label,
+      url: tarif.source.url,
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: tarif.faq.map((f: any) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.r },
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} ogImage={ogImage}>
+  <article class="tarif-page">
+    <div class="container-editorial">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Tarifs", href: "/tarifs/" },
+        { label: metier.nom_pluriel, href: `/tarifs/${tarif.metier}/` },
+        { label: tarif.nom },
+      ]} />
+
+      <Masthead category={`TARIF , ${metier.nom.toUpperCase()}`} signature="Par la redaction" date={dateUpdated} />
+
+      <header class="tarif-header">
+        <h1 class="heading-display">{tarif.nom}.</h1>
+        <p class="lead">{tarif.accroche}</p>
+      </header>
+
+      <aside class="tarif-prix-block" data-speakable>
+        <div class="prix-headline">
+          <span class="prix-label">Fourchette {dateUpdated.slice(0, 4)}</span>
+          <span class="prix-range">{rangeFR(tarif.prix_min, tarif.prix_max, tarif.unite)}</span>
+        </div>
+        <div class="prix-meta">
+          <span class="meta-pill">{tarif.inclus.replace("-", " ")}</span>
+          <span class="meta-pill">Source : {tarif.source.label}</span>
+        </div>
+      </aside>
+
+      {tarif.variantes && tarif.variantes.length > 0 && (
+        <section class="section-variantes">
+          <h2>Detail par variante</h2>
+          <div class="variantes-table-wrapper">
+            <table class="variantes-table">
+              <thead>
+                <tr>
+                  <th>Option</th>
+                  <th>Prix min</th>
+                  <th>Prix max</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tarif.variantes.map((v: any) => (
+                  <tr>
+                    <td>{v.nom}</td>
+                    <td>{v.prix_min.toLocaleString("fr-FR")} euros</td>
+                    <td>{v.prix_max.toLocaleString("fr-FR")} euros</td>
+                    <td>{v.note || ""}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p class="table-note">Pose et fourniture comprises sauf mention contraire. Hors aides publiques.</p>
+        </section>
+      )}
+
+      <section class="section-facteurs">
+        <h2>Pourquoi cet ecart de prix ?</h2>
+        <ul class="facteurs-list">
+          {tarif.facteurs.map((f: string) => (
+            <li>{f}</li>
+          ))}
+        </ul>
+      </section>
+
+      {tarif.economies && tarif.economies.length > 0 && (
+        <section class="section-economies">
+          <h2>Comment reduire la facture</h2>
+          <ul class="economies-list">
+            {tarif.economies.map((e: string) => (
+              <li>{e}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section class="section-faq">
+        <h2>Questions frequentes</h2>
+        {tarif.faq.map((f: any) => (
+          <details class="faq-item">
+            <summary>{f.q}</summary>
+            <p>{f.r}</p>
+          </details>
+        ))}
+      </section>
+
+      <aside class="encart-source">
+        <strong>Source officielle.</strong>
+        <a href={tarif.source.url} rel="nofollow noopener" target="_blank">
+          {tarif.source.label} &rarr;
+        </a>
+        <p class="source-note">
+          Mise a jour : {dateUpdated}. Les fourchettes integrent les hausses materiaux 2024-2025
+          et excluent les aides MaPrimeRenov', CEE, eco-PTZ ou TVA reduite, qui peuvent reduire la
+          facture de 20 a 70 % selon revenus et travaux.
+        </p>
+      </aside>
+
+      <nav class="cta-suite">
+        <a href={`/tarifs/${tarif.metier}/`} class="btn-secondary">
+          &larr; Voir tous les tarifs {metier.nom_pluriel.toLowerCase()}
+        </a>
+        <a href={`/${tarif.metier}/`} class="btn-primary">
+          Trouver un {metier.nom.toLowerCase()} certifie &rarr;
+        </a>
+      </nav>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .tarif-page {
+    padding: 2rem 0 4rem;
+  }
+  .container-editorial {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+  .tarif-header {
+    margin: 1.5rem 0 1.5rem;
+  }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    color: var(--ink, #1a1614);
+  }
+  .lead {
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--text-soft, #3a3530);
+  }
+  .tarif-prix-block {
+    margin: 2rem 0;
+    padding: 2rem;
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper, #f7f3ec);
+    border-radius: 6px;
+  }
+  .prix-headline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .prix-label {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--or, #b8863d);
+  }
+  .prix-range {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+    font-weight: 400;
+  }
+  .prix-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .meta-pill {
+    padding: 0.35rem 0.75rem;
+    background: rgba(247, 243, 236, 0.1);
+    border-radius: 99px;
+    font-size: 0.8rem;
+  }
+  h2 {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.75rem;
+    margin: 2.5rem 0 1rem;
+    color: var(--ink);
+  }
+  .variantes-table-wrapper {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .variantes-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .variantes-table th {
+    text-align: left;
+    padding: 0.75rem;
+    background: var(--paper-warm, #f1ebdf);
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--observatoire);
+  }
+  .variantes-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border, #e8e3d8);
+    line-height: 1.45;
+  }
+  .table-note {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    font-style: italic;
+    margin-top: 0.75rem;
+  }
+  .facteurs-list,
+  .economies-list {
+    padding-left: 1.5rem;
+    line-height: 1.7;
+  }
+  .facteurs-list li,
+  .economies-list li {
+    margin: 0.5rem 0;
+  }
+  .section-faq {
+    margin: 2.5rem 0;
+  }
+  .faq-item {
+    margin: 0.75rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--paper, #f7f3ec);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .faq-item summary {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    font-weight: 400;
+    cursor: pointer;
+  }
+  .faq-item p {
+    margin: 0.75rem 0 0;
+    line-height: 1.6;
+    color: var(--text-soft);
+  }
+  .encart-source {
+    margin: 3rem 0 0;
+    padding: 1.5rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--or, #b8863d);
+    border-radius: 4px;
+  }
+  .encart-source strong {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .encart-source a {
+    color: var(--observatoire, #1e3a52);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .source-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    line-height: 1.55;
+  }
+  .cta-suite {
+    margin: 3rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.85rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-primary {
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper);
+  }
+  .btn-primary:hover {
+    background: var(--ink, #1a1614);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover {
+    border-color: var(--observatoire);
+  }
+</style>
