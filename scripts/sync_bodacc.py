@@ -25,9 +25,11 @@ import argparse
 import json
 import os
 import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -169,137 +171,150 @@ def count_qualifications(pro_id: str) -> tuple[int, int, int, int]:
     return actives, len(rows), orgs, expirees_rec
 
 
+_stats_lock_b = threading.Lock()
+
+
+def _sync_one(pro: dict, commit: bool, sleep_s: float) -> dict:
+    """Process one pro. Returns dict {status, niveau?, alertes_count?}."""
+    siren = (pro.get("siren") or "").replace(" ", "")
+    if not siren:
+        return {"status": "skip"}
+    try:
+        annonces = fetch_bodacc_by_siren(siren)
+        synthese = analyser_bodacc(annonces)
+        qa, qh, orgs, qexp = count_qualifications(pro["id"])
+        age = 0
+        if pro.get("date_creation_entreprise"):
+            try:
+                year = int(pro["date_creation_entreprise"][:4])
+                age = time.localtime().tm_year - year
+            except Exception:
+                age = 0
+        ts_inputs = {
+            "anciennete_annees": age,
+            "etat_administratif": pro.get("etat_administratif") or "A",
+            "categorie_entreprise": pro.get("categorie_entreprise"),
+            "tranche_effectif": pro.get("tranche_effectif"),
+            "dirigeant_identifie": (pro.get("dirigeants_count") or 0) > 0,
+            "qualifications_actives": qa,
+            "qualifications_historiques": qh,
+            "organismes_certificateurs": orgs,
+            "qualifications_expirees_recemment": qexp,
+            **synthese,
+            "decennale_verifiee": False,
+            "rc_pro_verifiee": False,
+            "est_qualiopi": bool(pro.get("est_qualiopi")),
+        }
+        ts = calculer_trust_score(ts_inputs)
+        if commit:
+            if annonces:
+                rows = []
+
+                def _safe_dict(val):
+                    if isinstance(val, dict):
+                        return val
+                    if isinstance(val, str):
+                        try:
+                            parsed = json.loads(val)
+                            return parsed if isinstance(parsed, dict) else {}
+                        except Exception:
+                            return {}
+                    return {}
+
+                for a in annonces:
+                    famille = a.get("familleavis_lib") or ""
+                    jug = _safe_dict(a.get("jugement"))
+                    nature = jug.get("nature")
+                    description = jug.get("complementJugement") or ""
+                    if not description:
+                        md = _safe_dict(a.get("modificationsgenerales")) or _safe_dict(a.get("depot"))
+                        description = md.get("descriptif") or ""
+
+                    rows.append({
+                        "pro_id": pro["id"],
+                        "siren": siren,
+                        "source": "bodacc",
+                        "type_evenement": map_famille_to_type(famille),
+                        "nature_precise": nature,
+                        "date_parution": a.get("dateparution"),
+                        "tribunal": a.get("tribunal"),
+                        "description": (description or "")[:1500],
+                        "raw_data": a,
+                    })
+                for chunk_start in range(0, len(rows), 100):
+                    sb_upsert(
+                        "pro_evenements_legaux",
+                        rows[chunk_start:chunk_start + 100],
+                        on_conflict="siren,date_parution,type_evenement,nature_precise",
+                    )
+
+            sb_patch(
+                f"pros?id=eq.{pro['id']}",
+                {
+                    "bodacc_synthese": synthese,
+                    "score_detail": ts,
+                    "niveau_confiance": ts["niveau"],
+                    "score_confiance": ts["score"],
+                    "last_trust_sync": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                },
+            )
+        if sleep_s:
+            time.sleep(sleep_s)
+        return {
+            "status": "ok",
+            "niveau": ts["niveau"],
+            "alertes_count": len(ts.get("signaux_alerte", [])),
+        }
+    except Exception as e:
+        if sleep_s:
+            time.sleep(sleep_s)
+        return {"status": "error", "error": str(e)}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--commit", action="store_true")
     parser.add_argument("--only-missing", action="store_true")
     parser.add_argument("--siren", type=str, default=None, help="filter a specific SIREN")
     parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--sleep", type=float, default=0.2)
+    parser.add_argument("--sleep", type=float, default=0.05)
+    parser.add_argument("--workers", type=int, default=8)
     args = parser.parse_args()
 
     pros = fetch_pros(args.only_missing, args.siren, args.limit)
-    print(f"[info] {len(pros)} pros to sync (commit={args.commit}, only-missing={args.only_missing})")
+    print(f"[info] {len(pros)} pros to sync (workers={args.workers}, commit={args.commit})")
 
     ok = 0
     skip = 0
     errors = 0
-    stats_niveaux: dict[str, int] = {}
+    stats_niveaux: dict = {}
     stats_alertes = 0
+    done = 0
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=max(1, args.workers)) as ex:
+        futures = [ex.submit(_sync_one, pro, args.commit, args.sleep) for pro in pros]
+        for f in as_completed(futures):
+            try:
+                res = f.result()
+            except Exception as e:
+                res = {"status": "error", "error": str(e)}
+            with _stats_lock_b:
+                if res["status"] == "ok":
+                    ok += 1
+                    niveau = res.get("niveau", "?")
+                    stats_niveaux[niveau] = stats_niveaux.get(niveau, 0) + 1
+                    stats_alertes += res.get("alertes_count", 0)
+                elif res["status"] == "skip":
+                    skip += 1
+                else:
+                    errors += 1
+                done += 1
+                if done % 500 == 0:
+                    elapsed = time.time() - t0
+                    rate = done / elapsed if elapsed > 0 else 0
+                    print(f"  progress {done}/{len(pros)} ok={ok} err={errors} ({rate:.0f}/s)")
 
-    for i, pro in enumerate(pros, start=1):
-        siren = (pro.get("siren") or "").replace(" ", "")
-        if not siren:
-            skip += 1
-            continue
-
-        try:
-            # 1. BODACC
-            annonces = fetch_bodacc_by_siren(siren)
-            synthese = analyser_bodacc(annonces)
-
-            # 2. Qualifs
-            qa, qh, orgs, qexp = count_qualifications(pro["id"])
-
-            # 3. Age + metadata
-            age = 0
-            if pro.get("date_creation_entreprise"):
-                try:
-                    year = int(pro["date_creation_entreprise"][:4])
-                    age = time.localtime().tm_year - year
-                except Exception:
-                    age = 0
-
-            # 4. Trust Score , utilise les champs enrichis recherche-entreprises
-            ts_inputs = {
-                "anciennete_annees": age,
-                "etat_administratif": pro.get("etat_administratif") or "A",
-                "categorie_entreprise": pro.get("categorie_entreprise"),
-                "tranche_effectif": pro.get("tranche_effectif"),
-                "dirigeant_identifie": (pro.get("dirigeants_count") or 0) > 0,
-                "qualifications_actives": qa,
-                "qualifications_historiques": qh,
-                "organismes_certificateurs": orgs,
-                "qualifications_expirees_recemment": qexp,
-                **synthese,
-                "decennale_verifiee": False,
-                "rc_pro_verifiee": False,
-                "est_qualiopi": bool(pro.get("est_qualiopi")),
-            }
-            ts = calculer_trust_score(ts_inputs)
-            stats_niveaux[ts["niveau"]] = stats_niveaux.get(ts["niveau"], 0) + 1
-            stats_alertes += len(ts["signaux_alerte"])
-
-            tag = "[DRY]" if not args.commit else "[OK]"
-            print(
-                f"  [{i}/{len(pros)}] {tag} {pro.get('slug')} (SIREN {siren}) , "
-                f"BODACC {synthese['total_annonces']} annonces ({synthese['regularite_depots']}) , "
-                f"score {ts['score']} {ts['niveau']}"
-            )
-
-            if args.commit:
-                # Upsert timeline evenements
-                if annonces:
-                    rows = []
-                    def _safe_dict(val):
-                        if isinstance(val, dict):
-                            return val
-                        if isinstance(val, str):
-                            try:
-                                parsed = json.loads(val)
-                                return parsed if isinstance(parsed, dict) else {}
-                            except Exception:
-                                return {}
-                        return {}
-
-                    for a in annonces:
-                        famille = a.get("familleavis_lib") or ""
-                        jug = _safe_dict(a.get("jugement"))
-                        nature = jug.get("nature")
-                        description = jug.get("complementJugement") or ""
-                        if not description:
-                            md = _safe_dict(a.get("modificationsgenerales")) or _safe_dict(a.get("depot"))
-                            description = md.get("descriptif") or ""
-
-                        rows.append({
-                            "pro_id": pro["id"],
-                            "siren": siren,
-                            "source": "bodacc",
-                            "type_evenement": map_famille_to_type(famille),
-                            "nature_precise": nature,
-                            "date_parution": a.get("dateparution"),
-                            "tribunal": a.get("tribunal"),
-                            "description": (description or "")[:1500],
-                            "raw_data": a,
-                        })
-                    # Batch par 100
-                    for chunk_start in range(0, len(rows), 100):
-                        sb_upsert(
-                            "pro_evenements_legaux",
-                            rows[chunk_start:chunk_start + 100],
-                            on_conflict="siren,date_parution,type_evenement,nature_precise",
-                        )
-
-                # Update pros
-                sb_patch(
-                    f"pros?id=eq.{pro['id']}",
-                    {
-                        "bodacc_synthese": synthese,
-                        "score_detail": ts,
-                        "niveau_confiance": ts["niveau"],
-                        "score_confiance": ts["score"],
-                        "last_trust_sync": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    },
-                )
-
-            ok += 1
-            time.sleep(args.sleep)
-        except Exception as e:
-            errors += 1
-            print(f"  [{i}/{len(pros)}] [ERR] {pro.get('slug')}: {e}")
-            time.sleep(args.sleep)
-
-    print(f"\n[done] ok={ok} skip={skip} errors={errors}")
+    print(f"\n[done] ok={ok} skip={skip} errors={errors} en {time.time()-t0:.0f}s")
     print(f"       niveaux: {stats_niveaux}")
     print(f"       alertes totales: {stats_alertes}")
 

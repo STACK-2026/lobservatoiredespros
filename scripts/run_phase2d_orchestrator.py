@@ -270,17 +270,38 @@ def post_pipeline():
     env["SUPABASE_URL"] = f"https://{PROJECT_REF}.supabase.co"
     env["SUPABASE_SERVICE_ROLE_KEY"] = service_key
 
-    steps = [
-        ("geocode", [sys.executable, "scripts/geocode_pros.py", "--commit", "--only-missing"]),
-        ("enrich", [sys.executable, "scripts/enrich_entreprise.py", "--commit", "--only-missing"]),
-        ("bodacc", [sys.executable, "scripts/sync_bodacc.py", "--commit", "--only-missing"]),
-        ("rge", [sys.executable, "scripts/sync_rge_qualifications.py", "--all"]),
+    # Stage 1 : geocode + enrich + rge en parallele (independants)
+    # Stage 2 : bodacc (lit etat_administratif/dirigeants_count enrichis + qualifs RGE)
+    log("Stage 1 (parallele) : geocode + enrich + rge")
+    stage1 = [
+        ("geocode", [sys.executable, "-u", "scripts/geocode_pros.py", "--commit", "--only-missing", "--workers", "10"]),
+        ("enrich", [sys.executable, "-u", "scripts/enrich_entreprise.py", "--commit", "--only-missing", "--workers", "10"]),
+        ("rge", [sys.executable, "-u", "scripts/sync_rge_qualifications.py", "--all"]),
     ]
-    for name, cmd in steps:
-        ok = run_step(name, cmd, env=env)
-        if not ok:
-            log(f"STEP FAILED : {name} , halting post-pipeline (build/deploy skipped)")
-            return
+    procs = []
+    for name, cmd in stage1:
+        log_file = LOGS_DIR / f"step_{name}.log"
+        log(f"  STAGE1 START : {name}")
+        log(f"    cmd : {' '.join(cmd)}")
+        f = log_file.open("w")
+        p = subprocess.Popen(cmd, cwd=str(REPO), stdout=f, stderr=subprocess.STDOUT, env=env)
+        procs.append((name, p, f))
+    failures_stage1 = []
+    for name, p, f in procs:
+        rc = p.wait()
+        f.close()
+        log(f"  STAGE1 END   : {name} (exit={rc})")
+        if rc != 0:
+            failures_stage1.append(name)
+    if failures_stage1:
+        log(f"STAGE1 failures : {failures_stage1} , halting (bodacc + build skipped)")
+        return
+
+    log("Stage 2 : bodacc (necessite enrich + rge faits)")
+    bodacc_cmd = [sys.executable, "-u", "scripts/sync_bodacc.py", "--commit", "--only-missing", "--workers", "8"]
+    if not run_step("bodacc", bodacc_cmd, env=env):
+        log("STEP FAILED : bodacc , halting (build skipped)")
+        return
 
     cf_env = env.copy()
     for line in ENV_MASTER.read_text().splitlines():

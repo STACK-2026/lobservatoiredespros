@@ -24,9 +24,11 @@ import argparse
 import json
 import os
 import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -164,57 +166,74 @@ def fetch_entreprise(siren: str) -> dict | None:
     }
 
 
+_stats_lock_e = threading.Lock()
+
+
+def _enrich_one(pro: dict, commit: bool, sleep_s: float) -> str:
+    siren = pro.get("siren") or ""
+    if not siren:
+        return "miss"
+    try:
+        info = fetch_entreprise(siren)
+    except Exception:
+        return "miss"
+    if not info:
+        if sleep_s:
+            time.sleep(sleep_s)
+        return "miss"
+    if commit:
+        body = {**info, "enriched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ")}
+        body["dirigeants_json"] = info["dirigeants_json"]
+        try:
+            sb_patch(f"pros?id=eq.{pro['id']}", body)
+        except Exception:
+            return "miss"
+    if sleep_s:
+        time.sleep(sleep_s)
+    return "ok"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--commit", action="store_true")
     parser.add_argument("--only-missing", action="store_true")
     parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--sleep", type=float, default=0.15)
+    parser.add_argument("--sleep", type=float, default=0.05)
+    parser.add_argument("--workers", type=int, default=10)
     args = parser.parse_args()
 
     where = ["active=eq.true", "siren=not.is.null"]
     if args.only_missing:
         where.append("enriched_at=is.null")
-    # order=id stable pour pagination fiable
     where.append("order=id")
     q = "pros?select=id,slug,siren&" + "&".join(where)
-    # Paginé pour absorber le volume post-import national (cap PostgREST = 1000/page)
     cap = args.limit if args.limit else 200000
     pros = sb_get_paged(q, cap=cap)
-    print(f"[info] {len(pros)} pros to enrich (commit={args.commit})")
+    print(f"[info] {len(pros)} pros to enrich (workers={args.workers}, commit={args.commit})")
 
     ok = 0
     miss = 0
-    for i, pro in enumerate(pros, start=1):
-        info = fetch_entreprise(pro.get("siren") or "")
-        if not info:
-            miss += 1
-            print(f"  [{i}/{len(pros)}] [MISS] {pro.get('slug')}: no API match")
-            time.sleep(args.sleep)
-            continue
-
-        tag = "[DRY]" if not args.commit else "[OK]"
-        cat = info.get("categorie_entreprise") or "?"
-        eff = info.get("tranche_effectif") or "?"
-        dir_count = info.get("dirigeants_count") or 0
-        etat = info.get("etat_administratif") or "A"
-        print(f"  [{i}/{len(pros)}] {tag} {pro.get('slug')} : {cat} · eff.{eff} · {dir_count} dirigeants · etat={etat}")
-
-        if args.commit:
-            body = {**info, "enriched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ")}
-            # JSONB directement comme liste
-            body["dirigeants_json"] = info["dirigeants_json"]
+    done = 0
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=max(1, args.workers)) as ex:
+        futures = [ex.submit(_enrich_one, pro, args.commit, args.sleep) for pro in pros]
+        for f in as_completed(futures):
             try:
-                sb_patch(f"pros?id=eq.{pro['id']}", body)
-                ok += 1
-            except Exception as e:
-                print(f"    [warn] patch failed: {e}")
-                miss += 1
-        else:
-            ok += 1
-        time.sleep(args.sleep)
+                status = f.result()
+            except Exception:
+                status = "miss"
+            with _stats_lock_e:
+                if status == "ok":
+                    ok += 1
+                else:
+                    miss += 1
+                done += 1
+                if done % 500 == 0:
+                    elapsed = time.time() - t0
+                    rate = done / elapsed if elapsed > 0 else 0
+                    print(f"  progress {done}/{len(pros)} ok={ok} miss={miss} ({rate:.0f}/s)")
 
-    print(f"\n[done] enriched={ok}, missing={miss}")
+    print(f"\n[done] enriched={ok}, missing={miss} en {time.time()-t0:.0f}s")
 
 
 if __name__ == "__main__":

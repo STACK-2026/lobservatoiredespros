@@ -18,9 +18,11 @@ import argparse
 import os
 import sys
 import time
+import threading
 import urllib.parse
 import urllib.request
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional
 
@@ -127,63 +129,82 @@ def geocode_one(adresse: str, cp: str, ville: str) -> Optional[tuple[float, floa
     return float(lat), float(lng), float(score)
 
 
+_stats_lock = threading.Lock()
+
+
+def _process_one(p: dict, commit: bool, sleep_s: float) -> str:
+    adresse = (p.get("adresse") or "").strip()
+    cp = (p.get("code_postal") or "").strip()
+    ville = (p.get("ville") or "").strip()
+    if not ville:
+        return "fail"
+    try:
+        res = geocode_one(adresse, cp, ville)
+    except Exception:
+        return "fail"
+    if not res:
+        if sleep_s:
+            time.sleep(sleep_s)
+        return "fail"
+    lat, lng, score = res
+    if commit:
+        patch_url = f"{SUPABASE_URL}/rest/v1/pros?id=eq.{p['id']}"
+        body = {
+            "lat": round(lat, 6),
+            "lng": round(lng, 6),
+            "geocode_score": round(score, 3),
+            "geocoded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+        try:
+            _patch(patch_url, body)
+        except Exception:
+            return "fail"
+    if sleep_s:
+        time.sleep(sleep_s)
+    return "low" if score < 0.4 else "ok"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--commit", action="store_true", help="ecrit en DB (sinon dry-run)")
     parser.add_argument("--only-missing", action="store_true", help="skip pros deja geocodes")
-    parser.add_argument("--sleep", type=float, default=0.1, help="sleep entre requetes (s)")
+    parser.add_argument("--sleep", type=float, default=0.05, help="sleep par worker entre requetes (s)")
     parser.add_argument("--limit", type=int, default=0, help="limite le nombre de pros traites")
+    parser.add_argument("--workers", type=int, default=10, help="threads paralleles (default 10)")
     args = parser.parse_args()
 
     pros = fetch_pros(only_missing=args.only_missing)
     if args.limit:
         pros = pros[: args.limit]
-    print(f"[info] {len(pros)} pros a geocoder (only-missing={args.only_missing}, commit={args.commit})")
+    print(f"[info] {len(pros)} pros a geocoder (workers={args.workers}, commit={args.commit})")
 
     ok = 0
     fail = 0
     low_score = 0
-    for i, p in enumerate(pros, start=1):
-        adresse = (p.get("adresse") or "").strip()
-        cp = (p.get("code_postal") or "").strip()
-        ville = (p.get("ville") or "").strip()
-        if not ville:
-            fail += 1
-            continue
-
-        res = geocode_one(adresse, cp, ville)
-        if not res:
-            fail += 1
-            print(f"  [{i}/{len(pros)}] {p['slug']} : no match ({adresse} {cp} {ville})")
-            time.sleep(args.sleep)
-            continue
-        lat, lng, score = res
-        if score < 0.4:
-            low_score += 1
-
-        tag = "[DRY]" if not args.commit else "[OK]"
-        print(f"  [{i}/{len(pros)}] {tag} {p['slug']} : {lat:.5f}, {lng:.5f} (score={score:.2f})")
-
-        if args.commit:
-            patch_url = f"{SUPABASE_URL}/rest/v1/pros?id=eq.{p['id']}"
-            body = {
-                "lat": round(lat, 6),
-                "lng": round(lng, 6),
-                "geocode_score": round(score, 3),
-                "geocoded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            }
+    done = 0
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=max(1, args.workers)) as ex:
+        futures = [ex.submit(_process_one, p, args.commit, args.sleep) for p in pros]
+        for f in as_completed(futures):
             try:
-                _patch(patch_url, body)
-                ok += 1
-            except Exception as e:
-                print(f"    [warn] PATCH failed : {e}")
-                fail += 1
-        else:
-            ok += 1
+                status = f.result()
+            except Exception:
+                status = "fail"
+            with _stats_lock:
+                if status == "ok":
+                    ok += 1
+                elif status == "low":
+                    low_score += 1
+                    ok += 1
+                else:
+                    fail += 1
+                done += 1
+                if done % 500 == 0:
+                    elapsed = time.time() - t0
+                    rate = done / elapsed if elapsed > 0 else 0
+                    print(f"  progress {done}/{len(pros)} ok={ok} fail={fail} ({rate:.0f}/s)")
 
-        time.sleep(args.sleep)
-
-    print(f"\n[done] ok={ok} fail={fail} low_score<0.4={low_score}")
+    print(f"\n[done] ok={ok} fail={fail} low_score<0.4={low_score} en {time.time()-t0:.0f}s")
 
 
 if __name__ == "__main__":
