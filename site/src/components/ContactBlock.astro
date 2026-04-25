@@ -17,6 +17,8 @@ interface Props {
   ville?: string | null;
   codePostal?: string | null;
   adresse?: string | null;
+  /** OSM opening_hours format brut. Voir https://wiki.openstreetmap.org/wiki/Key:opening_hours */
+  openingHours?: string | null;
 }
 
 const {
@@ -28,6 +30,7 @@ const {
   ville,
   codePostal,
   adresse,
+  openingHours,
 } = Astro.props;
 
 // Clean formats
@@ -38,6 +41,22 @@ const phoneDisplay = telephone
 const siteClean = siteWeb ? siteWeb.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
 
 const hasAny = !!(telephone || email || siteWeb);
+
+// Parse OSM opening_hours format en label lisible. Format minimal supporte :
+//   "Mo-Fr 08:00-18:00", "24/7", "Mo-Sa 09:00-12:00,14:00-19:00".
+function parseOpeningHours(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const v = raw.trim();
+  if (!v) return null;
+  if (v === "24/7") return "Ouvert 24h/24, 7j/7";
+  // Remplace les codes anglais par labels FR courts
+  const dayMap: Record<string, string> = {
+    "Mo": "Lun", "Tu": "Mar", "We": "Mer", "Th": "Jeu",
+    "Fr": "Ven", "Sa": "Sam", "Su": "Dim", "PH": "Feries",
+  };
+  return v.replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su|PH)\b/g, (m) => dayMap[m] || m);
+}
+const horairesAffichage = parseOpeningHours(openingHours);
 const subject = `Coordonnées de ${nom}`;
 const body = `Bonjour,%0D%0A%0D%0AJe souhaite obtenir les coordonnées directes de ${nom}${ville ? ` (${ville})` : ""} pour un projet.%0D%0A%0D%0AMerci,`;
 ---
@@ -114,6 +133,21 @@ const body = `Bonjour,%0D%0A%0D%0AJe souhaite obtenir les coordonnées directes 
           <span class="cb-body">
             <span class="cb-k">Adresse</span>
             <span class="cb-v">{adresse}{adresse && ville ? ", " : ""}{codePostal} {ville}</span>
+          </span>
+        </div>
+      )}
+
+      {horairesAffichage && (
+        <div class="cb-item cb-hours">
+          <span class="cb-icon-wrap">
+            <svg class="cb-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7 V 12 L 15 14" />
+            </svg>
+          </span>
+          <span class="cb-body">
+            <span class="cb-k">Horaires</span>
+            <span class="cb-v">{horairesAffichage}</span>
           </span>
         </div>
       )}

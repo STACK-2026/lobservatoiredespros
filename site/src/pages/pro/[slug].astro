@@ -37,7 +37,7 @@ export async function getStaticPaths() {
   for (let start = 0; ; start += page) {
     const { data, error } = await supabase
       .from("pros")
-      .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance")
+      .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance, opening_hours, ca, resultat_net, marge_brute, annee_bilan, categorie_entreprise, tranche_effectif, dirigeants_count, dirigeants_json, est_qualiopi")
       .eq("active", true)
       .not("slug", "is", null)
       .range(start, start + page - 1);
@@ -191,6 +191,8 @@ const jsonLd: Record<string, unknown>[] = [
     description: fullDescription,
     phone: p.telephone,
     email: p.email || undefined,
+    url_web: p.site_web || undefined,
+    openingHours: p.opening_hours || undefined,
     naf: metierNaf,
     address: {
       streetAddress: p.adresse || undefined,
@@ -202,6 +204,8 @@ const jsonLd: Record<string, unknown>[] = [
     geo: p.lat && p.lng ? { lat: Number(p.lat), lng: Number(p.lng) } : null,
     sameAs: [p.site_web],
     identifier: { siret: p.siret, siren: p.siren },
+    foundingDate: p.date_creation_entreprise || undefined,
+    numberOfEmployees: p.tranche_effectif || undefined,
   }),
   jsonLdSpeakable({
     url,
@@ -374,6 +378,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
         ville={p.ville}
         codePostal={p.code_postal}
         adresse={p.adresse}
+        openingHours={p.opening_hours}
       />
     </section>
 
@@ -417,6 +422,34 @@ if (p.score_confiance && p.score_confiance >= 6) {
               <>
                 <dt>Adresse du siège</dt>
                 <dd>{p.adresse}</dd>
+              </>
+            )}
+
+            {p.categorie_entreprise && (
+              <>
+                <dt>Catégorie INSEE</dt>
+                <dd>{p.categorie_entreprise === "PME" ? "PME" : p.categorie_entreprise === "ETI" ? "ETI (entreprise de taille intermédiaire)" : p.categorie_entreprise === "GE" ? "Grande entreprise" : p.categorie_entreprise}</dd>
+              </>
+            )}
+
+            {p.tranche_effectif && (
+              <>
+                <dt>Tranche d'effectif</dt>
+                <dd>{p.tranche_effectif} salariés</dd>
+              </>
+            )}
+
+            {p.dirigeants_count && p.dirigeants_count > 0 && (
+              <>
+                <dt>Dirigeants identifiés</dt>
+                <dd>{p.dirigeants_count}{p.dirigeants_json && p.dirigeants_json[0] ? ` , ${p.dirigeants_json[0].prenoms || ""} ${p.dirigeants_json[0].nom || ""}`.trim() + (p.dirigeants_json[0].qualite ? ` (${p.dirigeants_json[0].qualite})` : "") : ""}</dd>
+              </>
+            )}
+
+            {p.est_qualiopi && (
+              <>
+                <dt>Qualiopi</dt>
+                <dd>Organisme certifié Qualiopi (formation)</dd>
               </>
             )}
           </dl>
@@ -474,6 +507,45 @@ if (p.score_confiance && p.score_confiance >= 6) {
         </div>
       </div>
     </section>
+
+    <!-- SANTÉ FINANCIÈRE , bilan public si disponible -->
+    {p.ca && p.annee_bilan && (
+      <section class="container-wide portrait-finances">
+        <div class="fin-card fade-up">
+          <header class="fin-head">
+            <span class="meta-label-or">Santé financière , bilan {p.annee_bilan}</span>
+            <h2 class="fin-title">Données de bilan public</h2>
+            <p class="fin-sub">Bilan deposé au registre national des entreprises (INPI), exercice {p.annee_bilan}.</p>
+          </header>
+          <div class="fin-grid">
+            <div class="fin-stat">
+              <span class="fin-k">Chiffre d'affaires</span>
+              <span class="fin-v">{(p.ca / 1_000_000).toFixed(p.ca > 10_000_000 ? 0 : 1).replace(".0", "")} M€</span>
+              <span class="fin-meta">{p.ca.toLocaleString("fr-FR")} €</span>
+            </div>
+            {p.resultat_net !== null && p.resultat_net !== undefined && (
+              <div class="fin-stat">
+                <span class="fin-k">Résultat net</span>
+                <span class={`fin-v ${p.resultat_net >= 0 ? "fin-pos" : "fin-neg"}`}>
+                  {p.resultat_net >= 0 ? "+" : ""}{(p.resultat_net / 1_000_000).toFixed(1).replace(".0", "")} M€
+                </span>
+                <span class="fin-meta">{p.resultat_net.toLocaleString("fr-FR")} €</span>
+              </div>
+            )}
+            {p.marge_brute !== null && p.marge_brute !== undefined && (
+              <div class="fin-stat">
+                <span class="fin-k">Marge brute</span>
+                <span class="fin-v">{(p.marge_brute / 1_000_000).toFixed(1).replace(".0", "")} M€</span>
+                <span class="fin-meta">{p.marge_brute.toLocaleString("fr-FR")} €</span>
+              </div>
+            )}
+          </div>
+          <p class="fin-source">
+            Source : <a href={`https://annuaire-entreprises.data.gouv.fr/entreprise/${p.siren}`} target="_blank" rel="noopener noreferrer">annuaire-entreprises.data.gouv.fr</a> (données INPI publiques).
+          </p>
+        </div>
+      </section>
+    )}
 
     <!-- SIGNAUX EDITORIAUX , lecture trust score positifs/alertes -->
     {p.score_detail && (p.score_detail.signaux_positifs?.length > 0 || p.score_detail.signaux_alerte?.length > 0) && (
@@ -1308,6 +1380,77 @@ if (p.score_confiance && p.score_confiance >= 6) {
     font-family: var(--font-mono);
     font-size: 0.88em;
     letter-spacing: 0.02em;
+  }
+
+  /* ═══════ FINANCES ═══════ */
+  .portrait-finances { max-width: 72rem; margin: 0 auto; padding: 1rem clamp(1.25rem, 5vw, 4rem) 2rem; }
+  .fin-card {
+    background: linear-gradient(135deg, var(--paper-warm, #f1ebdf) 0%, var(--paper, #f7f3ec) 100%);
+    border: 1px solid var(--border, #e8e3d8);
+    border-left: 4px solid var(--or, #b8863d);
+    border-radius: 6px;
+    padding: 2rem 2.25rem;
+  }
+  .fin-head { margin-bottom: 1.25rem; }
+  .fin-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.6rem;
+    margin: 0.4rem 0 0.4rem;
+    color: var(--ink);
+  }
+  .fin-sub {
+    font-size: 0.9rem;
+    color: var(--text-soft);
+    margin: 0;
+  }
+  .fin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0 1rem;
+  }
+  .fin-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+    border: 1px solid var(--border, #e8e3d8);
+  }
+  .fin-k {
+    font-family: var(--font-mono, JetBrains Mono, monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+  .fin-v {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.85rem;
+    font-weight: 500;
+    color: var(--observatoire, #1e3a52);
+    line-height: 1;
+  }
+  .fin-v.fin-pos { color: var(--vert-archive, #4a5d3a); }
+  .fin-v.fin-neg { color: var(--rouge-cachet, #8b2e2a); }
+  .fin-meta {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-soft);
+  }
+  .fin-source {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+  .fin-source a {
+    color: var(--observatoire);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   /* ═══════ RELATED ═══════ */

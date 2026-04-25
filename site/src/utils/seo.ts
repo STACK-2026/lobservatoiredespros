@@ -201,6 +201,8 @@ export function jsonLdLocalBusiness(opts: {
   description?: string;
   phone?: string;
   email?: string;
+  url_web?: string;
+  openingHours?: string | null;
   naf?: string | null;
   address?: {
     streetAddress?: string;
@@ -212,6 +214,10 @@ export function jsonLdLocalBusiness(opts: {
   geo?: { lat: number; lng: number } | null;
   sameAs?: (string | null | undefined)[];
   identifier?: { siret?: string | null; siren?: string | null };
+  /** Date de fondation (ISO YYYY-MM-DD) issue de Sirene */
+  foundingDate?: string | null;
+  /** Nombre de salaries (tranche INSEE, range textuel ou nombre minimal) */
+  numberOfEmployees?: string | null;
 }) {
   const type = schemaTypeForNaf(opts.naf);
   const result: Record<string, unknown> = {
@@ -223,6 +229,30 @@ export function jsonLdLocalBusiness(opts: {
   };
   if (opts.phone) result.telephone = opts.phone;
   if (opts.email) result.email = opts.email;
+  if (opts.url_web) result.url = opts.url_web;
+  // ContactPoint structure pour AI parsers (richer than just telephone)
+  if (opts.phone || opts.email) {
+    const cp: Record<string, unknown> = {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      areaServed: "FR",
+      availableLanguage: ["French"],
+    };
+    if (opts.phone) cp.telephone = opts.phone;
+    if (opts.email) cp.email = opts.email;
+    result.contactPoint = cp;
+  }
+  // openingHoursSpecification : Schema.org demande "Mo-Fr 09:00-18:00" via openingHours
+  if (opts.openingHours) {
+    result.openingHours = opts.openingHours;
+  }
+  if (opts.foundingDate) result.foundingDate = opts.foundingDate;
+  if (opts.numberOfEmployees) {
+    result.numberOfEmployees = {
+      "@type": "QuantitativeValue",
+      value: opts.numberOfEmployees,
+    };
+  }
   if (opts.address) {
     const addr: Record<string, unknown> = {
       "@type": "PostalAddress",
