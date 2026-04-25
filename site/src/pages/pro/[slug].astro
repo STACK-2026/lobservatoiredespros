@@ -155,8 +155,8 @@ const nextAuditDate = new Date();
 nextAuditDate.setMonth(nextAuditDate.getMonth() + 1);
 const nextAuditFR = nextAuditDate.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
-const title = `${p.nom_entreprise} , ${metierNom} à ${p.ville} (${deptCode}) , L'Observatoire`;
-const description = `${tierLabel} de ${p.nom_entreprise}, ${metierNom.toLowerCase()} à ${p.ville}. Score de Confiance ${p.score_confiance}/10. Données publiques Sirene INSEE.`;
+const title = `${p.nom_entreprise} , ${metierNom} ${p.ville} (${deptCode})`;
+const description = `${tierLabel} de ${p.nom_entreprise}, ${metierNom.toLowerCase()} à ${p.ville}. Score Confiance ${p.score_confiance}/10. Sources publiques Sirene INSEE.`;
 const url = `${siteConfig.url}/pro/${p.slug}/`;
 
 // Verdict editorial inline pour enrichir le schema LocalBusiness.description

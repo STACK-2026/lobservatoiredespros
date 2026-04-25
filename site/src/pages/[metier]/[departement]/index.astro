@@ -56,7 +56,7 @@ const restPros = pros.slice(15, 60);
 const dg = deptGrammar(deptObj.nom);
 
 const titre = `Les meilleurs ${metierObj.nom_pluriel.toLowerCase()} ${dg.in} (${deptObj.code}) , Classement ${siteConfig.editionYear}`;
-const description = `Classement éditorial des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}). ${pros.length} professionnels classés selon notre grille de six critères objectifs. Édition N°${siteConfig.editionNumber} de L'Observatoire.`;
+const description = `Classement editorial des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}). ${pros.length} pros notes selon 6 criteres publics. Edition N°${siteConfig.editionNumber}.`;
 const url = `${siteConfig.url}/${metier}/${departement}/`;
 
 const tarifsMetier: Record<string, { prestation: string; fourchette: string; unit?: string }[]> = {

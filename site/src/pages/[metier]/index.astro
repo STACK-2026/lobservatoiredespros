@@ -49,8 +49,8 @@ const depts = deptSlugsPourCeMetier
   .map((slug) => zoneBySlug.get(slug)!)
   .sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
 
-const title = `${nomPluriel} en France , Classement ${siteConfig.editionYear} , L'Observatoire des Pros`;
-const description = `Classement éditorial des ${nomPluriel.toLowerCase()} en France, par département. ${allPros.length} professionnels observés dans l'édition N°${siteConfig.editionNumber}.`;
+const title = `Meilleurs ${nomPluriel.toLowerCase()} en France ${siteConfig.editionYear} , Classement`;
+const description = `Classement editorial des ${nomPluriel.toLowerCase()} par departement. ${allPros.length} pros observes, edition N°${siteConfig.editionNumber}.`;
 const url = `${siteConfig.url}/${metier}/`;
 
 const jsonLd = [
