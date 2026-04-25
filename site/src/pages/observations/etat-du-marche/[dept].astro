@@ -5,73 +5,34 @@ import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import Masthead from "../../../components/Masthead.astro";
 import { siteConfig } from "../../../utils/config";
 import { jsonLdBreadcrumbs, ORG_ID } from "../../../utils/seo";
-import { supabase, getMetiers, getZones } from "../../../lib/supabase";
+import { getMetiers, getAllProZones, getAllProMetiers, getAllProLite, getMetierDeptCombos } from "../../../lib/supabase";
+import type { ProLite } from "../../../lib/supabase";
 import { REGION_BY_DEPT_CODE } from "../../../data/geo_fr";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const { getZones } = await import("../../../lib/supabase");
   const zones = await getZones("departement");
-  // Limiter au territoire metropole + dpts qui ont au moins quelques pros
-  const metropoleDpts = zones.filter((z) =>
-    z.code && !["971", "972", "973", "974", "976", "975", "977", "978"].includes(z.code),
-  );
+  const metropoleDpts = zones.filter((z) => z.code && !["971", "972", "973", "974", "975", "976", "977", "978"].includes(z.code));
   return metropoleDpts.map((z) => ({
     params: { dept: z.slug },
     props: { dept: z },
   }));
 };
 
-const { dept } = Astro.props as { dept: any };
-if (!dept) {
-  return Astro.redirect("/observations/");
-}
+const { dept } = Astro.props as { dept: { id: string; nom: string; code: string; slug: string } };
 
 const allMetiers = await getMetiers();
 const metierById = new Map(allMetiers.map((m) => [m.id, m]));
 
-// Recuperer tous les pros de ce departement (paginated cap 1000)
-const proIdsByZone: string[] = [];
-{
-  const page = 1000;
-  for (let start = 0; ; start += page) {
-    const { data } = await supabase
-      .from("pro_zones")
-      .select("pro_id")
-      .eq("zone_id", dept.id)
-      .range(start, start + page - 1);
-    if (!data || data.length === 0) break;
-    for (const row of data as { pro_id: string }[]) proIdsByZone.push(row.pro_id);
-    if (data.length < page) break;
-  }
-}
+const allProZones = await getAllProZones();
+const allProMetiers = await getAllProMetiers();
+const allProLite = await getAllProLite();
+const validCombos = await getMetierDeptCombos();
 
-interface ProLite {
-  id: string;
-  slug: string;
-  nom_entreprise: string;
-  ville: string | null;
-  rge: boolean;
-  qualibat: boolean;
-  score_confiance: number;
-  niveau_confiance: string | null;
-  etat_administratif: string | null;
-  date_creation_entreprise: string | null;
-  active: boolean;
-}
-
-const pros: ProLite[] = [];
-{
-  const ids = Array.from(new Set(proIdsByZone));
-  const chunkSize = 500;
-  for (let i = 0; i < ids.length; i += chunkSize) {
-    const chunk = ids.slice(i, i + chunkSize);
-    const { data } = await supabase
-      .from("pros")
-      .select("id,slug,nom_entreprise,ville,rge,qualibat,score_confiance,niveau_confiance,etat_administratif,date_creation_entreprise,active")
-      .in("id", chunk);
-    if (data) pros.push(...(data as ProLite[]));
-  }
-}
+const proIdSet = new Set(
+  allProZones.filter((row) => row.zone_id === dept.id).map((row) => row.pro_id),
+);
+const pros: ProLite[] = allProLite.filter((p) => proIdSet.has(p.id));
 
 const prosActifs = pros.filter((p) => p.active);
 
@@ -93,26 +54,16 @@ const ageMoyen = ages.length ? Math.round(ages.reduce((a, b) => a + b, 0) / ages
 const plusDe10ans = ages.filter((a) => a >= 10).length;
 const plusDe20ans = ages.filter((a) => a >= 20).length;
 
-// Repartition par metier
+// Repartition par metier (filtre sur les pros du dept + combos validés pour eviter liens cassés)
 const metiersCounts: Record<string, number> = {};
-{
-  const ids = Array.from(new Set(proIdsByZone));
-  const chunkSize = 500;
-  for (let i = 0; i < ids.length; i += chunkSize) {
-    const chunk = ids.slice(i, i + chunkSize);
-    const { data } = await supabase
-      .from("pro_metiers")
-      .select("metier_id, pro_id")
-      .in("pro_id", chunk);
-    if (data) {
-      for (const row of data as { metier_id: string }[]) {
-        const m = metierById.get(row.metier_id);
-        if (m) metiersCounts[m.slug] = (metiersCounts[m.slug] || 0) + 1;
-      }
-    }
-  }
+for (const row of allProMetiers) {
+  if (!proIdSet.has(row.pro_id)) continue;
+  const m = metierById.get(row.metier_id);
+  if (!m) continue;
+  metiersCounts[m.slug] = (metiersCounts[m.slug] || 0) + 1;
 }
 const metiersTrie = Object.entries(metiersCounts)
+  .filter(([slug]) => validCombos.has(`${slug}:${dept.slug}`))
   .sort(([, a], [, b]) => b - a)
   .map(([slug, count]) => {
     const m = allMetiers.find((mm) => mm.slug === slug);

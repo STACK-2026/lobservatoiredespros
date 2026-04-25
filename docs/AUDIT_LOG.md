@@ -370,3 +370,20 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 1. Activer Google Places API dans GCP project `3729498435`
 2. Re-soumettre sitemap-index.xml dans GSC (ai-sitemap corrigé)
 3. Ping IndexNow initial : `python3 scripts/submit_indexnow.py --sitemap`
+
+## Phase 2.D , audit `plombier` , 2026-04-25 10:27
+
+```
+Metier : plombier
+  Dpts couverts   : 94 / 96 metropole
+  Pros total      : 9474
+  Moyenne / dpt   : 100.8
+  Top 3 dpts      : 89=290, 01=100, 02=100
+  Bottom 3 dpts   : 90=42, 48=69, 23=82
+  SIRET dupliques : 0
+  Pros orphelins  : 0 (sans pro_zones)
+  Geocodes        : 1090/9474 (11.5%)
+
+STATUS : OK
+
+```

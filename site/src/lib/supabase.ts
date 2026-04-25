@@ -98,6 +98,71 @@ export async function getZoneBySlug(slug: string): Promise<ZoneRow | null> {
   return zones.find((z) => z.slug === slug) || null;
 }
 
+/** Cache module-level des liens pro_zones / pro_metiers (page batchee). */
+let _proZonesCache: { pro_id: string; zone_id: string }[] | null = null;
+let _proMetiersCache: { pro_id: string; metier_id: string }[] | null = null;
+
+async function fetchAllPaginated<T>(table: string, cols: string): Promise<T[]> {
+  const page = 1000;
+  const all: T[] = [];
+  for (let start = 0; ; start += page) {
+    const { data, error } = await supabase.from(table).select(cols).range(start, start + page - 1);
+    if (error) {
+      console.error(`fetchAllPaginated ${table}:`, error);
+      break;
+    }
+    if (!data || data.length === 0) break;
+    all.push(...(data as T[]));
+    if (data.length < page) break;
+  }
+  return all;
+}
+
+export async function getAllProZones() {
+  if (!_proZonesCache) {
+    _proZonesCache = await fetchAllPaginated<{ pro_id: string; zone_id: string }>(
+      "pro_zones",
+      "pro_id, zone_id",
+    );
+  }
+  return _proZonesCache;
+}
+
+export async function getAllProMetiers() {
+  if (!_proMetiersCache) {
+    _proMetiersCache = await fetchAllPaginated<{ pro_id: string; metier_id: string }>(
+      "pro_metiers",
+      "pro_id, metier_id",
+    );
+  }
+  return _proMetiersCache;
+}
+
+export interface ProLite {
+  id: string;
+  slug: string;
+  nom_entreprise: string;
+  ville: string | null;
+  rge: boolean;
+  qualibat: boolean;
+  score_confiance: number;
+  niveau_confiance: string | null;
+  etat_administratif: string | null;
+  date_creation_entreprise: string | null;
+  active: boolean;
+}
+
+let _proLiteCache: ProLite[] | null = null;
+export async function getAllProLite(): Promise<ProLite[]> {
+  if (!_proLiteCache) {
+    _proLiteCache = await fetchAllPaginated<ProLite>(
+      "pros",
+      "id,slug,nom_entreprise,ville,rge,qualibat,score_confiance,niveau_confiance,etat_administratif,date_creation_entreprise,active",
+    );
+  }
+  return _proLiteCache;
+}
+
 /** Pros pour un metier + departement specifique, classes par score desc. */
 export async function getProsByMetierDept(metierSlug: string, deptSlug: string): Promise<ProRow[]> {
   const metier = await getMetierBySlug(metierSlug);
