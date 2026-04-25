@@ -124,11 +124,12 @@ def sb_patch(path: str, body: dict):
 
 
 def fetch_entreprise(siren: str) -> dict | None:
-    """Retourne les infos enrichies pour un SIREN, ou None si introuvable."""
+    """Retourne les infos enrichies pour un SIREN, ou None si introuvable.
+    Ajoute include=finances pour CA + resultat_net + marge_brute si dispo."""
     clean = "".join(c for c in str(siren) if c.isdigit())
     if not clean:
         return None
-    params = {"q": clean, "per_page": "1"}
+    params = {"q": clean, "per_page": "1", "include": "finances"}
     url = f"{API_RE}?{urllib.parse.urlencode(params)}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
@@ -142,6 +143,20 @@ def fetch_entreprise(siren: str) -> dict | None:
     r0 = results[0]
     dirigeants = r0.get("dirigeants") or []
     complements = r0.get("complements") or {}
+    finances = r0.get("finances") or {}
+
+    # Latest year
+    ca = resultat_net = marge_brute = annee_bilan = None
+    if finances:
+        try:
+            latest = max(finances.keys())
+            f = finances[latest] or {}
+            ca = f.get("ca")
+            resultat_net = f.get("resultat_net")
+            marge_brute = f.get("marge_brute")
+            annee_bilan = int(latest) if str(latest).isdigit() else None
+        except (ValueError, TypeError):
+            pass
 
     return {
         "categorie_entreprise": r0.get("categorie_entreprise"),
@@ -154,7 +169,7 @@ def fetch_entreprise(siren: str) -> dict | None:
                 "qualite": d.get("qualite"),
                 "type": d.get("type_dirigeant"),
             }
-            for d in dirigeants[:5]  # top 5
+            for d in dirigeants[:5]
         ],
         "est_qualiopi": bool(complements.get("est_qualiopi")),
         "convention_collective": (
@@ -163,6 +178,10 @@ def fetch_entreprise(siren: str) -> dict | None:
             else None
         ),
         "etat_administratif": r0.get("etat_administratif") or "A",
+        "ca": ca,
+        "resultat_net": resultat_net,
+        "marge_brute": marge_brute,
+        "annee_bilan": annee_bilan,
     }
 
 
