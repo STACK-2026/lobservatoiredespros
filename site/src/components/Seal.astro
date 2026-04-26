@@ -1,29 +1,30 @@
 ---
 /**
- * Sceau editorial L'Observatoire des Pros , refonte 2026.
+ * Sceau editorial L'Observatoire des Pros , refonte 2026 minimaliste.
  *
- * Direction esthetique : moins d'ornement, plus de typographie. Inspire des
- * sceaux academiques modernes (MIT, College de France) plus que des medailles
- * XIXe. Geometrie precise, traits fins, une seule etoile refined au centre.
+ * Direction : medaille editoriale moderne. Inspire des sceaux academiques
+ * (Academie francaise, College de France) depouilles a l'essentiel. Chaque
+ * trait gagne sa place. Le compartiment central respire.
  *
- * Ne contient plus de date , la fraicheur editoriale tient au tampon, pas au
- * millesime grave dans la pierre.
+ * Element signature : 3 dots subtils sous l'etoile, ancre visuel sans cri.
  *
  * Geometrie (viewBox 200x200, centre 100x100) :
  *   R 96 , cercle externe (trait 0.7)
- *   R 92 , 4 triangles cardinaux (N, E, S, O), tres petits
- *   R 84 , path ring-text
+ *   R 92 , 4 triangles cardinaux N/E/S/O
+ *   R 84 , path ring text
  *   R 78 , cercle interne (trait 0.4)
- *   R 50 , cercle central
- *   R 46 , halo interne (trait 0.2)
- *
- * Animation : rotation 32s lineaire (couronne externe + ring text). Centre fixe.
+ *   R 50 , compartiment central
+ *   R 46 , halo interne fin
+ *   etoile y=78 a y=122 (legerement remontee pour faire respirer)
+ *   3 dots a y=132 (accent decoratif)
  *
  * Variantes :
- *  - variant : ink | or | paper | observatoire (couleur du trait + glyph)
- *  - center  : star | compass | monogram (motif central)
- *  - text    : libelle du ring text (defaut "L'OBSERVATOIRE DES PROS")
- *  - motto   : motto court sous le centre (defaut "OBSERVER VERIFIER CLASSER")
+ *  - variant : ink | or | paper | observatoire
+ *  - center  : star | compass | monogram
+ *  - text    : ring text (defaut "L'OBSERVATOIRE DES PROS")
+ *
+ * Animation : rotation 32s lineaire (couronne externe + ring text). Centre fixe.
+ * `prefers-reduced-motion` : desactivee.
  */
 interface Props {
   size?: number;
@@ -31,7 +32,6 @@ interface Props {
   animated?: boolean;
   stamp?: boolean;
   text?: string;
-  motto?: string;
   center?: "monogram" | "star" | "compass";
   className?: string;
 }
@@ -42,7 +42,6 @@ const {
   animated = true,
   stamp = false,
   text = "L'OBSERVATOIRE DES PROS",
-  motto = "OBSERVER · VÉRIFIER · CLASSER",
   center = "star",
   className = "",
 } = Astro.props;
@@ -58,7 +57,6 @@ const uid = `seal-${Math.random().toString(36).slice(2, 9)}`;
 const rotateClass = animated ? "seal-rotate" : "";
 const stampClass = stamp ? "seal-stamp" : "";
 
-// Ring text repete pour remplir 360 degres + separateur middle dot.
 const ringText = `${text} ·  `;
 
 // 4 triangles cardinaux a R=92, angles 0, 90, 180, 270
@@ -68,6 +66,13 @@ const cardinals = [0, 90, 180, 270].map((deg) => {
   const cy = 100 + 92 * Math.sin(rad);
   return { cx: +cx.toFixed(2), cy: +cy.toFixed(2), rotation: deg };
 });
+
+// 3 dots accent decoratifs sous le centre, ligne horizontale a y=132
+const accentDots = [
+  { cx: 92, cy: 132, r: 0.85 },
+  { cx: 100, cy: 132, r: 1.1 },
+  { cx: 108, cy: 132, r: 0.85 },
+];
 ---
 
 <span
@@ -87,9 +92,17 @@ const cardinals = [0, 90, 180, 270].map((deg) => {
     <defs>
       <!-- Path pour ring-text : cercle R=84 sens horaire -->
       <path id={`${uid}-ring`} d="M100 16 A84 84 0 1 1 99.99 16" />
-      <!-- Path pour motto bas : arc dans le compartiment central -->
-      <path id={`${uid}-motto`} d="M68 110 A 38 38 0 0 0 132 110" />
+      <!-- Halo radial subtil pour donner profondeur de medaille (variante or) -->
+      <radialGradient id={`${uid}-glow`} cx="50%" cy="42%" r="58%">
+        <stop offset="0%" stop-color={stroke} stop-opacity="0.05" />
+        <stop offset="100%" stop-color={stroke} stop-opacity="0" />
+      </radialGradient>
     </defs>
+
+    <!-- Halo central qui suggere relief de medaille (visible variante or) -->
+    {variant === "or" && (
+      <circle cx="100" cy="100" r="50" fill={`url(#${uid}-glow)`} />
+    )}
 
     <!-- COURONNE QUI TOURNE : cercles + triangles + ring text -->
     <g class={rotateClass} style="transform-origin: 100px 100px;">
@@ -109,7 +122,7 @@ const cardinals = [0, 90, 180, 270].map((deg) => {
         />
       ))}
 
-      <!-- Ring text sur R=84, font generouse, letter-spacing 4 -->
+      <!-- Ring text Fraunces italic, letter-spacing 4 -->
       <text
         fill={stroke}
         font-family="Fraunces, Georgia, serif"
@@ -124,73 +137,65 @@ const cardinals = [0, 90, 180, 270].map((deg) => {
       </text>
     </g>
 
-    <!-- COMPARTIMENT CENTRAL FIXE -->
+    <!-- COMPARTIMENT CENTRAL FIXE : breathe, refined, pas de texte -->
     <g>
       <!-- Cercle central, trait moyen -->
       <circle cx="100" cy="100" r="50" fill="none" stroke={stroke} stroke-width="0.6" />
-      <!-- Halo fin a 4px du cercle central, donne profondeur -->
+      <!-- Halo fin a 4px du cercle central, profondeur sans bruit -->
       <circle cx="100" cy="100" r="46" fill="none" stroke={stroke} stroke-width="0.25" opacity="0.5" />
 
       {center === "star" && (
-        <g>
-          <!-- Etoile a 8 branches refined, geometrie pure (sans remplissage rugueux) -->
-          <!-- Branches longues (4) -->
+        <g transform="translate(0, -3)">
+          <!-- Etoile 8 branches refined : 4 longues cardinales + 4 courtes diagonales -->
           <g fill={stroke} opacity="0.95">
-            <polygon points="100,72 102,92 100,98 98,92" />
-            <polygon points="128,100 108,102 102,100 108,98" />
-            <polygon points="100,128 98,108 100,102 102,108" />
-            <polygon points="72,100 92,98 98,100 92,102" />
+            <!-- Branches longues : axes N/S/E/O, fines fleches -->
+            <polygon points="100,78 102,96 100,100 98,96" />
+            <polygon points="122,100 104,102 100,100 104,98" />
+            <polygon points="100,122 98,104 100,100 102,104" />
+            <polygon points="78,100 96,98 100,100 96,102" />
           </g>
-          <!-- Branches courtes diagonales (4), plus fines -->
-          <g fill={stroke} opacity="0.55">
-            <polygon points="115.5,84.5 105,98 100,100 98,95" />
-            <polygon points="115.5,115.5 102,105 100,100 105,98" />
-            <polygon points="84.5,115.5 95,102 100,100 98,105" />
-            <polygon points="84.5,84.5 98,95 100,100 95,98" />
+          <g fill={stroke} opacity="0.42">
+            <!-- Branches courtes : diagonales, plus subtiles -->
+            <polygon points="112.5,87.5 102,97 100,100 97,98" />
+            <polygon points="112.5,112.5 103,103 100,100 102,97" />
+            <polygon points="87.5,112.5 98,102 100,100 103,102" />
+            <polygon points="87.5,87.5 97,98 100,100 98,103" />
           </g>
-          <!-- Disque central minuscule -->
-          <circle cx="100" cy="100" r="1.6" fill={stroke} />
+          <!-- Pointe centrale, disque minuscule -->
+          <circle cx="100" cy="100" r="1.3" fill={stroke} />
         </g>
       )}
 
       {center === "compass" && (
-        <g>
-          <!-- Compass rose moderne, single stroke geometry -->
+        <g transform="translate(0, -3)">
+          <!-- Compass rose moderne, fleches pures -->
           <g fill={stroke}>
-            <polygon points="100,68 103,100 100,102 97,100" opacity="0.95" />
-            <polygon points="100,132 97,100 100,98 103,100" opacity="0.5" />
-            <polygon points="132,100 100,103 98,100 100,97" opacity="0.7" />
-            <polygon points="68,100 100,97 102,100 100,103" opacity="0.7" />
+            <polygon points="100,76 103,100 100,103 97,100" opacity="0.95" />
+            <polygon points="100,124 97,100 100,97 103,100" opacity="0.45" />
+            <polygon points="124,100 100,103 97,100 100,97" opacity="0.65" />
+            <polygon points="76,100 100,97 103,100 100,103" opacity="0.65" />
           </g>
-          <circle cx="100" cy="100" r="2" fill={stroke} />
+          <circle cx="100" cy="100" r="1.8" fill={stroke} />
         </g>
       )}
 
       {center === "monogram" && (
-        <g>
-          <!-- "O" en cercle, "P" en arc juxtapose -->
-          <circle cx="94" cy="100" r="14" fill="none" stroke={stroke} stroke-width="1.4" />
-          <path d="M104 86 L104 114 M104 86 Q116 86 116 96 Q116 106 104 106"
-                fill="none" stroke={stroke} stroke-width="1.4" stroke-linecap="round" />
+        <g transform="translate(0, -3)">
+          <!-- "OdP" monogramme stylise : O en cercle + accent diagonale + point -->
+          <circle cx="100" cy="100" r="16" fill="none" stroke={stroke} stroke-width="1.4" />
+          <line x1="92" y1="110" x2="108" y2="90" stroke={stroke} stroke-width="1.1" stroke-linecap="round" opacity="0.8" />
+          <circle cx="110" cy="90" r="1.5" fill={stroke} />
         </g>
       )}
-    </g>
 
-    <!-- MOTTO en arc bas du compartiment central -->
-    {motto && (
-      <text
-        fill={stroke}
-        font-family="Geist, sans-serif"
-        font-size="4.6"
-        letter-spacing="1.8"
-        font-weight="500"
-        opacity="0.78"
-      >
-        <textPath href={`#${uid}-motto`} startOffset="50%" text-anchor="middle">
-          {motto}
-        </textPath>
-      </text>
-    )}
+      <!-- Element signature : 3 dots accent decoratifs sous le centre.
+           Donne une assise visuelle a l'etoile sans cri textuel. -->
+      <g fill={stroke}>
+        {accentDots.map((d, i) => (
+          <circle cx={d.cx} cy={d.cy} r={d.r} opacity={i === 1 ? "0.85" : "0.55"} />
+        ))}
+      </g>
+    </g>
   </svg>
 </span>
 

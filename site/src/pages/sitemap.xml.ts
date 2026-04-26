@@ -101,26 +101,68 @@ export const GET: APIRoute = async () => {
     });
   }
 
-  // URLs pros , fetch depuis Supabase au build time (paginé pour passer le cap 1000)
+  // URLs pros , uniquement les TOP 10 par combo (metier x dpt) pour matcher
+  // les pages statiques generees par /pro/[slug]. Sinon on liste 100k URLs
+  // dont 90k sont 404 = mauvais signal SEO.
   try {
+    const { getAllProMetiers, getAllProZones } = await import("../lib/supabase");
+    const allProMetiers = await getAllProMetiers();
+    const allProZones = await getAllProZones();
+
+    // Fetch toutes les infos pros minimal
+    const allProsLite: Array<{ id: string; slug: string; score: number; updated_at: string | null }> = [];
     const page = 1000;
     for (let start = 0; ; start += page) {
-      const { data: pros, error } = await supabase
+      const { data: batch, error } = await supabase
         .from("pros")
-        .select("slug, updated_at")
+        .select("id, slug, score_confiance, updated_at")
         .eq("active", true)
         .not("slug", "is", null)
         .range(start, start + page - 1);
-      if (error || !pros || pros.length === 0) break;
-      for (const p of pros) {
-        urls.push({
-          loc: `/pro/${p.slug}/`,
-          priority: 0.6,
-          changefreq: "monthly",
-          lastmod: p.updated_at ? p.updated_at.split("T")[0] : now,
+      if (error || !batch || batch.length === 0) break;
+      for (const p of batch) {
+        allProsLite.push({
+          id: p.id,
+          slug: p.slug,
+          score: p.score_confiance || 0,
+          updated_at: p.updated_at,
         });
       }
-      if (pros.length < page) break;
+      if (batch.length < page) break;
+    }
+    const proById = Object.fromEntries(allProsLite.map((p) => [p.id, p]));
+
+    // Build combo -> list pros, prendre top 10 par score
+    const zonesByPro: Record<string, string[]> = {};
+    for (const pz of allProZones) {
+      if (!zonesByPro[pz.pro_id]) zonesByPro[pz.pro_id] = [];
+      zonesByPro[pz.pro_id].push(pz.zone_id);
+    }
+    const combos: Record<string, string[]> = {};
+    for (const pm of allProMetiers) {
+      for (const zid of zonesByPro[pm.pro_id] || []) {
+        const key = `${pm.metier_id}:${zid}`;
+        if (!combos[key]) combos[key] = [];
+        combos[key].push(pm.pro_id);
+      }
+    }
+    const topProIds = new Set<string>();
+    for (const proIds of Object.values(combos)) {
+      const top = proIds
+        .filter((pid) => proById[pid])
+        .sort((a, b) => proById[b].score - proById[a].score)
+        .slice(0, 10);
+      for (const pid of top) topProIds.add(pid);
+    }
+
+    for (const p of allProsLite) {
+      if (!topProIds.has(p.id)) continue;
+      urls.push({
+        loc: `/pro/${p.slug}/`,
+        priority: 0.6,
+        changefreq: "monthly",
+        lastmod: p.updated_at ? p.updated_at.split("T")[0] : now,
+      });
     }
   } catch (e) {
     console.warn("Sitemap: failed to fetch pros, skipping", e);
