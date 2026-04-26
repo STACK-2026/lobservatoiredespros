@@ -40,6 +40,7 @@ export async function getStaticPaths() {
       .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance, opening_hours, ca, resultat_net, marge_brute, annee_bilan, categorie_entreprise, tranche_effectif, dirigeants_count, dirigeants_json, est_qualiopi")
       .eq("active", true)
       .not("slug", "is", null)
+      .order("id")
       .range(start, start + page - 1);
     if (error) {
       console.error("pro/[slug] getStaticPaths pros fetch error", error);
@@ -58,7 +59,6 @@ export async function getStaticPaths() {
   for (let i = 0; i < proIds.length; i += chunkIn) {
     const batch = proIds.slice(i, i + chunkIn);
     if (batch.length === 0) continue;
-    // Pagination range aussi ici pour absorber 1000+ events par chunk
     for (let start = 0; ; start += page) {
       const { data: allEvents, error } = await supabase
         .from("pro_evenements_legaux")
@@ -79,34 +79,95 @@ export async function getStaticPaths() {
     }
   }
 
-  return pros.map((p) => ({
+  // PERF: pre-fetch ALL pro_metiers + pro_zones + metiers + zones une seule fois.
+  // Permet de skipper 2 DB queries par /pro/ page.
+  const { getAllProMetiers, getAllProZones, getMetiers, getZones } = await import("../../lib/supabase");
+  const allProMetiers = await getAllProMetiers();
+  const allProZones = await getAllProZones();
+  const allMetiers = await getMetiers();
+  const allZones = await getZones("departement");
+
+  const metierById = new Map(allMetiers.map((m) => [m.id, m]));
+  const zoneById = new Map(allZones.map((z) => [z.id, z]));
+
+  const metierByPro: Record<string, any> = {};
+  for (const row of allProMetiers) {
+    if (metierByPro[row.pro_id]) continue;
+    const m = metierById.get(row.metier_id);
+    if (m) metierByPro[row.pro_id] = m;
+  }
+  const zoneByPro: Record<string, any> = {};
+  for (const row of allProZones) {
+    if (zoneByPro[row.pro_id]) continue;
+    const z = zoneById.get(row.zone_id);
+    if (z) zoneByPro[row.pro_id] = z;
+  }
+
+  // FILTRE QUALITE : on ne genere /pro/[slug] que pour le TOP 10 de chaque
+  // combo (metier, dept). Raisons : (1) Cloudflare Pages limite 20k fichiers
+  // par deploy, (2) seuls les top 10 sont surfaces dans les classements
+  // editoriaux. Les autres pros restent en DB mais sans page statique
+  // (eviter thin content + budget crawl gaspille).
+  const proIdToCombos: Record<string, Array<{ metierId: string; zoneId: string }>> = {};
+  for (const pm of allProMetiers) {
+    if (!proIdToCombos[pm.pro_id]) proIdToCombos[pm.pro_id] = [];
+  }
+  // Build combo lists by joining pro_metiers x pro_zones par pro_id
+  const zonesByProId: Record<string, string[]> = {};
+  for (const pz of allProZones) {
+    if (!zonesByProId[pz.pro_id]) zonesByProId[pz.pro_id] = [];
+    zonesByProId[pz.pro_id].push(pz.zone_id);
+  }
+  for (const pm of allProMetiers) {
+    for (const zid of zonesByProId[pm.pro_id] || []) {
+      proIdToCombos[pm.pro_id].push({ metierId: pm.metier_id, zoneId: zid });
+    }
+  }
+
+  // Group pros par combo (metierId, zoneId), trier par score, garder top 10
+  const proById: Record<string, any> = Object.fromEntries(pros.map((p) => [p.id, p]));
+  const topProIds = new Set<string>();
+  const combos: Record<string, string[]> = {};
+  for (const [proId, comboList] of Object.entries(proIdToCombos)) {
+    for (const c of comboList) {
+      const key = `${c.metierId}:${c.zoneId}`;
+      if (!combos[key]) combos[key] = [];
+      combos[key].push(proId);
+    }
+  }
+  for (const proIds of Object.values(combos)) {
+    const sorted = proIds
+      .filter((pid) => proById[pid])
+      .sort((a, b) => (proById[b].score_confiance || 0) - (proById[a].score_confiance || 0))
+      .slice(0, 10);
+    for (const pid of sorted) topProIds.add(pid);
+  }
+
+  const filteredPros = pros.filter((p) => topProIds.has(p.id));
+  console.log(`[pro/[slug]] Filtered ${pros.length} pros -> ${filteredPros.length} top10 pros (CF Pages 20k file limit)`);
+
+  return filteredPros.map((p) => ({
     params: { slug: p.slug },
-    props: { pro: p, legalEvents: eventsByPro[p.id] || [] },
+    props: {
+      pro: p,
+      legalEvents: eventsByPro[p.id] || [],
+      metierLink: metierByPro[p.id] || null,
+      zoneLink: zoneByPro[p.id] || null,
+    },
   }));
 }
 
-const { pro, legalEvents = [] } = Astro.props;
+const { pro, legalEvents = [], metierLink, zoneLink } = Astro.props;
 const p = pro;
 
-const { data: linkMetiers } = await supabase
-  .from("pro_metiers")
-  .select("metier_id, metiers!inner(slug, nom, nom_pluriel, code_naf)")
-  .eq("pro_id", p.id)
-  .limit(1);
-const metierLink = linkMetiers?.[0]?.metiers;
 const metierSlug = metierLink?.slug || null;
 const metierNom = metierLink?.nom || "Professionnel";
 const metierNomPluriel = metierLink?.nom_pluriel || "Professionnels";
 const metierNaf = metierLink?.code_naf || "";
 
-const { data: linkZones } = await supabase
-  .from("pro_zones")
-  .select("zone_id, zones!inner(slug, nom, code, type)")
-  .eq("pro_id", p.id);
-const deptZone = linkZones?.find((z: any) => z.zones?.type === "departement")?.zones;
-const deptSlug = deptZone?.slug || "";
-const deptNom = deptZone?.nom || p.ville || "";
-const deptCode = deptZone?.code || (p.code_postal ? p.code_postal.slice(0, 2) : "");
+const deptSlug = zoneLink?.slug || "";
+const deptNom = zoneLink?.nom || p.ville || "";
+const deptCode = zoneLink?.code || (p.code_postal ? p.code_postal.slice(0, 2) : "");
 
 const anciennete = p.date_creation_entreprise
   ? new Date().getFullYear() - parseInt(p.date_creation_entreprise.slice(0, 4), 10)
