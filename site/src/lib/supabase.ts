@@ -70,22 +70,49 @@ export interface ZoneRow {
 let _metiersCache: MetierRow[] | null = null;
 let _zonesCache: ZoneRow[] | null = null;
 
+// Retry helper : Supabase peut transient-fail (`fetch failed`) sur des
+// builds longs (> 1h). On retry 3x avec backoff puis renvoie une erreur
+// claire. Sinon le build SSG entier crash.
+async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  const delays = [500, 2000, 6000];
+  let lastErr: unknown = null;
+  for (let i = 0; i < delays.length + 1; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (i < delays.length) {
+        const wait = delays[i];
+        console.warn(`[supabase] ${label} attempt ${i + 1} failed, retry in ${wait}ms : ${(e as Error)?.message || e}`);
+        await new Promise((r) => setTimeout(r, wait));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 export async function getMetiers(): Promise<MetierRow[]> {
   if (_metiersCache) return _metiersCache;
-  const { data, error } = await supabase.from("metiers").select("*").order("nom");
-  if (error) throw error;
-  _metiersCache = data as MetierRow[];
+  const result = await withRetry(async () => {
+    const { data, error } = await supabase.from("metiers").select("*").order("nom");
+    if (error) throw error;
+    return data as MetierRow[];
+  }, "getMetiers");
+  _metiersCache = result;
   return _metiersCache;
 }
 
 export async function getZones(type?: "region" | "departement" | "ville"): Promise<ZoneRow[]> {
   if (_zonesCache && !type) return _zonesCache;
-  let query = supabase.from("zones").select("*").order("nom");
-  if (type) query = query.eq("type", type);
-  const { data, error } = await query;
-  if (error) throw error;
-  if (!type) _zonesCache = data as ZoneRow[];
-  return data as ZoneRow[];
+  const result = await withRetry(async () => {
+    let query = supabase.from("zones").select("*").order("nom");
+    if (type) query = query.eq("type", type);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as ZoneRow[];
+  }, `getZones${type ? "(" + type + ")" : ""}`);
+  if (!type) _zonesCache = result;
+  return result;
 }
 
 export async function getMetierBySlug(slug: string): Promise<MetierRow | null> {
@@ -106,9 +133,23 @@ async function fetchAllPaginated<T>(table: string, cols: string): Promise<T[]> {
   const page = 1000;
   const all: T[] = [];
   for (let start = 0; ; start += page) {
-    const { data, error } = await supabase.from(table).select(cols).range(start, start + page - 1);
+    let data: any = null;
+    let error: any = null;
+    // Retry up to 3 times per page on transient failures (fetch failed during
+    // long builds > 1h where Supabase connection drops occasionally).
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await supabase.from(table).select(cols).range(start, start + page - 1);
+        data = res.data;
+        error = res.error;
+        if (!error) break;
+      } catch (e) {
+        error = e;
+      }
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
     if (error) {
-      console.error(`fetchAllPaginated ${table}:`, error);
+      console.error(`fetchAllPaginated ${table} after retries:`, error);
       break;
     }
     if (!data || data.length === 0) break;
