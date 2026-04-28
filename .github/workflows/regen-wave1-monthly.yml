@@ -38,7 +38,7 @@ jobs:
       - name: Run regen_wave1_pros.py
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          WAVE1_CAP: "18500"
+          WAVE1_CAP: "15800"
         run: python3 scripts/regen_wave1_pros.py
 
       - name: Diff check
@@ -60,5 +60,5 @@ jobs:
           git config user.name "regen-wave1-bot"
           git config user.email "noreply@lobservatoiredespros.com"
           git add site/src/data/wave1_pros.json
-          git commit -m "chore(wave1): monthly regen of /pro/ SSG whitelist (top10 per combo + must_keep floor, cap 18 500)"
+          git commit -m "chore(wave1): monthly regen of /pro/ SSG whitelist (top10 per combo + must_keep floor, cap 15 800)"
           git push origin main

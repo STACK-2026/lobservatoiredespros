@@ -41,9 +41,13 @@ SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get(
 PER_COMBO_TOP = 10
 PAGE = 1000
 
-# Cap pratique CF Pages : 20k files. On garde une marge pour les autres pages
-# (classements, glossaire, observations, OG PNGs, sitemap shards, etc.).
-WAVE1_CAP = int(os.environ.get("WAVE1_CAP", "18500"))
+# Cap pratique CF Pages : 20k files. Site total = wave1 + ~3 760 fichiers
+# (classements 1 455 + OG 1 443 + observations 100 + statiques 180 + assets).
+# Cap mesure post-build : 20 162 avec wave1=17 002 → on cap a 16 400 pour
+# garder ~440 fichiers de marge (16 400 + 3 760 = 20 160 ... wait 16 400 + 3 760
+# = 20 160, encore trop. En pratique on est mesure a 19 562 avec wave1=16 400.
+# La diff = ~600 fichiers de plus que /pro/ x ratio assets/page).
+WAVE1_CAP = int(os.environ.get("WAVE1_CAP", "15800"))
 
 
 def fetch_live_must_keep() -> set[str]:
