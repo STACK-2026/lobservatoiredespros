@@ -1,0 +1,68 @@
+name: Regen wave1 pros (monthly)
+
+# Re-genere site/src/data/wave1_pros.json mensuellement :
+#   - top 10 par combo (metier, dpt) sur score_confiance
+#   - UNION must_keep (slugs deja indexes au sitemap LIVE) = anti-regression SEO
+#   - Cap dur 18 500 (sous le plafond CF Pages 20 000 files par deployment)
+#
+# Si la whitelist change, commit + push declenche deploy-site.yml automatiquement.
+# Les pros qui sortent de wave1 restent live via la SSR Pages Function fallback.
+
+on:
+  schedule:
+    # 1er du mois a 04:30 UTC (06:30 Paris ete, 05:30 Paris hiver)
+    - cron: "30 4 1 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: regen-wave1-pros
+  cancel-in-progress: false
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run regen_wave1_pros.py
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          WAVE1_CAP: "18500"
+        run: python3 scripts/regen_wave1_pros.py
+
+      - name: Diff check
+        id: diff
+        run: |
+          if git diff --quiet site/src/data/wave1_pros.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to wave1_pros.json"
+          else
+            BEFORE=$(git show HEAD:site/src/data/wave1_pros.json | python3 -c "import json,sys;print(len(json.load(sys.stdin)))")
+            AFTER=$(python3 -c "import json;print(len(json.load(open('site/src/data/wave1_pros.json'))))")
+            echo "Before: $BEFORE slugs, after: $AFTER slugs"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "regen-wave1-bot"
+          git config user.email "noreply@lobservatoiredespros.com"
+          git add site/src/data/wave1_pros.json
+          git commit -m "chore(wave1): monthly regen of /pro/ SSG whitelist
+
+Re-generated via scripts/regen_wave1_pros.py with must_keep floor (live
+sitemap slugs preserved) + top10 per (metier, dpt) combo on score_confiance.
+Cap 18 500 to stay under CF Pages 20k file limit."
+          git push origin main

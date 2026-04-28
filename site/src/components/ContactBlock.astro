@@ -46,7 +46,8 @@ const hasAny = !!(telephone || email || siteWeb);
 //   "Mo-Fr 08:00-18:00", "24/7", "Mo-Sa 09:00-12:00,14:00-19:00".
 function parseOpeningHours(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const v = raw.trim();
+  // Sanitize DB-sourced em/en dashes before display (cf utils/sanitize.ts).
+  const v = raw.replace(/[—–]/g, "-").trim();
   if (!v) return null;
   if (v === "24/7") return "Ouvert 24h/24, 7j/7";
   // Remplace les codes anglais par labels FR courts

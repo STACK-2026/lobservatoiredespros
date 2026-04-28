@@ -41,7 +41,18 @@ jobs:
 
       - name: Build
         working-directory: site
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NODE_OPTIONS: "--max-old-space-size=8192"
         run: npm run build
+
+      - name: Upload dist artifact (consumed by deploy-functions fast-lane)
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-latest
+          path: site/dist
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

@@ -29,8 +29,24 @@ import {
   schemaTypeForNaf,
 } from "../../utils/seo";
 import { REGION_BY_DEPT_CODE } from "../../data/geo_fr";
+import wave1Pros from "../../data/wave1_pros.json";
+import { sanitizeDashes } from "../../utils/sanitize";
 
 export async function getStaticPaths() {
+  // Hybride SSG + SSR pattern (clone ratingcafe wave1 + Pages Function).
+  //
+  // wave1_pros.json contient la whitelist du top par combo (metier x dpt) +
+  // must_keep floor (slugs deja indexes au sitemap LIVE = zero regression
+  // SEO). Re-genere par scripts/regen_wave1_pros.py.
+  //
+  // Tous les pros hors wave1 sont servis par site/functions/pro/[[slug]].ts
+  // (SSR Pages Function avec HTML SEO-equivalent simplifie).
+  //
+  // Cap CF Pages : 20 000 files max. wave1 cible ~17-18k pros (laisse marge
+  // pour /metier/[dept], OG PNGs, sitemap shards, assets).
+  const wave1Set = new Set(wave1Pros as string[]);
+  console.log(`[pro/[slug]] wave1 whitelist : ${wave1Set.size} slugs`);
+
   // Paginé : Supabase cap 1000 rows par défaut. Post-import national 50k+ pros.
   const page = 1000;
   const pros: any[] = [];
@@ -47,9 +63,13 @@ export async function getStaticPaths() {
       break;
     }
     if (!data || data.length === 0) break;
-    pros.push(...data);
+    // Filter early : on SSG-rend uniquement les slugs wave1.
+    for (const p of data) {
+      if (p.slug && wave1Set.has(p.slug)) pros.push(p);
+    }
     if (data.length < page) break;
   }
+  console.log(`[pro/[slug]] DB filtered to wave1 : ${pros.length} pros`);
 
   // Fetch events legaux par chunks d'IN (Postgres/PostgREST limite la taille
   // du IN clause ; on batche par 500 pro_ids).
@@ -103,50 +123,11 @@ export async function getStaticPaths() {
     if (z) zoneByPro[row.pro_id] = z;
   }
 
-  // FILTRE QUALITE : on ne genere /pro/[slug] que pour le TOP 10 de chaque
-  // combo (metier, dept). Raisons : (1) Cloudflare Pages limite 20k fichiers
-  // par deploy, (2) seuls les top 10 sont surfaces dans les classements
-  // editoriaux. Les autres pros restent en DB mais sans page statique
-  // (eviter thin content + budget crawl gaspille).
-  const proIdToCombos: Record<string, Array<{ metierId: string; zoneId: string }>> = {};
-  for (const pm of allProMetiers) {
-    if (!proIdToCombos[pm.pro_id]) proIdToCombos[pm.pro_id] = [];
-  }
-  // Build combo lists by joining pro_metiers x pro_zones par pro_id
-  const zonesByProId: Record<string, string[]> = {};
-  for (const pz of allProZones) {
-    if (!zonesByProId[pz.pro_id]) zonesByProId[pz.pro_id] = [];
-    zonesByProId[pz.pro_id].push(pz.zone_id);
-  }
-  for (const pm of allProMetiers) {
-    for (const zid of zonesByProId[pm.pro_id] || []) {
-      proIdToCombos[pm.pro_id].push({ metierId: pm.metier_id, zoneId: zid });
-    }
-  }
-
-  // Group pros par combo (metierId, zoneId), trier par score, garder top 10
-  const proById: Record<string, any> = Object.fromEntries(pros.map((p) => [p.id, p]));
-  const topProIds = new Set<string>();
-  const combos: Record<string, string[]> = {};
-  for (const [proId, comboList] of Object.entries(proIdToCombos)) {
-    for (const c of comboList) {
-      const key = `${c.metierId}:${c.zoneId}`;
-      if (!combos[key]) combos[key] = [];
-      combos[key].push(proId);
-    }
-  }
-  for (const proIds of Object.values(combos)) {
-    const sorted = proIds
-      .filter((pid) => proById[pid])
-      .sort((a, b) => (proById[b].score_confiance || 0) - (proById[a].score_confiance || 0))
-      .slice(0, 10);
-    for (const pid of sorted) topProIds.add(pid);
-  }
-
-  const filteredPros = pros.filter((p) => topProIds.has(p.id));
-  console.log(`[pro/[slug]] Filtered ${pros.length} pros -> ${filteredPros.length} top10 pros (CF Pages 20k file limit)`);
-
-  return filteredPros.map((p) => ({
+  // wave1_pros.json a deja applique le top10-par-combo + must_keep floor cote
+  // Python (scripts/regen_wave1_pros.py). Le filtre est applique en amont
+  // dans la boucle DB. Les pros restants (long-tail ~85k) sont servis par
+  // site/functions/pro/[[slug]].ts en SSR avec HTML SEO-equivalent.
+  return pros.map((p) => ({
     params: { slug: p.slug },
     props: {
       pro: p,
@@ -253,7 +234,7 @@ const jsonLd: Record<string, unknown>[] = [
     phone: p.telephone,
     email: p.email || undefined,
     url_web: p.site_web || undefined,
-    openingHours: p.opening_hours || undefined,
+    openingHours: sanitizeDashes(p.opening_hours) || undefined,
     naf: metierNaf,
     address: {
       streetAddress: p.adresse || undefined,
@@ -439,7 +420,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
         ville={p.ville}
         codePostal={p.code_postal}
         adresse={p.adresse}
-        openingHours={p.opening_hours}
+        openingHours={sanitizeDashes(p.opening_hours)}
       />
     </section>
 

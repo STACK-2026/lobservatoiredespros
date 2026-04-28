@@ -3,6 +3,7 @@ import { siteConfig } from "../utils/config";
 import { supabase, getMetiers, getZones, getMetierDeptCombos } from "../lib/supabase";
 import { observations } from "../data/observations";
 import { redaction } from "../data/redaction";
+import wave1Pros from "../data/wave1_pros.json";
 
 interface SitemapEntry {
   loc: string;
@@ -101,71 +102,42 @@ export const GET: APIRoute = async () => {
     });
   }
 
-  // URLs pros , uniquement les TOP 10 par combo (metier x dpt) pour matcher
-  // les pages statiques generees par /pro/[slug]. Sinon on liste 100k URLs
-  // dont 90k sont 404 = mauvais signal SEO.
+  // URLs pros , wave1 SSG whitelist (synchro avec /pro/[slug] getStaticPaths).
+  // Le long-tail est expose via sitemap-pros-ext-N.xml (declares dans
+  // sitemap-index.xml et servis en SSR par site/functions/pro/[[slug]].ts).
   try {
-    const { getAllProMetiers, getAllProZones } = await import("../lib/supabase");
-    const allProMetiers = await getAllProMetiers();
-    const allProZones = await getAllProZones();
-
-    // Fetch toutes les infos pros minimal
-    const allProsLite: Array<{ id: string; slug: string; score: number; updated_at: string | null }> = [];
+    const wave1Set = new Set(wave1Pros as string[]);
+    const wave1Slugs = Array.from(wave1Set);
+    const lastmodBySlug: Record<string, string> = {};
     const page = 1000;
     for (let start = 0; ; start += page) {
       const { data: batch, error } = await supabase
         .from("pros")
-        .select("id, slug, score_confiance, updated_at")
+        .select("slug, updated_at")
         .eq("active", true)
         .not("slug", "is", null)
         .range(start, start + page - 1);
       if (error || !batch || batch.length === 0) break;
       for (const p of batch) {
-        allProsLite.push({
-          id: p.id,
-          slug: p.slug,
-          score: p.score_confiance || 0,
-          updated_at: p.updated_at,
-        });
+        if (p.slug && wave1Set.has(p.slug)) {
+          lastmodBySlug[p.slug] = p.updated_at ? p.updated_at.split("T")[0] : now;
+        }
       }
       if (batch.length < page) break;
     }
-    const proById = Object.fromEntries(allProsLite.map((p) => [p.id, p]));
-
-    // Build combo -> list pros, prendre top 10 par score
-    const zonesByPro: Record<string, string[]> = {};
-    for (const pz of allProZones) {
-      if (!zonesByPro[pz.pro_id]) zonesByPro[pz.pro_id] = [];
-      zonesByPro[pz.pro_id].push(pz.zone_id);
-    }
-    const combos: Record<string, string[]> = {};
-    for (const pm of allProMetiers) {
-      for (const zid of zonesByPro[pm.pro_id] || []) {
-        const key = `${pm.metier_id}:${zid}`;
-        if (!combos[key]) combos[key] = [];
-        combos[key].push(pm.pro_id);
-      }
-    }
-    const topProIds = new Set<string>();
-    for (const proIds of Object.values(combos)) {
-      const top = proIds
-        .filter((pid) => proById[pid])
-        .sort((a, b) => proById[b].score - proById[a].score)
-        .slice(0, 10);
-      for (const pid of top) topProIds.add(pid);
-    }
-
-    for (const p of allProsLite) {
-      if (!topProIds.has(p.id)) continue;
+    for (const slug of wave1Slugs) {
       urls.push({
-        loc: `/pro/${p.slug}/`,
+        loc: `/pro/${slug}/`,
         priority: 0.6,
         changefreq: "monthly",
-        lastmod: p.updated_at ? p.updated_at.split("T")[0] : now,
+        lastmod: lastmodBySlug[slug] || now,
       });
     }
   } catch (e) {
-    console.warn("Sitemap: failed to fetch pros, skipping", e);
+    console.warn("Sitemap: failed to fetch pros, falling back to wave1 only", e);
+    for (const slug of wave1Pros as string[]) {
+      urls.push({ loc: `/pro/${slug}/`, priority: 0.6, changefreq: "monthly", lastmod: now });
+    }
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
