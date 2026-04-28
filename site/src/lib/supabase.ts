@@ -262,6 +262,30 @@ export async function getClassementCount(metierSlug: string, deptSlug: string): 
   return pros.length;
 }
 
+/** Stats agrégées pour la home (counter, méthode, stats-bloc). Build-time only. */
+let _homeStatsCache: { prosTotal: number; deptCount: number; metierCount: number } | null = null;
+export async function getHomeStats(): Promise<{ prosTotal: number; deptCount: number; metierCount: number }> {
+  if (_homeStatsCache) return _homeStatsCache;
+  const [prosCount, depts, metiers] = await Promise.all([
+    withRetry(async () => {
+      const { count, error } = await supabase
+        .from("pros")
+        .select("id", { count: "exact", head: true })
+        .eq("active", true);
+      if (error) throw error;
+      return count || 0;
+    }, "getHomeStats.pros"),
+    getZones("departement"),
+    getMetiers(),
+  ]);
+  _homeStatsCache = {
+    prosTotal: prosCount,
+    deptCount: depts.length,
+    metierCount: metiers.length,
+  };
+  return _homeStatsCache;
+}
+
 /**
  * Combos (metierSlug, deptSlug) qui ont au moins un pro actif.
  * Unique requête, évite 1440 pages vides (15 métiers × 96 dpts seed national).

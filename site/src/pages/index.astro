@@ -14,6 +14,10 @@ import HeadlineFigure from "../components/HeadlineFigure.astro";
 import SpeakableTLDR from "../components/SpeakableTLDR.astro";
 import EditorsLog from "../components/EditorsLog.astro";
 import { siteConfig } from "../utils/config";
+import { getHomeStats } from "../lib/supabase";
+
+const homeStats = await getHomeStats();
+const prosTotalFmt = homeStats.prosTotal.toLocaleString("fr-FR").replace(/ | /g, " ");
 
 // Classements populaires , 8 combinaisons métier × dept
 const classementsPopulaires = [
@@ -194,7 +198,7 @@ const jsonLd = [
         </div>
 
         <div class="hero-counter fade-up" style="transition-delay: 1250ms">
-          <CounterLive initial={47382} label="professionnels sous observation" />
+          <CounterLive initial={homeStats.prosTotal} label="professionnels sous observation" />
         </div>
 
         <div class="hero-cta-row fade-up" style="transition-delay: 1450ms">
@@ -356,7 +360,7 @@ const jsonLd = [
       <li class="methode-temps card-editorial">
         <span class="rank-num rank-outlined">01</span>
         <h3>Observer</h3>
-        <p>Nous cartographions les 47 382 artisans référencés au Sirene sur nos zones pilotes. Données publiques uniquement. Sources citées.</p>
+        <p>Nous cartographions les {prosTotalFmt} artisans référencés au Sirene sur la France métropolitaine. Données publiques uniquement. Sources citées.</p>
       </li>
       <li class="methode-temps card-editorial">
         <span class="rank-num rank-outlined">02</span>
@@ -464,7 +468,7 @@ const jsonLd = [
             <circle cx="12" cy="12" r="1.5" fill="currentColor" />
           </svg>
         </div>
-        <p class="stat-num-v2" data-count="47382">47 382</p>
+        <p class="stat-num-v2" data-count={homeStats.prosTotal}>{prosTotalFmt}</p>
         <p class="stat-label-v2">professionnels sous observation</p>
       </div>
       <div class="stat-block-v2">
@@ -484,8 +488,8 @@ const jsonLd = [
             <circle cx="12" cy="10" r="3" />
           </svg>
         </div>
-        <p class="stat-num-v2" data-count="3">3</p>
-        <p class="stat-label-v2">départements pilotes cette édition</p>
+        <p class="stat-num-v2" data-count={homeStats.deptCount}>{homeStats.deptCount}</p>
+        <p class="stat-label-v2">départements observés en métropole</p>
       </div>
       <div class="stat-block-v2">
         <div class="stat-icon" aria-hidden="true">

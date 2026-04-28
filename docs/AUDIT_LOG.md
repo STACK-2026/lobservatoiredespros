@@ -4,6 +4,46 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 
 ---
 
+## 2026-04-28 , 18:00 , Phase 2.D / 2.1 close + homepage stats dynamiques
+
+**Contexte** : audit post-import national. L'orchestrateur Phase 2.D lancé le 25/04 09:01 a tourné jusqu'à 23:16 (kill OOM intermédiaire 14:59 mais reprise auto), couvrant 15 métiers × 96 dpts métropole. Résultat : la DB est passée de 290 (Yonne plombier) à 103 662 pros nationaux.
+
+**État data après import** :
+- `pros` total : **103 662** (103 651 active = 99.99 %)
+- Geocoding lat/lng : **103 399 / 103 662 (99.7 %)**
+- Date création entreprise : **103 662 / 103 662 (100 %)**
+- Enrichissement Recherche Entreprises : **92 023 / 92 749 traités (99.2 % succès)**
+- BODACC : 87 411 événements légaux sur 9 674 pros (9.3 %)
+- RGE : 33 192 qualifications (18 934 actives) sur 6 449 pros (6.2 %)
+- Trust Score (`niveau_confiance`) : bronze 103 564 · argent 92 · or 6
+- SIRET dédupliqués : 103 567 / 103 662 (95 multi-établissements normaux)
+- Téléphone / email / site web : 3-5 % (limite Google Places API bloquée user-side)
+
+**Intégrité** :
+- 0 pro orphelin métier
+- 0 pro orphelin zone
+- 0 slug manquant
+- 0 nom_entreprise vide
+
+**Site live (post-deploy 1c009fb 10:02 UTC)** :
+- 17 278 URLs au sitemap (15 800 SSG `/pro/[slug]/` wave1 cap + classements + observations + pages éditoriales)
+- SSR fallback `[[slug]].ts` actif pour les ~88 k pros hors wave1 → testé 200 OK sur `charpentier-gibault-blois`, `peyre-maconnerie-terrassements-cambounet-sur-le-sor`
+- /plombier/paris-75/, /departements/, /metiers/ : 200 OK
+
+**Modifs cette session** :
+- Stats homepage dynamiques (count pros + count dpts au build via `getHomeStats()`) , remplace les hardcoded 47 382 et 3 dpts pilotes qui mentaient post-import
+- Copy /méthode/ : "sur nos zones pilotes" → "sur la France métropolitaine"
+- Stats-block : "départements pilotes cette édition" → "départements observés en métropole"
+- AUDIT_LOG : ce bloc
+
+**Ce qui reste à faire (manuel / phase suivante)** :
+- Phase 2.4 guides tarifaires (60 entrées, sources France Rénov'/ADEME)
+- Phase 3.1 articles "État du marché BTP [dept]" (1 par dpt, data auto-Supabase)
+- Phase 6.2 OG images per-pro (pattern satori validé sur expert-menuiserie + adapte-toi)
+- Activer Google Places API pour booster phone/email/website coverage
+
+---
+
 ## 2026-04-23 , 17:40 , Enrichissement RGE ADEME
 
 **Contexte** : Intégration API ADEME `liste-des-entreprises-rge-2` pour enrichir les pros avec leurs qualifications RGE détaillées (au-delà du simple bool RGE).
