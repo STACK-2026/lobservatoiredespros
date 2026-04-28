@@ -60,9 +60,5 @@ jobs:
           git config user.name "regen-wave1-bot"
           git config user.email "noreply@lobservatoiredespros.com"
           git add site/src/data/wave1_pros.json
-          git commit -m "chore(wave1): monthly regen of /pro/ SSG whitelist
-
-Re-generated via scripts/regen_wave1_pros.py with must_keep floor (live
-sitemap slugs preserved) + top10 per (metier, dpt) combo on score_confiance.
-Cap 18 500 to stay under CF Pages 20k file limit."
+          git commit -m "chore(wave1): monthly regen of /pro/ SSG whitelist (top10 per combo + must_keep floor, cap 18 500)"
           git push origin main
