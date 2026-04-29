@@ -680,6 +680,16 @@ export async function onRequest(context: any): Promise<Response> {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "public, max-age=300, s-maxage=86400",
       "x-rendered-by": "edge-fallback",
+      // Security headers : Pages Function responses ne sont pas couvertes
+      // par _headers (qui ne s'applique qu'aux assets statiques). On les
+      // injecte ici pour parité avec les pages SSG.
+      "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+      "x-frame-options": "SAMEORIGIN",
+      "x-content-type-options": "nosniff",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "permissions-policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+      "content-security-policy":
+        "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.openstreetmap.org; connect-src 'self' https://apuyeakgxjgdcfssrtek.supabase.co https://recherche-entreprises.api.gouv.fr https://data.ademe.fr https://api-adresse.data.gouv.fr; font-src 'self' data: https://fonts.gstatic.com https://unpkg.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; manifest-src 'self'; worker-src 'self'; media-src 'self'; upgrade-insecure-requests",
     },
   });
 }

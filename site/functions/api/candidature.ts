@@ -53,6 +53,9 @@ function maskEmail(e: string): string {
   return e.slice(0, 1) + "***" + e.slice(at);
 }
 
+const ALLOWED_FORMULES = new Set(["recommandé", "vérifié", "lauréat"]);
+const ALLOWED_STATUTS = new Set(["nouvelle", "examen", "acceptee", "refusee", "archivee"]);
+
 function htmlEscape(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -122,7 +125,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     formule: cap(get("formule"), 50),
     motivation: cap(get("motivation"), 5000) || null,
     rgpd_consent: get("rgpd") === "on" || get("rgpd") === "true",
-    statut: "nouveau",
+    statut: "nouvelle",
     ip_hash: ipHash,
   };
 
@@ -134,7 +137,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   if (!fields.metier_slug) errors.push("metier");
   if (!fields.departement_code) errors.push("departement");
   if (fields.annee_creation < 1900 || fields.annee_creation > 2026) errors.push("annee_creation");
-  if (!fields.formule) errors.push("formule");
+  if (!ALLOWED_FORMULES.has(fields.formule)) errors.push("formule");
   if (!fields.rgpd_consent) errors.push("rgpd");
 
   if (errors.length > 0) {
