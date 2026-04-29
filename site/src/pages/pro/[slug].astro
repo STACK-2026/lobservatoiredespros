@@ -201,6 +201,12 @@ const title = `${p.nom_entreprise} , ${metierNom} ${p.ville} (${deptCode})`;
 const description = `${tierLabel} de ${p.nom_entreprise}, ${metierNom.toLowerCase()} à ${p.ville}. Score Confiance ${p.score_confiance}/10. Sources publiques Sirene INSEE.`;
 const url = `${siteConfig.url}/pro/${p.slug}/`;
 
+// OG dynamique : SSG uniquement sur wave1 (cap CF Pages 20k files). Hors
+// wave1 → fallback OG default (les fiches SSR servies par [[slug]].ts).
+const ogImage = (wave1Pros as string[]).includes(p.slug)
+  ? `/og/pro/${p.slug}.png`
+  : siteConfig.ogImage;
+
 // Verdict editorial inline pour enrichir le schema LocalBusiness.description
 function generateVerdictText(): string {
   const parts: string[] = [];
@@ -273,7 +279,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
 }
 ---
 
-<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+<BaseLayout title={title} description={description} ogImage={ogImage} jsonLd={jsonLd}>
   <article class={`portrait-v2 portrait-${p.tier}`}>
 
     <!-- HEADER , breadcrumbs + masthead fin -->

@@ -3,6 +3,7 @@ import { siteConfig } from "../utils/config";
 import { supabase, getMetiers, getZones, getMetierDeptCombos } from "../lib/supabase";
 import { observations } from "../data/observations";
 import { redaction } from "../data/redaction";
+import { TARIFS } from "../data/tarifs";
 import wave1Pros from "../data/wave1_pros.json";
 
 interface SitemapEntry {
@@ -19,6 +20,7 @@ const STATIC_URLS: SitemapEntry[] = [
   { loc: "/glossaire/", priority: 0.7, changefreq: "monthly" },
   { loc: "/outils/", priority: 0.7, changefreq: "monthly" },
   { loc: "/outils/grille-devis/", priority: 0.7, changefreq: "monthly" },
+  { loc: "/tarifs/", priority: 0.8, changefreq: "monthly" },
   { loc: "/methode/", priority: 0.9, changefreq: "monthly" },
   { loc: "/a-propos/", priority: 0.7, changefreq: "monthly" },
   { loc: "/redaction/", priority: 0.6, changefreq: "monthly" },
@@ -100,6 +102,45 @@ export const GET: APIRoute = async () => {
       changefreq: "monthly",
       lastmod: now,
     });
+  }
+
+  // URLs guides tarifaires Phase 2.4 (61 prestations × 1 page chacune
+  // + 1 index par metier auto-genere)
+  const tarifsByMetier = new Map<string, number>();
+  for (const t of TARIFS) {
+    urls.push({
+      loc: `/tarifs/${t.metier}/${t.slug}/`,
+      priority: 0.85,
+      changefreq: "monthly",
+      lastmod: now,
+    });
+    tarifsByMetier.set(t.metier, (tarifsByMetier.get(t.metier) || 0) + 1);
+  }
+  for (const metierSlug of tarifsByMetier.keys()) {
+    urls.push({
+      loc: `/tarifs/${metierSlug}/`,
+      priority: 0.75,
+      changefreq: "monthly",
+      lastmod: now,
+    });
+  }
+
+  // URLs etat-du-marche par dpt , 96 snapshots auto-data Phase 3.1
+  try {
+    const zonesDpts = await getZones("departement");
+    const metropoleDpts = zonesDpts.filter(
+      (z) => z.code && !["971", "972", "973", "974", "975", "976", "977", "978"].includes(z.code),
+    );
+    for (const z of metropoleDpts) {
+      urls.push({
+        loc: `/observations/etat-du-marche/${z.slug}/`,
+        priority: 0.75,
+        changefreq: "monthly",
+        lastmod: now,
+      });
+    }
+  } catch (e) {
+    console.warn("Sitemap: etat-du-marche fallback skipped", e);
   }
 
   // URLs pros , wave1 SSG whitelist (synchro avec /pro/[slug] getStaticPaths).
