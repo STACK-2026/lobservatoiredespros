@@ -28,9 +28,15 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       </div>
 
       <form class="nl-form" method="post" action="/api/newsletter">
+        <input type="hidden" name="source" value="page-newsletter" />
+        <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
         <label class="sr-only" for="email">Adresse email</label>
         <input id="email" type="email" name="email" required placeholder="votre adresse email" autocomplete="email" />
         <button type="submit" class="btn btn-observatoire magnetic">Recevoir la lettre</button>
+        <label class="nl-rgpd">
+          <input type="checkbox" name="rgpd" value="on" required />
+          <span>J'accepte de recevoir la lettre éditoriale mensuelle et la <a href="/politique-confidentialite/">politique de confidentialité</a>.</span>
+        </label>
       </form>
 
       <p class="nl-meta meta-label">Gratuit &middot; mensuel &middot; archives consultables &middot; desabonnement en un clic</p>

@@ -1,0 +1,111 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs } from "../../../utils/seo";
+
+const title = "Inscription confirmée , Lettre de L'Observatoire";
+const description = "Votre adresse a bien été enregistrée. Le prochain numéro arrivera dans votre boîte le premier de chaque mois.";
+const url = `${siteConfig.url}/newsletter/merci/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Newsletter", url: `${siteConfig.url}/newsletter/` },
+    { name: "Merci", url },
+  ]),
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
+  <article class="merci-page">
+    <div class="container-editorial merci-content">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Newsletter", href: "/newsletter/" },
+        { label: "Merci" },
+      ]} />
+      <Masthead category="INSCRIPTION CONFIRMEE" signature="Par la rédaction" />
+      <h1 class="heading-display">Merci, votre adresse est enregistrée.</h1>
+      <p class="lead">
+        Vous recevrez le prochain numéro de la lettre <strong>le premier du mois prochain</strong>.
+        Une seule lettre par mois, pas d'email commercial intercalé, désabonnement en un clic depuis
+        chaque envoi.
+      </p>
+
+      <aside class="encart-suite">
+        <h2 class="section-title">Vos engagements et les nôtres</h2>
+        <ul class="suite-list">
+          <li>Aucune publicité, aucun lien affilié.</li>
+          <li>Aucun partage de votre adresse avec des tiers.</li>
+          <li>Conservation 13 mois après le dernier envoi (recommandation CNIL).</li>
+          <li>Désabonnement en un clic depuis chaque email reçu.</li>
+        </ul>
+      </aside>
+
+      <section class="cta-section">
+        <p>
+          En attendant le premier numéro, parcourez les
+          <a href="/observations/">observations en cours</a> ou
+          <a href="/methode/">la méthode éditoriale</a>.
+        </p>
+        <div class="merci-actions">
+          <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
+          <a href="/observations/" class="btn btn-primary">Lire les observations</a>
+        </div>
+      </section>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .merci-page { padding: 2rem 0 4rem; }
+  .container-editorial { max-width: 760px; margin: 0 auto; padding: 0 1.25rem; }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.1;
+    margin: 1rem 0;
+  }
+  .lead { font-size: 1.125rem; line-height: 1.55; color: var(--text-soft, #3a3530); }
+  .encart-suite {
+    margin: 2.5rem 0;
+    padding: 1.75rem 2rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire, #1e3a52);
+    border-radius: 4px;
+  }
+  .section-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    margin: 0 0 1rem;
+  }
+  .suite-list { padding-left: 1.5rem; line-height: 1.65; }
+  .suite-list li { margin: 0.4rem 0; }
+  .cta-section { margin: 2.5rem 0; }
+  .merci-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .btn {
+    padding: 0.85rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-primary { background: var(--observatoire, #1e3a52); color: var(--paper); }
+  .btn-primary:hover { background: var(--ink, #1a1614); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border, #e8e3d8);
+  }
+  .btn-secondary:hover { border-color: var(--observatoire); }
+</style>
