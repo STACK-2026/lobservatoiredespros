@@ -51,8 +51,9 @@ jobs:
         with:
           name: dist-latest
           path: site/dist
-          retention-days: 7
+          retention-days: 1
           if-no-files-found: error
+          overwrite: true
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
