@@ -32,6 +32,25 @@ interface CandidatureFields {
   motivation: string | null;
   rgpd_consent: boolean;
   statut: string;
+  ip_hash: string;
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const buf = new TextEncoder().encode(input);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function cap(s: string, max: number): string {
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+function maskEmail(e: string): string {
+  const at = e.indexOf("@");
+  if (at < 1) return "***";
+  return e.slice(0, 1) + "***" + e.slice(at);
 }
 
 function htmlEscape(s: string): string {
@@ -79,20 +98,32 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const get = (k: string) => (formData.get(k) || "").toString().trim();
 
+  // Honeypot : si rempli, succès silencieux (bot)
+  if (get("company")) {
+    return new Response(null, {
+      status: 303,
+      headers: { Location: "/candidater/merci/" },
+    });
+  }
+
+  const ip = context.request.headers.get("cf-connecting-ip") || "0.0.0.0";
+  const ipHash = await sha256Hex(`${ip}|lobservatoire-candidature`);
+
   const fields: CandidatureFields = {
-    nom_entreprise: get("nom"),
+    nom_entreprise: cap(get("nom"), 200),
     siret: get("siret").replace(/\s+/g, ""),
-    code_naf: get("naf") || null,
-    dirigeant: get("dirigeant"),
-    email: get("email"),
-    metier_slug: get("metier"),
-    departement_code: get("departement"),
-    specialites: get("specialites") || null,
+    code_naf: cap(get("naf"), 10) || null,
+    dirigeant: cap(get("dirigeant"), 200),
+    email: cap(get("email").toLowerCase(), 254),
+    metier_slug: cap(get("metier"), 50),
+    departement_code: cap(get("departement"), 5),
+    specialites: cap(get("specialites"), 1000) || null,
     annee_creation: parseInt(get("anciennete"), 10) || 0,
-    formule: get("formule"),
-    motivation: get("motivation") || null,
+    formule: cap(get("formule"), 50),
+    motivation: cap(get("motivation"), 5000) || null,
     rgpd_consent: get("rgpd") === "on" || get("rgpd") === "true",
     statut: "nouveau",
+    ip_hash: ipHash,
   };
 
   const errors: string[] = [];
@@ -125,8 +156,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   });
 
   if (!supRes.ok) {
-    const body = await supRes.text();
-    console.error("Supabase insert failed:", supRes.status, body);
+    // Log scrubbed: pas d'email/siret/dirigeant en clair
+    console.error("candidature insert failed:", supRes.status, "email=", maskEmail(fields.email), "ip_hash=", ipHash.slice(0, 8));
     return new Response(
       JSON.stringify({ ok: false, error: "Enregistrement DB impossible. Reessayez plus tard." }),
       { status: 502, headers: { "Content-Type": "application/json" } },

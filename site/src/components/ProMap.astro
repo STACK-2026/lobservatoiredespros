@@ -267,13 +267,16 @@ const uid = `pm-${Math.random().toString(36).slice(2, 8)}`;
 
     const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
     const LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    const LEAFLET_CSS_SRI = "sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H";
+    const LEAFLET_JS_SRI = "sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH";
 
     function injectCss() {
       if (document.querySelector('link[href*="leaflet.css"]')) return;
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = LEAFLET_CSS;
-      link.crossOrigin = "";
+      link.integrity = LEAFLET_CSS_SRI;
+      link.crossOrigin = "anonymous";
       document.head.appendChild(link);
     }
 
@@ -283,7 +286,8 @@ const uid = `pm-${Math.random().toString(36).slice(2, 8)}`;
         injectCss();
         const s = document.createElement("script");
         s.src = LEAFLET_JS;
-        s.crossOrigin = "";
+        s.integrity = LEAFLET_JS_SRI;
+        s.crossOrigin = "anonymous";
         s.onload = () => resolve(window.L);
         s.onerror = reject;
         document.head.appendChild(s);

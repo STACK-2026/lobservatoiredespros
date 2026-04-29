@@ -32,6 +32,16 @@ function isValidEmail(email: string): boolean {
   );
 }
 
+function maskEmail(e: string): string {
+  const at = e.indexOf("@");
+  if (at < 1) return "***";
+  return e.slice(0, 1) + "***" + e.slice(at);
+}
+
+const ALLOWED_SOURCES = new Set([
+  "site", "page-newsletter", "home-hero-nl", "footer", "observation", "merci",
+]);
+
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const ct = context.request.headers.get("content-type") || "";
   let formData: FormData;
@@ -57,7 +67,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const email = get("email").toLowerCase();
   const rgpdConsent = get("rgpd") === "on" || get("rgpd") === "true";
-  const source = get("source") || "site";
+  const sourceRaw = get("source") || "site";
+  const source = ALLOWED_SOURCES.has(sourceRaw) ? sourceRaw : "site";
 
   if (!isValidEmail(email)) {
     return new Response(
@@ -94,8 +105,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   // Idempotent : si email existe déjà (UNIQUE constraint), on traite comme succès silencieux
   if (!supRes.ok && supRes.status !== 409) {
-    const body = await supRes.text();
-    console.error("Newsletter insert failed:", supRes.status, body);
+    // Log scrubbed : pas d'email en clair, pas de body Supabase (peut contenir email)
+    console.error("newsletter insert failed:", supRes.status, "email=", maskEmail(email), "ip_hash=", ipHash.slice(0, 8));
     return new Response(
       JSON.stringify({ ok: false, error: "Inscription impossible. Réessayez plus tard." }),
       { status: 502, headers: { "Content-Type": "application/json" } },
