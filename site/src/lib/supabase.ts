@@ -262,6 +262,49 @@ export async function getClassementCount(metierSlug: string, deptSlug: string): 
   return pros.length;
 }
 
+/**
+ * Cap pratique OG per-pro : top 1500 PNGs au build, sous le cap CF Pages
+ * (20 000 files). Les pros hors top 1500 fallback sur og-default.png.
+ */
+export const OG_PRO_CAP = 1500;
+
+/**
+ * Top N slugs wave1 par score_confiance, pour limiter les OG SSG sous le cap
+ * CF Pages 20 000 files. Cache module-level, partagé entre og/pro/[slug] et
+ * pro/[slug] qui doivent référencer le même set.
+ */
+let _topOgCache: Map<number, Set<string>> = new Map();
+export async function getTopOgSlugs(limit: number, wave1: Set<string>): Promise<Set<string>> {
+  if (_topOgCache.has(limit)) return _topOgCache.get(limit)!;
+
+  const page = 1000;
+  const all: { slug: string; score: number }[] = [];
+  for (let start = 0; ; start += page) {
+    const { data, error } = await supabase
+      .from("pros")
+      .select("slug, score_confiance")
+      .eq("active", true)
+      .not("slug", "is", null)
+      .order("id")
+      .range(start, start + page - 1);
+    if (error) {
+      console.error("getTopOgSlugs fetch error", error);
+      break;
+    }
+    if (!data || data.length === 0) break;
+    for (const p of data) {
+      if (p.slug && wave1.has(p.slug)) {
+        all.push({ slug: p.slug, score: Number(p.score_confiance) || 0 });
+      }
+    }
+    if (data.length < page) break;
+  }
+  all.sort((a, b) => b.score - a.score);
+  const set = new Set(all.slice(0, limit).map((p) => p.slug));
+  _topOgCache.set(limit, set);
+  return set;
+}
+
 /** Stats agrégées pour la home (counter, méthode, stats-bloc). Build-time only. */
 let _homeStatsCache: { prosTotal: number; deptCount: number; metierCount: number } | null = null;
 export async function getHomeStats(): Promise<{ prosTotal: number; deptCount: number; metierCount: number }> {

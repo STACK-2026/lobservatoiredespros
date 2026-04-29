@@ -8,7 +8,7 @@
  */
 import type { APIRoute } from "astro";
 import { renderOgPng } from "../../../lib/og";
-import { supabase } from "../../../lib/supabase";
+import { supabase, getTopOgSlugs, OG_PRO_CAP } from "../../../lib/supabase";
 import { siteConfig } from "../../../utils/config";
 import wave1Pros from "../../../data/wave1_pros.json";
 
@@ -20,18 +20,20 @@ interface ProForOg {
   qualibat: boolean;
   niveau_confiance: string | null;
   date_creation_entreprise: string | null;
+  score_confiance: number | null;
   metierLabel?: string;
 }
 
 export async function getStaticPaths() {
   const wave1Set = new Set(wave1Pros as string[]);
+  const topOgSet = await getTopOgSlugs(OG_PRO_CAP, wave1Set);
 
   const page = 1000;
   const pros: ProForOg[] = [];
   for (let start = 0; ; start += page) {
     const { data, error } = await supabase
       .from("pros")
-      .select("slug, nom_entreprise, ville, rge, qualibat, niveau_confiance, date_creation_entreprise")
+      .select("slug, nom_entreprise, ville, rge, qualibat, niveau_confiance, date_creation_entreprise, score_confiance")
       .eq("active", true)
       .not("slug", "is", null)
       .order("id")
@@ -42,11 +44,11 @@ export async function getStaticPaths() {
     }
     if (!data || data.length === 0) break;
     for (const p of data) {
-      if (p.slug && wave1Set.has(p.slug)) pros.push(p as ProForOg);
+      if (p.slug && topOgSet.has(p.slug)) pros.push(p as ProForOg);
     }
     if (data.length < page) break;
   }
-  console.log(`[og/pro/[slug]] generating ${pros.length} pro OG PNGs (wave1)`);
+  console.log(`[og/pro/[slug]] generating ${pros.length} OG PNGs (top ${OG_PRO_CAP} wave1 by score_confiance)`);
 
   return pros.map((p) => ({
     params: { slug: p.slug },

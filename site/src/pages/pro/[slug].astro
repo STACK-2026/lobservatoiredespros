@@ -20,7 +20,7 @@ import EditorialVerdict from "../../components/EditorialVerdict.astro";
 import UnknownsCard from "../../components/UnknownsCard.astro";
 import QualificationsBlock from "../../components/QualificationsBlock.astro";
 import { siteConfig } from "../../utils/config";
-import { supabase } from "../../lib/supabase";
+import { supabase, getTopOgSlugs, OG_PRO_CAP } from "../../lib/supabase";
 import {
   jsonLdBreadcrumbs,
   jsonLdLocalBusiness,
@@ -203,7 +203,11 @@ const url = `${siteConfig.url}/pro/${p.slug}/`;
 
 // OG dynamique : SSG uniquement sur wave1 (cap CF Pages 20k files). Hors
 // wave1 → fallback OG default (les fiches SSR servies par [[slug]].ts).
-const ogImage = (wave1Pros as string[]).includes(p.slug)
+// OG dynamique : SSG seulement sur les top OG_PRO_CAP pros par score_confiance
+// dans wave1 (cap CF Pages 20k files). Hors top → og-default.png.
+const wave1OgSet = new Set(wave1Pros as string[]);
+const topOgSet = await getTopOgSlugs(OG_PRO_CAP, wave1OgSet);
+const ogImage = topOgSet.has(p.slug)
   ? `/og/pro/${p.slug}.png`
   : siteConfig.ogImage;
 
