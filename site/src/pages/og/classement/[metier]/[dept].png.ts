@@ -1,14 +1,16 @@
 /**
  * OG image dynamique par (métier × département).
- * 1 PNG par classement généré au build (~120 PNGs post-Phase 2.1 IDF).
+ * SSG capped au top OG_CLASSEMENT_CAP combos par #pros pour rester sous
+ * le plafond CF Pages 20 000 files. Hors top : OG default.
  */
 import type { APIRoute } from "astro";
 import { renderOgPng } from "../../../../lib/og";
 import {
   getMetiers,
   getZones,
-  getMetierDeptCombos,
+  getMetierDeptComboCounts,
   getProsByMetierDept,
+  OG_CLASSEMENT_CAP,
 } from "../../../../lib/supabase";
 import { siteConfig } from "../../../../utils/config";
 import { REGION_BY_DEPT_CODE } from "../../../../data/geo_fr";
@@ -16,16 +18,25 @@ import { REGION_BY_DEPT_CODE } from "../../../../data/geo_fr";
 export async function getStaticPaths() {
   const metiers = await getMetiers();
   const zones = await getZones("departement");
-  const combos = await getMetierDeptCombos();
+  const counts = await getMetierDeptComboCounts();
+  const metierBySlug = new Map(metiers.map((m) => [m.slug, m]));
+  const zoneBySlug = new Map(zones.map((z) => [z.slug, z]));
+
+  const ranked = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, OG_CLASSEMENT_CAP);
+
+  console.log(`[og/classement] generating ${ranked.length} OG PNGs (top ${OG_CLASSEMENT_CAP} combos by #pros)`);
   const paths = [];
-  for (const m of metiers) {
-    for (const z of zones) {
-      if (!combos.has(`${m.slug}:${z.slug}`)) continue;
-      paths.push({
-        params: { metier: m.slug, dept: z.slug },
-        props: { metier: m, zone: z },
-      });
-    }
+  for (const [key] of ranked) {
+    const [mSlug, zSlug] = key.split(":");
+    const m = metierBySlug.get(mSlug);
+    const z = zoneBySlug.get(zSlug);
+    if (!m || !z) continue;
+    paths.push({
+      params: { metier: m.slug, dept: z.slug },
+      props: { metier: m, zone: z },
+    });
   }
   return paths;
 }

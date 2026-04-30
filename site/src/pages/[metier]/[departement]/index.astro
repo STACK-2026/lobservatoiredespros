@@ -15,7 +15,7 @@ import InfoPill from "../../../components/InfoPill.astro";
 import SpeakableTLDR from "../../../components/SpeakableTLDR.astro";
 import DropCap from "../../../components/DropCap.astro";
 import { siteConfig } from "../../../utils/config";
-import { getMetiers, getZones, getProsByMetierDept, getMetierDeptCombos } from "../../../lib/supabase";
+import { getMetiers, getZones, getProsByMetierDept, getMetierDeptCombos, getTopOgClassementSet } from "../../../lib/supabase";
 import {
   jsonLdBreadcrumbs,
   jsonLdRanking,
@@ -48,6 +48,10 @@ const { metier: metierObj, zone: deptObj } = Astro.props;
 const { metier, departement } = Astro.params as { metier: string; departement: string };
 
 const pros = await getProsByMetierDept(metier, departement);
+const topOgSet = await getTopOgClassementSet();
+const ogImage = topOgSet.has(`${metier}:${departement}`)
+  ? `/og/classement/${metier}/${departement}.png`
+  : "/og-default.png";
 const podium = pros.slice(0, 3);
 const topPros = pros.slice(3, 15);
 const restPros = pros.slice(15, 60);
@@ -237,7 +241,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
 }
 ---
 
-<BaseLayout title={titre} description={description} jsonLd={jsonLd} ogImage={`/og/classement/${metier}/${departement}.png`}>
+<BaseLayout title={titre} description={description} jsonLd={jsonLd} ogImage={ogImage}>
   <article class="classement-v2">
 
     <!-- HEADER -->

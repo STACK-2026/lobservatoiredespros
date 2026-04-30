@@ -388,3 +388,73 @@ export async function getMetierDeptCombos(): Promise<Set<string>> {
   _comboCache = combos;
   return combos;
 }
+
+/**
+ * Compte de pros par combo (metier × dpt). Sert à cap les SSG OG/classement
+ * sous le plafond CF Pages 20 000 files (post-extension nationale, 1440 combos).
+ */
+let _comboCountCache: Map<string, number> | null = null;
+export async function getMetierDeptComboCounts(): Promise<Map<string, number>> {
+  if (_comboCountCache) return _comboCountCache;
+  const metiers = await getMetiers();
+  const zones = await getZones("departement");
+  const metierById = new Map(metiers.map((m) => [m.id, m.slug]));
+  const zoneById = new Map(zones.map((z) => [z.id, z.slug]));
+
+  const fetchAll = async <T,>(table: string, cols: string): Promise<T[]> => {
+    const page = 1000;
+    const all: T[] = [];
+    for (let start = 0; ; start += page) {
+      const { data, error } = await supabase.from(table).select(cols).range(start, start + page - 1);
+      if (error) {
+        console.error(`getMetierDeptComboCounts ${table} error`, error);
+        return all;
+      }
+      if (!data || data.length === 0) break;
+      all.push(...(data as T[]));
+      if (data.length < page) break;
+    }
+    return all;
+  };
+  const [pm, pz] = await Promise.all([
+    fetchAll<{ pro_id: string; metier_id: string }>("pro_metiers", "pro_id, metier_id"),
+    fetchAll<{ pro_id: string; zone_id: string }>("pro_zones", "pro_id, zone_id"),
+  ]);
+  const proToZones = new Map<string, string[]>();
+  for (const row of pz) {
+    const arr = proToZones.get(row.pro_id) || [];
+    arr.push(row.zone_id);
+    proToZones.set(row.pro_id, arr);
+  }
+  const counts = new Map<string, number>();
+  for (const row of pm) {
+    const mSlug = metierById.get(row.metier_id);
+    if (!mSlug) continue;
+    const zoneIds = proToZones.get(row.pro_id) || [];
+    for (const zid of zoneIds) {
+      const zSlug = zoneById.get(zid);
+      if (!zSlug) continue;
+      const k = `${mSlug}:${zSlug}`;
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+  }
+  _comboCountCache = counts;
+  return counts;
+}
+
+/**
+ * Cap pour SSG des PNGs OG /og/classement/[metier]/[dept]. 1440 combos
+ * nationaux saturent le plafond CF Pages 20 000 files (build CI à 20 460
+ * = +460 trop). Top 600 combos par #pros = ~19 600 fichiers, marge 400.
+ * Combos hors top utilisent l'OG default.
+ */
+export const OG_CLASSEMENT_CAP = 600;
+
+let _topOgClassementCache: Set<string> | null = null;
+export async function getTopOgClassementSet(): Promise<Set<string>> {
+  if (_topOgClassementCache) return _topOgClassementCache;
+  const counts = await getMetierDeptComboCounts();
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, OG_CLASSEMENT_CAP);
+  _topOgClassementCache = new Set(ranked.map(([k]) => k));
+  return _topOgClassementCache;
+}
