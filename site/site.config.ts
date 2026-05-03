@@ -289,8 +289,8 @@ export const siteConfig = {
     companyName: "L'Observatoire des Pros",
     siret: "",
     address: "Bourgogne, France",
-    email: "rédaction@lobservatoiredespros.com",
-    emailPro: "candidature@lobservatoiredespros.com",
+    email: "contact@lobservatoiredespros.com",
+    emailPro: "contact@lobservatoiredespros.com",
     phone: "",
   },
 

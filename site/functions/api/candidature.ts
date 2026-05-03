@@ -1,7 +1,7 @@
 /**
  * Cloudflare Pages Function : POST /api/candidature
  * Recoit le formulaire candidater, valide, ecrit en DB Supabase et notifie
- * via Resend a candidature@lobservatoiredespros.com.
+ * via Resend a contact@lobservatoiredespros.com (CF Email Routing -> Gmail).
  *
  * Variables d'env requises (definies en prod CF Pages dashboard) :
  *   RESEND_API_KEY (secret)
@@ -178,7 +178,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         },
         body: JSON.stringify({
           from: "L'Observatoire <noreply@send.lobservatoiredespros.com>",
-          to: "candidature@lobservatoiredespros.com",
+          to: "contact@lobservatoiredespros.com",
           reply_to: fields.email,
           subject,
           html,

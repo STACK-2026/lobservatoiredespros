@@ -11,9 +11,7 @@ const description = "Contacter la rédaction de L'Observatoire des Pros : piste,
 const url = `${siteConfig.url}/contact/`;
 
 const destinations = [
-  { label: "Rédaction", email: siteConfig.legal.email, role: "Pistes, signalements, corrections" },
-  { label: "Candidatures", email: siteConfig.legal.emailPro, role: "Portrait Vérifié ou Lauréat" },
-  { label: "Presse", email: "presse@lobservatoiredespros.com", role: "Demandes d'interview, données pour citation" },
+  { label: "Contact", email: siteConfig.legal.email, role: "Pistes, signalements, corrections, candidatures, presse, partenariats." },
 ];
 
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "Contact", url }])];
@@ -97,8 +95,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
   .contact-page { padding: 2rem 0 4rem; }
   .contact-head .heading-display { margin: 0.4rem 0 1rem; }
   .contact-grid-section { padding: 1rem 0 2rem; }
-  .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.8rem; }
-  @media (max-width: 860px) { .contact-grid { grid-template-columns: 1fr; } }
+  .contact-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1.8rem; max-width: 32rem; }
   .contact-card { padding: 1.4rem 1.5rem 1.5rem; display: grid; gap: 0.3rem; }
   .contact-card h2 { font-size: 1.4rem; margin: 0.2rem 0 0.3rem; font-weight: 500; color: var(--ink); }
   .contact-role { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 0.6rem; }
