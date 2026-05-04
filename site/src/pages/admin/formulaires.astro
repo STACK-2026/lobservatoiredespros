@@ -1,0 +1,199 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "Admin , Formulaires";
+const description = "Tableau de bord interne , funnel des formulaires.";
+---
+
+<BaseLayout title={title} description={description} noIndex={true}>
+  <article class="admin-page">
+    <div class="container">
+      <h1>Formulaires , funnel 30j</h1>
+      <p class="muted">
+        Tableau de bord interne. Les donnees sont recuperees via
+        <code>/api/admin/forms-stats</code> (token requis).
+      </p>
+
+      <section class="auth-row">
+        <label for="token">Admin token</label>
+        <input id="token" type="password" placeholder="Bearer token" autocomplete="off" />
+        <button id="load" type="button">Charger</button>
+        <button id="forget" type="button" class="secondary">Oublier</button>
+      </section>
+
+      <div id="error" class="error" hidden></div>
+      <div id="content" hidden>
+        <h2>Funnel par formulaire</h2>
+        <div class="muted small" id="window-label"></div>
+        <table id="funnel">
+          <thead>
+            <tr>
+              <th>Form</th>
+              <th>Vues page</th>
+              <th>Vue form</th>
+              <th>Focus</th>
+              <th>Attempt</th>
+              <th>Success</th>
+              <th>Abandon</th>
+              <th>CR view&rarr;success</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <h2>20 derniers messages /contact/</h2>
+        <table id="contacts">
+          <thead><tr><th>Date</th><th>Nom</th><th>Email</th><th>Objet</th><th>Statut</th></tr></thead>
+          <tbody></tbody>
+        </table>
+
+        <h2>20 dernieres candidatures</h2>
+        <table id="candidatures">
+          <thead><tr><th>Date</th><th>Entreprise</th><th>Email</th><th>Formule</th><th>Metier</th><th>Dept</th><th>Statut</th></tr></thead>
+          <tbody></tbody>
+        </table>
+
+        <h2>20 derniers abonnes newsletter</h2>
+        <table id="newsletter">
+          <thead><tr><th>Date</th><th>Email</th><th>Source</th><th>Actif</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .admin-page { padding: 2rem 1rem 4rem; background: #fff; min-height: 80vh; }
+  .container { max-width: 1100px; margin: 0 auto; font-family: ui-sans-serif, system-ui, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 1.6rem; margin: 0 0 0.5rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 0.6rem; border-bottom: 1px solid #ddd; padding-bottom: 0.3rem; }
+  .muted { color: #666; font-size: 0.92rem; }
+  .small { font-size: 0.82rem; }
+  .auth-row { display: flex; gap: 0.5rem; align-items: center; margin: 1.2rem 0 1.5rem; flex-wrap: wrap; }
+  .auth-row label { font-size: 0.85rem; color: #444; }
+  .auth-row input { flex: 1; min-width: 220px; padding: 0.5rem 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-family: ui-monospace, monospace; }
+  .auth-row button { padding: 0.5rem 0.9rem; border: 0; border-radius: 4px; background: #1e3a52; color: #fff; cursor: pointer; font-weight: 500; }
+  .auth-row button.secondary { background: #eee; color: #333; }
+  .auth-row button:hover { opacity: 0.9; }
+  .error { background: #fee; color: #800; padding: 0.7rem 1rem; border-radius: 4px; margin: 0.8rem 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid #eee; }
+  th { background: #f7f5f0; font-weight: 600; font-size: 0.83rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  tbody tr:hover { background: #fafaf7; }
+  code { background: #f3f0ea; padding: 0.05em 0.3em; border-radius: 3px; font-size: 0.88em; }
+</style>
+
+<script is:inline>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var STORAGE_KEY = "ls_admin_token";
+
+  function fmtDate(s) {
+    if (!s) return "";
+    try { return new Date(s).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }); }
+    catch (e) { return s; }
+  }
+
+  function escape(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function renderFunnel(funnel) {
+    var tbody = document.querySelector("#funnel tbody");
+    tbody.innerHTML = "";
+    var ids = Object.keys(funnel || {}).sort();
+    if (!ids.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="muted">Aucun event sur 30j (tracking encore frais ou trafic faible).</td></tr>';
+      return;
+    }
+    ids.forEach(function (id) {
+      var f = funnel[id];
+      var v = f.view || 0, fo = f.focus || 0, a = f.attempt || 0, s = f.success || 0, ab = f.abandon || 0;
+      var cr = v ? ((100 * s / v).toFixed(1) + " %") : "-";
+      var pv = window._pv && window._pv[mapPath(id)] ? window._pv[mapPath(id)] : "-";
+      tbody.insertAdjacentHTML("beforeend",
+        "<tr><td><strong>" + escape(id) + "</strong></td>" +
+        "<td>" + pv + "</td>" +
+        "<td>" + v + "</td><td>" + fo + "</td><td>" + a + "</td><td>" + s + "</td><td>" + ab + "</td>" +
+        "<td>" + cr + "</td></tr>");
+    });
+  }
+
+  function mapPath(id) { return "/" + id + "/"; }
+
+  function renderRows(tableId, rows, columns) {
+    var tbody = document.querySelector("#" + tableId + " tbody");
+    tbody.innerHTML = "";
+    if (!rows || !rows.length) {
+      tbody.innerHTML = '<tr><td colspan="' + columns.length + '" class="muted">Aucune entree.</td></tr>';
+      return;
+    }
+    rows.forEach(function (r) {
+      var tds = columns.map(function (c) {
+        var v = r[c.key];
+        if (c.fmt === "date") v = fmtDate(v);
+        if (c.fmt === "bool") v = v ? "oui" : "non";
+        return "<td>" + escape(v) + "</td>";
+      }).join("");
+      tbody.insertAdjacentHTML("beforeend", "<tr>" + tds + "</tr>");
+    });
+  }
+
+  function showError(msg) {
+    $("error").hidden = false;
+    $("error").textContent = msg;
+    $("content").hidden = true;
+  }
+
+  function load(token) {
+    fetch("/api/admin/forms-stats", { headers: { "Authorization": "Bearer " + token } })
+      .then(function (r) {
+        if (r.status === 401) throw new Error("Token invalide");
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        if (!d.ok) throw new Error(d.error || "Erreur serveur");
+        $("error").hidden = true;
+        $("content").hidden = false;
+        $("window-label").textContent = "Periode : " + d.window + " (genere le " + fmtDate(d.generated_at) + ")";
+        window._pv = d.page_views || {};
+        renderFunnel(d.funnel);
+        renderRows("contacts", d.contact_messages, [
+          { key: "created_at", fmt: "date" }, { key: "nom" }, { key: "email" }, { key: "objet" }, { key: "statut" },
+        ]);
+        renderRows("candidatures", d.candidatures, [
+          { key: "created_at", fmt: "date" }, { key: "nom_entreprise" }, { key: "email" }, { key: "formule" },
+          { key: "metier_slug" }, { key: "departement_code" }, { key: "statut" },
+        ]);
+        renderRows("newsletter", d.newsletter, [
+          { key: "created_at", fmt: "date" }, { key: "email" }, { key: "source" }, { key: "actif", fmt: "bool" },
+        ]);
+        try { localStorage.setItem(STORAGE_KEY, token); } catch (e) {}
+      })
+      .catch(function (e) { showError(e.message || String(e)); });
+  }
+
+  $("load").addEventListener("click", function () {
+    var t = $("token").value.trim();
+    if (!t) return showError("Token requis");
+    load(t);
+  });
+
+  $("forget").addEventListener("click", function () {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    $("token").value = "";
+    $("content").hidden = true;
+    $("error").hidden = true;
+  });
+
+  // Auto-load si token deja en localStorage
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) { $("token").value = saved; load(saved); }
+  } catch (e) {}
+})();
+</script>

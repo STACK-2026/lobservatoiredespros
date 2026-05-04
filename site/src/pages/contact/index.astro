@@ -47,7 +47,8 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       <h2 class="heading-display" style="font-size: clamp(1.6rem, 3vw, 2.2rem);">Formulaire generique</h2>
       <p class="lead">Si vous preferez ecrire en ligne, ce formulaire transmet votre message directement a la rédaction.</p>
 
-      <form class="contact-form" method="post" action="/api/contact">
+      <form class="contact-form" method="post" action="/api/contact" data-form-id="contact">
+        <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0;" />
         <div class="form-row">
           <label for="nom">Votre nom *</label>
           <input id="nom" name="nom" required type="text" autocomplete="name" />

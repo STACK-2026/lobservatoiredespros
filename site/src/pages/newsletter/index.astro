@@ -27,7 +27,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
         </p>
       </div>
 
-      <form class="nl-form" method="post" action="/api/newsletter">
+      <form class="nl-form" method="post" action="/api/newsletter" data-form-id="newsletter">
         <input type="hidden" name="source" value="page-newsletter" />
         <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
         <label class="sr-only" for="email">Adresse email</label>

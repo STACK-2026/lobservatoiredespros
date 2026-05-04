@@ -5,6 +5,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import CookieBanner from "../components/CookieBanner.astro";
 import Analytics from "../components/Analytics.astro";
+import FormTracker from "../components/FormTracker.astro";
 import EditorialTicker from "../components/EditorialTicker.astro";
 import "../styles/global.css";
 
@@ -121,6 +122,7 @@ const allJsonLd = [...jsonLdBase, ...jsonLdArray];
 
     <CookieBanner />
     <Analytics />
+    <FormTracker />
 
     <script>
       // Reveal animations : Intersection Observer + initial fire pour les elements

@@ -1,0 +1,120 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Masthead from "../../../components/Masthead.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import { siteConfig } from "../../../utils/config";
+import { jsonLdBreadcrumbs } from "../../../utils/seo";
+
+const title = "Message recu , L'Observatoire des Pros";
+const description = "Votre message a bien ete recu. La redaction repond sous 15 jours ouvres maximum.";
+const url = `${siteConfig.url}/contact/merci/`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Contact", url: `${siteConfig.url}/contact/` },
+    { name: "Merci", url },
+  ]),
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} noIndex={true}>
+  <article class="merci-page">
+    <div class="container-editorial merci-content">
+      <Breadcrumbs items={[
+        { label: "Accueil", href: "/" },
+        { label: "Contact", href: "/contact/" },
+        { label: "Merci" },
+      ]} />
+      <Masthead category="MESSAGE RECU" signature="Par la redaction" />
+      <h1 class="heading-display">Merci, votre message nous est parvenu.</h1>
+      <p class="lead">
+        La redaction lit tous les messages et repond sous
+        <strong>quinze jours ouvres maximum</strong>. Pour les sujets urgents
+        (signalement, correction sensible), nous repondons en general sous 48h.
+      </p>
+
+      <aside class="encart-suite">
+        <h2 class="section-title">Et apres ?</h2>
+        <p>
+          Vous recevrez une reponse a l'adresse que vous avez indiquee. Si votre
+          demande concerne une correction ou un signalement, elle sera traitee
+          en priorite par <a href="/redaction/">la redaction</a>.
+        </p>
+      </aside>
+
+      <nav class="cta-suite">
+        <a href="/" class="btn-secondary">Retour a l'accueil</a>
+        <a href="/observations/" class="btn-primary">Lire les observations &rarr;</a>
+      </nav>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .merci-page { padding: 2rem 0 4rem; }
+  .container-editorial {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+  .heading-display {
+    font-family: var(--font-display, Fraunces, serif);
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 1.5rem 0 1rem;
+    color: var(--ink, #1a1614);
+  }
+  .lead {
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--text-soft, #3a3530);
+  }
+  .encart-suite {
+    margin: 2.5rem 0;
+    padding: 2rem;
+    background: var(--paper-warm, #f1ebdf);
+    border-left: 4px solid var(--observatoire, #1e3a52);
+    border-radius: 4px;
+  }
+  .section-title {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.6rem;
+    margin: 0 0 0.6rem;
+  }
+  .encart-suite a {
+    color: var(--observatoire);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .cta-suite {
+    margin: 3rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+  .btn-primary, .btn-secondary {
+    padding: 0.85rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-primary {
+    background: var(--observatoire, #1e3a52);
+    color: var(--paper);
+  }
+  .btn-primary:hover { background: var(--ink, #1a1614); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--observatoire); }
+</style>

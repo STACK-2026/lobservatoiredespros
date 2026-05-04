@@ -1,0 +1,133 @@
+---
+// FormTracker , logue les events de tous les <form data-form-id="..."> de la page
+// dans la table Supabase form_events. Pas chargé sur les pages sans form (cheap idle no-op).
+//
+// Events :
+//   view     : émis 1x si une form data-form-id est présente au DOMContentLoaded
+//   focus    : 1x par champ (premier focus seulement, attribut "field")
+//   attempt  : submit cliqué (avant validation native)
+//   success  : redirection 303 réussie (intercepté via fetch + manual redirect)
+//   error    : 4xx/5xx au submit
+//   abandon  : focus eu lieu, puis pagehide sans submit (heuristique)
+//
+// Privacy : aucune valeur de champ envoyée. Seul le nom de champ + l'event.
+const SB_URL = "https://apuyeakgxjgdcfssrtek.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwdXllYWtneGpnZGNmc3NydGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDEwNTcsImV4cCI6MjA5MjUxNzA1N30.C7cw3T5Yj8W3LaYlLgWULlJlsP6iijxRKQvueA6WKOY";
+---
+
+<script define:vars={{ SB_URL, SB_ANON }}>
+(function () {
+  function isBot() {
+    var ua = navigator.userAgent || "";
+    return /bot|crawl|spider|slurp|facebookexternalhit|linkedinbot|twitterbot|whatsapp|telegram|googlebot|bingbot|yandex|baidu|duckduckbot|gptbot|claudebot|perplexitybot|amazonbot|applebot|ccbot|HeadlessChrome/i.test(ua);
+  }
+
+  // Respect cookie consent : si rejected explicite, pas de tracking
+  try {
+    var raw = localStorage.getItem("ls_cookie_consent");
+    if (raw) {
+      var c = JSON.parse(raw);
+      if (c && c.status === "rejected" && c.expires && Date.now() < c.expires) return;
+    }
+  } catch (e) {}
+
+  var bot = isBot();
+  var path = window.location.pathname;
+  var forms = document.querySelectorAll('form[data-form-id]');
+
+  // Path -> form_id map pour pages de remerciement (success event)
+  var merciMap = { "/contact/merci/": "contact", "/candidater/merci/": "candidater", "/newsletter/merci/": "newsletter" };
+
+  if (!forms.length && !merciMap[path]) return;
+
+  // session_id : random 16 chars, persist 30 min en sessionStorage
+  function getSession() {
+    var key = "ls_form_sess";
+    var now = Date.now();
+    var raw;
+    try { raw = sessionStorage.getItem(key); } catch (e) {}
+    if (raw) {
+      try {
+        var s = JSON.parse(raw);
+        if (s && s.id && s.exp && now < s.exp) return s.id;
+      } catch (e) {}
+    }
+    var id = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+    try {
+      sessionStorage.setItem(key, JSON.stringify({ id: id, exp: now + 30 * 60 * 1000 }));
+    } catch (e) {}
+    return id;
+  }
+
+  var sessionId = getSession();
+
+  function send(formId, event, field) {
+    var body = {
+      form_id: formId,
+      event: event,
+      field: field || null,
+      path: path,
+      session_id: sessionId,
+      is_bot: bot,
+    };
+    var url = SB_URL + "/rest/v1/form_events";
+    var headers = {
+      "Content-Type": "application/json",
+      "apikey": SB_ANON,
+      "Authorization": "Bearer " + SB_ANON,
+      "Prefer": "return=minimal",
+    };
+    // sendBeacon prefere pour pagehide
+    if (event === "abandon" && navigator.sendBeacon) {
+      try {
+        var blob = new Blob([JSON.stringify(body)], { type: "application/json" });
+        navigator.sendBeacon(url + "?apikey=" + encodeURIComponent(SB_ANON), blob);
+        return;
+      } catch (e) {}
+    }
+    fetch(url, { method: "POST", headers: headers, body: JSON.stringify(body), keepalive: true }).catch(function () {});
+  }
+
+  forms.forEach(function (form) {
+    var formId = form.getAttribute("data-form-id");
+    if (!formId) return;
+
+    var hasFocus = false;
+    var hasAttempt = false;
+    var focusedFields = {};
+
+    // 1. view
+    send(formId, "view");
+
+    // 2. focus (1x par champ)
+    var fields = form.querySelectorAll('input, select, textarea');
+    fields.forEach(function (f) {
+      if (f.type === "hidden" || f.name === "company") return;
+      f.addEventListener("focus", function () {
+        if (!focusedFields[f.name]) {
+          focusedFields[f.name] = true;
+          hasFocus = true;
+          send(formId, "focus", f.name);
+        }
+      }, { passive: true });
+    });
+
+    // 3. attempt (submit click, avant validation)
+    form.addEventListener("submit", function (e) {
+      hasAttempt = true;
+      send(formId, "attempt");
+      // On laisse le submit suivre son cours natif (action=POST, redirect 303 -> /merci/)
+      // success est detecte cote /merci/ (script dedie infra)
+    }, { passive: true });
+
+    // 4. abandon : pagehide avec focus mais sans attempt
+    var firePagehide = function () {
+      if (hasFocus && !hasAttempt) send(formId, "abandon");
+    };
+    window.addEventListener("pagehide", firePagehide, { passive: true });
+  });
+
+  // 5. success : si on est sur /merci/, on logue success pour la form correspondante
+  if (merciMap[path]) send(merciMap[path], "success");
+})();
+</script>

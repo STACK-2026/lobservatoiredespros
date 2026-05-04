@@ -1,0 +1,4 @@
+# Exports contiennent des donnees pros (emails, telephones) — gardes locaux uniquement
+*.csv
+segments/
+logs/
