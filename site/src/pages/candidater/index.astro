@@ -34,6 +34,15 @@ const jsonLd = [
       price: o.prix,
       priceCurrency: "EUR",
       description: o.description,
+      ...(o.prix > 0 && {
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: o.prix,
+          priceCurrency: "EUR",
+          billingDuration: "P1Y",
+          unitCode: "ANN",
+        },
+      }),
     })),
   },
 ];
@@ -90,7 +99,7 @@ const jsonLd = [
                 ) : (
                   <>
                     <span class="offre-prix-val">{o.prix}</span>
-                    <span class="offre-prix-suffix">€ par mois</span>
+                    <span class="offre-prix-suffix">€ par an</span>
                   </>
                 )}
               </p>

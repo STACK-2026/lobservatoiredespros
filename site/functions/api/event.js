@@ -5,7 +5,10 @@
 // sites) or SUPABASE_ANON (new sites). Returns 204 silently if no key set.
 
 const ALLOWED = new Set([
-  "phone_click", "cta_click",
+  "phone_click", "phone_reveal",
+  "email_click", "email_reveal",
+  "website_click",
+  "cta_click",
   "form_view", "form_focus", "form_submit", "form_abandon",
   "affiliate_click",
 ]);

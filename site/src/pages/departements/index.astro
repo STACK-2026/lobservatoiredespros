@@ -95,6 +95,23 @@ const jsonLd = [
       {totalPros.toLocaleString("fr-FR")} professionnels observés dans {totalDepts} départements, {totalRegions} région{totalRegions > 1 ? "s" : ""} française{totalRegions > 1 ? "s" : ""}. {deptsEnAttente > 0 ? `Extension progressive prévue aux ${deptsEnAttente} départements métropolitains restants.` : "Couverture nationale complète."}
     </p>
 
+    <div class="dept-search" role="search">
+      <label class="dept-search-label" for="dept-search-input">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          id="dept-search-input"
+          type="search"
+          autocomplete="off"
+          placeholder="Chercher un département (Yonne, 89, Bourgogne…)"
+          aria-label="Chercher un département par nom, code ou région"
+        />
+      </label>
+      <p class="dept-search-count" id="dept-search-count" aria-live="polite">{totalDepts} départements affichés</p>
+    </div>
+
     {regionsActives.map((region) => {
       const depts = byRegion.get(region)!;
       return (
@@ -105,7 +122,10 @@ const jsonLd = [
           />
           <div class="depts-national stagger-children">
             {depts.map((d) => (
-              <article class="dept-national card-editorial curl">
+              <article
+                class="dept-national card-editorial curl"
+                data-dept-search={`${d.nom} ${d.code || ""} ${d.region} ${d.slug}`.toLowerCase()}
+              >
                 <span class="meta-label-or">{d.region}</span>
                 <h2 class="italic-fraunces">{d.nom}</h2>
                 <p class="folio">
@@ -159,4 +179,96 @@ const jsonLd = [
     color: var(--observatoire, #1e3a52);
     font-style: italic;
   }
+
+  /* Search bar — bandeau discret, ne touche pas la DA des cards */
+  .dept-search {
+    margin: 1.5rem auto 0;
+    max-width: 32rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .dept-search-label {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.95rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.12);
+    border-radius: 12px;
+    color: var(--ink-muted);
+    transition: border-color 240ms, box-shadow 240ms;
+  }
+  .dept-search-label:focus-within {
+    border-color: rgba(184, 134, 61, 0.55);
+    box-shadow: 0 0 0 3px rgba(184, 134, 61, 0.12);
+  }
+  .dept-search-label input {
+    appearance: none;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-family: var(--font-body);
+    font-size: 0.94rem;
+    color: var(--ink);
+    width: 100%;
+    padding: 0.1rem 0;
+  }
+  .dept-search-label input::placeholder { color: var(--ink-muted); }
+  .dept-search-count {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+  .dept-national.is-hidden { display: none; }
+  .region-section.is-empty { display: none; }
 </style>
+
+<script>
+  (function () {
+    var input = document.getElementById("dept-search-input");
+    var count = document.getElementById("dept-search-count");
+    if (!input || !count) return;
+    var cards = Array.prototype.slice.call(document.querySelectorAll(".dept-national[data-dept-search]"));
+    var sections = Array.prototype.slice.call(document.querySelectorAll(".region-section"));
+    var totalLabel = count.textContent || "";
+
+    function normalize(s) {
+      return (s || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .trim();
+    }
+
+    function apply() {
+      var q = normalize(input.value);
+      var visible = 0;
+      cards.forEach(function (card) {
+        var hay = card.getAttribute("data-dept-search") || "";
+        var match = !q || normalize(hay).indexOf(q) !== -1;
+        card.classList.toggle("is-hidden", !match);
+        if (match) visible++;
+      });
+      sections.forEach(function (section) {
+        var anyVisible = section.querySelectorAll(".dept-national:not(.is-hidden)").length > 0;
+        section.classList.toggle("is-empty", !anyVisible);
+      });
+      if (!q) {
+        count.textContent = totalLabel;
+      } else if (visible === 0) {
+        count.textContent = "Aucun département ne correspond à « " + input.value + " »";
+      } else {
+        count.textContent = visible + " département" + (visible > 1 ? "s" : "") + " correspondant" + (visible > 1 ? "s" : "");
+      }
+    }
+
+    input.addEventListener("input", apply, { passive: true });
+    input.addEventListener("search", apply, { passive: true });
+  })();
+</script>

@@ -250,7 +250,7 @@ export const siteConfig = {
         slug: "vérifié",
         nom: "Portrait Vérifié",
         prix: 29,
-        prixLabel: "29€ / mois",
+        prixLabel: "29€ / an",
         description: "Médaille Argent. Dossier enrichi après examen éditorial de votre candidature.",
         features: [
           "Médaille Argent sur votre portrait",
@@ -267,7 +267,7 @@ export const siteConfig = {
         slug: "lauréat",
         nom: "Portrait Lauréat",
         prix: 89,
-        prixLabel: "89€ / mois",
+        prixLabel: "89€ / an",
         description: "Médaille Or. Portrait éditorial long format rédigé par notre rédaction après entretien.",
         features: [
           "Médaille Or sur votre portrait",
