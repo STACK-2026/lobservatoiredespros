@@ -116,8 +116,16 @@ const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
     form.addEventListener("submit", function (e) {
       hasAttempt = true;
       send(formId, "attempt");
+      // Pose un flag pour que /merci/ puisse confirmer un vrai success.
+      // Sans ce flag, /merci/ chargee directement (URL share, refresh, bot)
+      // declencherait un faux success.
+      try {
+        sessionStorage.setItem("ls_form_attempt", JSON.stringify({
+          form: formId,
+          ts: Date.now(),
+        }));
+      } catch (e) {}
       // On laisse le submit suivre son cours natif (action=POST, redirect 303 -> /merci/)
-      // success est detecte cote /merci/ (script dedie infra)
     }, { passive: true });
 
     // 4. abandon : pagehide avec focus mais sans attempt
@@ -127,7 +135,27 @@ const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
     window.addEventListener("pagehide", firePagehide, { passive: true });
   });
 
-  // 5. success : si on est sur /merci/, on logue success pour la form correspondante
-  if (merciMap[path]) send(merciMap[path], "success");
+  // 5. success : si on est sur /merci/ ET qu'un attempt recent a ete pose pour
+  // la meme form (< 5 min), on logue success. Sans flag = navigation directe
+  // (refresh, URL partage, bot, GSC) → silence pour ne pas polluer le funnel.
+  if (merciMap[path]) {
+    var expectedForm = merciMap[path];
+    var ATTEMPT_TTL_MS = 5 * 60 * 1000;
+    var attemptOk = false;
+    try {
+      var rawAttempt = sessionStorage.getItem("ls_form_attempt");
+      if (rawAttempt) {
+        var att = JSON.parse(rawAttempt);
+        if (att && att.form === expectedForm && att.ts && (Date.now() - att.ts) < ATTEMPT_TTL_MS) {
+          attemptOk = true;
+        }
+      }
+    } catch (e) {}
+    if (attemptOk) {
+      send(expectedForm, "success");
+      // One-shot : nettoie pour eviter double-fire sur refresh /merci/
+      try { sessionStorage.removeItem("ls_form_attempt"); } catch (e) {}
+    }
+  }
 })();
 </script>
