@@ -1,0 +1,31 @@
+---
+// GA4 tracker — runs ALONGSIDE the existing Supabase tracker (Mix mode).
+// Same consent gate as Analytics.astro: respects `ls_cookie_consent` localStorage
+// with status "rejected" (CNIL).
+const GA4_ID = "G-MZPXQMYRRP";
+---
+
+<script define:vars={{ GA4_ID }}>
+  (function () {
+    try {
+      const raw = localStorage.getItem("ls_cookie_consent");
+      if (raw) {
+        const c = JSON.parse(raw);
+        if (c && c.status === "rejected" && c.expires && Date.now() < c.expires) return;
+      }
+    } catch (e) {}
+
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA4_ID;
+    document.head.appendChild(s);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      window.dataLayer.push(arguments);
+    }
+    window.gtag = gtag;
+    gtag("js", new Date());
+    gtag("config", GA4_ID);
+  })();
+</script>
