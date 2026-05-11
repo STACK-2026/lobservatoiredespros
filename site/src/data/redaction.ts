@@ -81,7 +81,7 @@ export const redaction: Auteur[] = [
       "Rééquilibrer les pondérations au moins une fois par an, expliquer publiquement.",
       "Ne jamais ajuster un score a posteriori pour accommoder un sujet.",
     ],
-    articles_slugs: ["methodologie-score-confiance-etoiles"],
+    articles_slugs: ["methodologie-score-confiance-etoiles", "verifier-artisan-avant-devis-4-controles-publics"],
     contact_email: "antoine@send.lobservatoiredespros.com",
     photo_initials: "AD",
     couleur_accent: "observatoire",

@@ -17,6 +17,11 @@ export interface ObservationSection {
   cite?: string;
 }
 
+export interface ObservationFAQ {
+  question: string;
+  answer: string;
+}
+
 export interface Observation {
   slug: string;
   categorie: ObsCategorie;
@@ -31,9 +36,288 @@ export interface Observation {
   sections: ObservationSection[];
   sources: { label: string; url: string; description?: string }[];
   tags: string[];
+  faq?: ObservationFAQ[]; // optionnel ; si present → JSON-LD FAQPage + rendu inline
+  /** Meta description override (max 160 chars), sinon fallback sur sousTitre */
+  ogDescription?: string;
+  /** Steps de HowTo schema. Si présent : JSON-LD HowTo généré (guide pratique). */
+  howToSteps?: { name: string; text: string }[];
 }
 
 export const observations: Observation[] = [
+  {
+      slug: "verifier-artisan-avant-devis-4-controles-publics",
+      categorie: "guide-pratique",
+      titre: "Vérifier un artisan avant de signer : les 4 contrôles publics en 10 minutes",
+      sousTitre: "SIRET, RGE, BODACC, avis croisés. Ne te fie plus seulement aux avis en ligne. Voici une méthode simple, gratuite et basée sur des données publiques pour évaluer la fiabilité d'un professionnel du BTP.",
+      datePublication: "2026-05-11",
+      dateRevision: "2026-05-11",
+      readingTime: 12,
+      authorSlug: "antoine-delaunay",
+      coverAlt: "Capture d'ecran de l'Annuaire des Entreprises Sirene affichant la fiche d'un artisan",
+      tldr: "Avant de signer un devis, vérifie toujours 4 points. L'existence légale de l'entreprise avec son SIRET. Ses qualifications RGE si tu vises des aides. Son état de santé financière via le BODACC. Et la cohérence de ses avis sur plusieurs sites. C'est gratuit et ça prend 10 minutes.",
+      sections: [
+        {
+          type: "p",
+          content: "Sur les 74 entreprises du BTP en cessation d'activité que nous avons identifiées le mois dernier, 12 continuaient de publier des annonces et de proposer des devis (source : L'Observatoire des Pros, 2026). Signer avec une entreprise qui n'existe plus légalement est le début d'un long cauchemar. C'est la garantie de perdre ton acompte et de n'avoir aucun recours. Heureusement, tu peux l'éviter avec quelques réflexes simples, basés sur des informations publiques et gratuites. Ce guide est là pour ça.",
+        },
+        {
+          type: "h2",
+          content: "Pourquoi ces 4 vérifications, et pas seulement les avis Google",
+        },
+        {
+          type: "p",
+          content: "Le premier réflexe, souvent, est de taper le nom de l'artisan sur Google et de lire les avis. C'est un bon début, mais c'est largement insuffisant. Les avis en ligne, surtout sur les plateformes ouvertes, sont facilement manipulables. Un concurrent malveillant peut publier de faux avis négatifs. Un artisan peu scrupuleux peut acheter des dizaines de faux avis positifs. Ces témoignages sont subjectifs et ne disent rien de la santé administrative ou financière de l'entreprise.",
+        },
+        {
+          type: "p",
+          content: "Notre méthode est différente. Elle ne se base pas sur l'opinion, mais sur des faits issus de bases de données de l'État. Elle ne te dira pas si ton artisan est sympathique, mais elle te dira s'il a le droit d'exercer, s'il possède les bonnes qualifications et si son entreprise n'est pas au bord de la faillite. C'est un filet de sécurité factuel, une première étape indispensable avant d'évaluer la qualité technique de son travail.",
+        },
+        {
+          type: "h2",
+          content: "Vérification 1 : le SIRET, état civil de l'entreprise",
+        },
+        {
+          type: "p",
+          content: "Le numéro <a href=\"/glossaire/#siret\">SIRET</a> (14 chiffres) est l'identifiant unique de l'établissement d'une entreprise. Il doit obligatoirement figurer sur chaque devis et facture. S'il n'y est pas, c'est une première alerte. Ce numéro est ta porte d'entrée vers la carte d'identité officielle de l'entreprise.",
+        },
+        {
+          type: "h3",
+          content: "Où chercher : annuaire-entreprises.data.gouv.fr",
+        },
+        {
+          type: "p",
+          content: "Le service public de l'Annuaire des Entreprises est la source la plus fiable. Il est géré par la Direction interministérielle du numérique et agrège les données de l'INSEE (registre <a href=\"/glossaire/#sirene\">Sirene</a>), de l'INPI et des greffes des tribunaux de commerce. La recherche est simple : tu entres le numéro SIRET ou le nom de l'entreprise dans la barre de recherche.",
+        },
+        {
+          type: "h3",
+          content: "Comment lire le résultat",
+        },
+        {
+          type: "p",
+          content: "Quatre informations sont cruciales. D'abord, l'état administratif de l'entreprise : est-elle bien 'Active' ? Si elle est 'Cessée' ou 'Fermée', fuis. Ensuite, la date de création : elle te donne l'ancienneté réelle de la structure. Puis, le code d'activité (<a href=\"/glossaire/#naf\">NAF</a> ou APE) : correspond-il aux travaux de ton devis ? Un code pour de la 'programmation informatique' pour un devis de plomberie est un signal étrange. Enfin, l'adresse du siège social : est-elle cohérente ?",
+        },
+        {
+          type: "h3",
+          content: "Cas pratique : un artisan qui se vieillit",
+        },
+        {
+          type: "callout",
+          content: "Un artisan te présente son entreprise comme ayant 'plus de 15 ans d'expérience'. Tu vérifies son SIRET sur l'annuaire et tu constates que l'entreprise a été créée en 2024. Cela ne veut pas dire que c'est un menteur, il a pu être salarié dans le domaine pendant 14 ans. Mais cela signifie que son entreprise, en tant qu'entité légale et responsable, n'a aucune ancienneté. C'est un point important à clarifier avec lui, notamment sur les questions d'assurance et de références de chantiers réalisés sous ce nom.",
+        },
+        {
+          type: "h2",
+          content: "Vérification 2 : le label RGE, mention par mention",
+        },
+        {
+          type: "p",
+          content: "Le label <a href=\"/glossaire/#rge\">RGE</a> (Reconnu Garant de l'Environnement) est indispensable si tu souhaites bénéficier des aides de l'État pour tes travaux de rénovation énergétique (MaPrimeRénov', éco-prêt à taux zéro, etc.). Un logo RGE sur un devis ne suffit pas. Il faut le vérifier.",
+        },
+        {
+          type: "h3",
+          content: "L'annuaire officiel France Rénov'",
+        },
+        {
+          type: "p",
+          content: "La seule source de vérité est l'annuaire officiel des professionnels RGE, accessible sur le site france-renov.gouv.fr. Tu peux y faire une recherche par numéro de SIRET. Si l'entreprise n'y figure pas à la date de signature du devis, elle n'est pas RGE, même si elle prétend le contraire.",
+        },
+        {
+          type: "h3",
+          content: "Lire le détail des qualifications",
+        },
+        {
+          type: "p",
+          content: "Une entreprise n'est pas 'RGE' dans l'absolu. Elle l'est pour un ou plusieurs domaines de travaux très spécifiques. L'annuaire détaille ces qualifications : 'Pose de matériaux d'isolation thermique des parois vitrées', 'Installation de pompes à chaleur', etc. Il faut aussi vérifier la date de validité de chaque qualification. Une qualification expirée n'est plus valable.",
+        },
+        {
+          type: "h3",
+          content: "Cas pratique : RGE pour menuiserie, devis pour pompe à chaleur",
+        },
+        {
+          type: "callout",
+          content: "Ton devis concerne l'installation d'une pompe à chaleur. L'artisan affiche un logo RGE. Tu vérifies sur l'annuaire France Rénov' et tu vois qu'il est bien RGE, mais uniquement pour la 'pose de fenêtres et portes'. Sa qualification ne couvre donc pas la prestation du devis. Tu ne pourras pas prétendre aux aides de l'État pour ta pompe à chaleur, et cela interroge sur ses compétences réelles pour ce type d'installation.",
+        },
+        {
+          type: "h2",
+          content: "Vérification 3 : le BODACC, l'histoire judiciaire",
+        },
+        {
+          type: "p",
+          content: "Le Bulletin officiel des annonces civiles et commerciales (<a href=\"https://www.bodacc.fr/\" rel=\"noopener nofollow\" target=\"_blank\">BODACC</a>) publie les actes enregistrés au greffe du tribunal de commerce. Il permet de savoir si une entreprise traverse des difficultés financières graves, ce qui est un risque majeur pour ton chantier.",
+        },
+        {
+          type: "h3",
+          content: "Comprendre les procédures collectives",
+        },
+        {
+          type: "p",
+          content: "Trois termes doivent t'alerter. La 'sauvegarde' est une procédure pour les entreprises qui ne sont pas encore en cessation de paiement, mais qui rencontrent des difficultés. Le '<a href=\"https://entreprendre.service-public.fr/vosdroits/F22311\" rel=\"noopener nofollow\" target=\"_blank\">redressement judiciaire</a>' intervient quand l'entreprise ne peut plus payer ses dettes ; elle continue son activité sous contrôle judiciaire. La 'liquidation judiciaire' est la fin de l'entreprise : son activité cesse et ses actifs sont vendus pour payer les créanciers.",
+        },
+        {
+          type: "h3",
+          content: "Comment fouiller le bodacc.fr",
+        },
+        {
+          type: "p",
+          content: "Le site public bodacc.fr dispose d'un moteur de recherche simple. Tu peux y entrer le numéro SIREN (les 9 premiers chiffres du SIRET) ou le nom de l'entreprise. La recherche te listera toutes les publications la concernant. Cherche les mentions de 'jugement d'ouverture de redressement judiciaire' ou de 'liquidation'.",
+        },
+        {
+          type: "h3",
+          content: "Cas pratique : redressement masqué",
+        },
+        {
+          type: "callout",
+          content: "Un artisan te demande un acompte de 50 % pour la commande de matériaux, en insistant sur l'urgence. Une recherche sur le BODACC révèle que son entreprise a été placée en redressement judiciaire il y a deux mois. Le risque est énorme : si l'entreprise passe en liquidation, ton acompte sera très probablement perdu et ton chantier jamais terminé. Le redressement n'interdit pas de travailler, mais il signale une fragilité extrême.",
+        },
+        {
+          type: "h2",
+          content: "Vérification 4 : les avis publics, en mode détective",
+        },
+        {
+          type: "p",
+          content: "Même s'ils ne sont pas fiables pris isolément, les avis en ligne peuvent révéler des schémas intéressants quand on les analyse de manière critique. L'objectif n'est pas de lire chaque commentaire, mais de repérer les incohérences.",
+        },
+        {
+          type: "h3",
+          content: "La règle des 3 plateformes",
+        },
+        {
+          type: "p",
+          content: "Ne te contente jamais d'une seule source. Cherche l'entreprise sur au moins trois plateformes différentes : une généraliste (Google Maps, Pages Jaunes), une plateforme d'avis (Trustpilot) et si possible un site spécialisé dans le BTP (Eldotravo, Travaux.com). Compare le nombre d'avis, la note moyenne et la tonalité générale. Des profils très différents d'un site à l'autre sont suspects.",
+        },
+        {
+          type: "h3",
+          content: "Repérer les faux avis",
+        },
+        {
+          type: "p",
+          content: "Plusieurs indices trahissent les faux avis positifs. Une vague soudaine de nombreux avis 5 étoiles publiés sur une courte période. Des commentaires vagues et non circonstanciés ('Super travail', 'Très pro', 'Je recommande'). Des profils de commentateurs n'ayant laissé qu'un seul avis. Une syntaxe et des tournures de phrases très similaires d'un avis à l'autre.",
+        },
+        {
+          type: "h3",
+          content: "Cas pratique : 47 avis 5 étoiles en 3 semaines",
+        },
+        {
+          type: "callout",
+          content: "Une entreprise de rénovation créée il y a six mois affiche déjà 47 avis sur Google, tous notés 5 étoiles et tous publiés durant le mois de mai. En lisant les commentaires, tu remarques qu'ils sont tous courts et se ressemblent. C'est un schéma typique d'achat de faux avis pour construire rapidement une e-réputation. Cette manipulation doit t'inciter à la plus grande prudence.",
+        },
+        {
+          type: "h2",
+          content: "Le tableau récapitulatif : 10 minutes, 4 onglets",
+        },
+        {
+          type: "p",
+          content: "| Vérification | Outil (URL) | Ce que tu vérifies | Temps estimé |\n| :--- | :--- | :--- | :--- |\n| 1. Existence légale | annuaire-entreprises.data.gouv.fr | SIRET, état 'Actif', date de création, code NAF | 3 minutes |\n| 2. Qualification RGE | france-renov.gouv.fr | Présence dans l'annuaire, domaine et validité de la qualification | 2 minutes |\n| 3. Santé financière | bodacc.fr | Absence de redressement ou liquidation judiciaire | 2 minutes |\n| 4. E-réputation | Google, Pages Jaunes, etc. | Cohérence des avis, recherche de schémas suspects | 3 minutes |",
+        },
+        {
+          type: "h2",
+          content: "Quand et pourquoi ces vérifications ne suffisent pas",
+        },
+        {
+          type: "p",
+          content: "Soyons clairs : cette méthode de 10 minutes est un filtre puissant contre les fraudes manifestes et les entreprises en grande difficulté. Elle réduit considérablement ton risque. Cependant, elle ne garantit pas la qualité du travail, le respect des délais ou l'honnêteté parfaite de l'artisan. Une entreprise peut être administrativement irréprochable et pourtant réaliser un travail médiocre. Ces vérifications sont une première étape nécessaire, mais elles doivent être complétées par une discussion approfondie avec l'artisan, la demande de références de chantiers précédents et la vérification de son assurance décennale.",
+        },
+        {
+          type: "h2",
+          content: "Comment L'Observatoire des Pros fait ces 4 vérifications pour toi",
+        },
+        {
+          type: "p",
+          content: "Notre travail à L'Observatoire des Pros consiste précisément à systématiser et à automatiser ces vérifications, et bien d'autres. Chaque jour, nos systèmes parcourent ces sources publiques pour des milliers d'entreprises. Nous croisons ces informations avec d'autres données (certifications Qualibat, assurances obligatoires, etc.) pour construire des fiches de profils claires et à jour. Notre objectif est de te fournir une synthèse fiable et prête à l'emploi, pour que tu puisses te concentrer sur l'essentiel : ton projet de travaux.",
+        },
+      ],
+      sources: [
+        {
+          label: "Annuaire des Entreprises",
+          url: "https://annuaire-entreprises.data.gouv.fr/",
+          description: "Service public pour consulter les informations légales, publiques et à jour des entreprises, associations et services publics français.",
+        },
+        {
+          label: "France Rénov' - Annuaire des professionnels RGE",
+          url: "https://france-renov.gouv.fr/annuaire-rge",
+          description: "L'annuaire officiel et unique pour vérifier la validité des qualifications RGE d'un professionnel.",
+        },
+        {
+          label: "BODACC - Bulletin officiel des annonces civiles et commerciales",
+          url: "https://www.bodacc.fr/",
+          description: "Site public pour rechercher les procédures collectives (sauvegardes, redressements, liquidations judiciaires) concernant une entreprise.",
+        },
+        {
+          label: "INSEE - Définition du numéro Siret",
+          url: "https://www.insee.fr/fr/metadonnees/definition/c1502",
+          description: "La définition officielle du Système d’identification du répertoire des établissements (Siret) par l'Institut national de la statistique.",
+        },
+        {
+          label: "Service-Public.fr - Devis pour des travaux",
+          url: "https://www.service-public.fr/particuliers/vosdroits/F31144",
+          description: "Fiche pratique sur les mentions obligatoires et la valeur juridique d'un devis de travaux.",
+        },
+        {
+          label: "ADEME - Agence de la transition écologique",
+          url: "https://www.ademe.fr/",
+          description: "L'établissement public qui supervise notamment le dispositif RGE (Reconnu Garant de l'Environnement).",
+        },
+      ],
+      tags: [
+        "vérifier artisan",
+        "devis btp",
+        "arnaque travaux",
+        "siret",
+        "rge",
+        "bodacc",
+        "fiabilité artisan",
+        "choisir artisan",
+        "guide pratique",
+      ],
+      faq: [
+        {
+          question: "Comment vérifier qu'un artisan est inscrit au répertoire des métiers ?",
+          answer: "Tu peux le vérifier sur l'Annuaire des Entreprises (annuaire-entreprises.data.gouv.fr). Sur la fiche de l'entreprise, cherche la mention d'une inscription à la Chambre de Métiers et de l'Artisanat (CMA). Cette inscription est obligatoire pour la plupart des activités artisanales.",
+        },
+        {
+          question: "Que faire si un artisan refuse de donner son SIRET ?",
+          answer: "Considère cela comme un drapeau rouge majeur et mets fin à la discussion. Le numéro SIRET est une information publique qui doit obligatoirement figurer sur tous les documents commerciaux, y compris les devis. Un refus est anormal et cache presque toujours une irrégularité.",
+        },
+        {
+          question: "Comment savoir si un artisan est RGE actuellement ?",
+          answer: "La seule source fiable est l'annuaire officiel sur le site france-renov.gouv.fr. Ne te fie jamais au seul logo sur un site web ou un devis. La vérification sur l'annuaire doit être faite au moment de signer, car les qualifications ont une date d'expiration.",
+        },
+        {
+          question: "Un artisan en redressement judiciaire peut-il continuer ses chantiers ?",
+          answer: "Oui, l'objectif d'une procédure de redressement est de permettre la poursuite de l'activité sous surveillance judiciaire pour rembourser les dettes. Cependant, cela signale une grande fragilité financière. Le risque que le chantier soit interrompu si l'entreprise passe en liquidation est bien réel.",
+        },
+        {
+          question: "Quelle différence entre Sirene et SIRET ?",
+          answer: "SIRENE est le nom du répertoire national géré par l'INSEE qui contient toutes les entreprises françaises. Le SIRET est un numéro à 14 chiffres qui identifie un établissement précis d'une entreprise. Une entreprise a un seul numéro SIREN (9 chiffres), mais peut avoir plusieurs SIRET si elle a plusieurs locaux.",
+        },
+        {
+          question: "Comment retrouver le dirigeant d'une entreprise ?",
+          answer: "L'Annuaire des Entreprises affiche généralement le nom du ou des dirigeants légaux (gérant, président) dans la section des informations légales. Des sites spécialisés dans les données d'entreprises, comme Pappers, fournissent aussi cette information gratuitement.",
+        },
+        {
+          question: "Les avis Google sont-ils fiables pour choisir un artisan ?",
+          answer: "Ils doivent être utilisés avec une extrême prudence. C'est un indicateur parmi d'autres, mais ils sont très faciles à manipuler (faux avis positifs comme négatifs). Ne base jamais ton choix uniquement sur les avis Google et croise-les toujours avec les vérifications factuelles de ce guide.",
+        },
+      ],
+      ogDescription: "Comment vérifier un artisan avant de signer un devis ? 4 contrôles gratuits sur des sources publiques (SIRET, RGE, BODACC) pour éviter les arnaques. Notre guide",
+      howToSteps: [
+        {
+          name: "Vérifier le SIRET sur l'Annuaire des Entreprises",
+          text: "Saisis le nom de l'entreprise ou son SIRET sur annuaire-entreprises.data.gouv.fr. Lis l'état administratif (Actif requis), la date de création et le code NAF.",
+        },
+        {
+          name: "Vérifier la qualification RGE sur France Rénov'",
+          text: "Recherche le SIRET sur france-renov.gouv.fr/annuaire-rge. Note les qualifications actives, leur périmètre (isolation, photovoltaïque, etc.) et leur date d'expiration.",
+        },
+        {
+          name: "Consulter l'historique BODACC",
+          text: "Sur bodacc.fr, cherche par dénomination ou SIRET. Identifie toute procédure collective (sauvegarde, redressement, liquidation) publiée.",
+        },
+        {
+          name: "Croiser les avis sur 3 plateformes",
+          text: "Compare Google Maps, Pages Jaunes et une plateforme spécialisée. Méfie-toi des séquences d'avis 5 étoiles publiés dans une courte fenêtre.",
+        },
+      ],
+    },
   {
     slug: "enquete-rge-yonne-412-sites",
     categorie: "enquete",

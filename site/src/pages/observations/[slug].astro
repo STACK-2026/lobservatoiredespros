@@ -6,6 +6,7 @@ import ByLine from "../../components/ByLine.astro";
 import SpeakableTLDR from "../../components/SpeakableTLDR.astro";
 import EditorialCartouche from "../../components/EditorialCartouche.astro";
 import DropCap from "../../components/DropCap.astro";
+import NewsletterInline from "../../components/NewsletterInline.astro";
 import { observations, type Observation } from "../../data/observations";
 import { auteurBySlug } from "../../data/redaction";
 import { siteConfig } from "../../utils/config";
@@ -38,7 +39,13 @@ const catLabels: Record<string, string> = {
   entretien: "ENTRETIEN",
 };
 
-const jsonLd = [
+const articleType = obs.categorie === "enquete"
+  ? "ReportageNewsArticle"
+  : obs.categorie === "guide-pratique"
+    ? "HowTo"
+    : "NewsArticle";
+
+const jsonLd: any[] = [
   jsonLdBreadcrumbs([
     { name: "Accueil", url: siteConfig.url },
     { name: "Observations", url: `${siteConfig.url}/observations/` },
@@ -71,8 +78,44 @@ const jsonLd = [
       name: s.label,
       url: s.url,
     })),
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["[data-speakable]"],
+    },
   },
 ];
+
+if (obs.faq && obs.faq.length > 0) {
+  jsonLd.push({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${url}#faq`,
+    mainEntity: obs.faq.map((q) => ({
+      "@type": "Question",
+      name: q.question,
+      acceptedAnswer: { "@type": "Answer", text: q.answer },
+    })),
+  });
+}
+
+if (obs.howToSteps && obs.howToSteps.length > 0) {
+  jsonLd.push({
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "@id": `${url}#howto`,
+    name: obs.titre,
+    description: obs.ogDescription || obs.sousTitre,
+    totalTime: "PT10M",
+    inLanguage: "fr-FR",
+    estimatedCost: { "@type": "MonetaryAmount", currency: "EUR", value: "0" },
+    step: obs.howToSteps.map((s, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+    })),
+  });
+}
 ---
 
 <BaseLayout title={`${obs.titre} , L'Observatoire des Pros`} description={obs.sousTitre} jsonLd={jsonLd} ogType="article" publishedTime={obs.datePublication} ogImage={`/og/observations/${obs.slug}.png`}>
@@ -117,8 +160,16 @@ const jsonLd = [
         if (sec.type === "h2") return <h2 class="obs-h2">{sec.content}</h2>;
         if (sec.type === "h3") return <h3 class="obs-h3">{sec.content}</h3>;
         if (sec.type === "p") {
-          if (i === 0) return <DropCap>{sec.content}</DropCap>;
-          return <p class="obs-p">{sec.content}</p>;
+          const content = sec.content || "";
+          const hasInlineHtml = content.includes("<a ");
+          if (i === 0) {
+            return hasInlineHtml
+              ? <DropCap><span set:html={content} /></DropCap>
+              : <DropCap>{content}</DropCap>;
+          }
+          return hasInlineHtml
+            ? <p class="obs-p" set:html={content} />
+            : <p class="obs-p">{content}</p>;
         }
         if (sec.type === "quote") return (
           <blockquote class="obs-quote">
@@ -152,6 +203,29 @@ const jsonLd = [
         return null;
       })}
     </div>
+
+    {obs.faq && obs.faq.length > 0 && (
+      <section class="container-editorial obs-faq" aria-labelledby="faq-title">
+        <h2 id="faq-title" class="obs-faq-title">Questions fréquentes</h2>
+        <div class="obs-faq-list">
+          {obs.faq.map((q, idx) => (
+            <details class="obs-faq-item" open={idx === 0}>
+              <summary class="obs-faq-q">{q.question}</summary>
+              <div class="obs-faq-a"><p>{q.answer}</p></div>
+            </details>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="container-editorial">
+      <NewsletterInline
+        eyebrow="LETTRE DE L'OBSERVATOIRE"
+        title="Recevoir nos prochaines observations"
+        subtitle="Chaque mois, une enquête, une méthode et un portrait. Pas de pub. Désabonnement en un clic."
+        source="observation"
+      />
+    </section>
 
     <footer class="container-editorial obs-foot">
       {obs.sources.length > 0 && (
@@ -423,4 +497,79 @@ const jsonLd = [
     line-height: 1.55;
   }
   .obs-cta-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+
+  /* Liens injectés inline dans les paragraphes (maillage interne) */
+  .obs-body :global(.obs-p a),
+  .obs-body :global(p a) {
+    color: var(--observatoire);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--observatoire);
+    padding-bottom: 1px;
+  }
+  .obs-body :global(.obs-p a:hover),
+  .obs-body :global(p a:hover) {
+    color: var(--or-deep);
+    border-bottom-color: var(--or);
+  }
+
+  /* FAQ accordion sobre — bon pour AI Overviews & PAA */
+  .obs-faq {
+    max-width: 42rem;
+    margin: 3rem auto 1rem;
+    padding: 0 clamp(1.25rem, 5vw, 3rem);
+  }
+  .obs-faq-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.4rem, 2.2vw, 1.7rem);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+    color: var(--ink);
+    margin: 0 0 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(26, 22, 20, 0.1);
+  }
+  .obs-faq-list { display: grid; gap: 0.4rem; }
+  .obs-faq-item {
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 200ms;
+  }
+  .obs-faq-item[open] {
+    border-color: rgba(184, 134, 61, 0.4);
+    box-shadow: 0 1px 0 rgba(184, 134, 61, 0.06);
+  }
+  .obs-faq-q {
+    padding: 0.95rem 1.1rem;
+    font-family: var(--font-body);
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .obs-faq-q::-webkit-details-marker { display: none; }
+  .obs-faq-q::after {
+    content: "+";
+    color: var(--or-deep);
+    font-weight: 400;
+    font-size: 1.3rem;
+    line-height: 1;
+    transition: transform 200ms;
+  }
+  .obs-faq-item[open] .obs-faq-q::after { content: "−"; }
+  .obs-faq-a {
+    padding: 0 1.1rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.94rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .obs-faq-a p { margin: 0; }
 </style>
