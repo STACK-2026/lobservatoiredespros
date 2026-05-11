@@ -15,10 +15,20 @@ const labels = {
   argent: "Vérifié",
   rédaction: "Choix de la rédaction",
 };
+const tooltips = {
+  or: "Lauréat : pro visité, vérifié et recommandé par la rédaction (le plus haut niveau).",
+  argent: "Vérifié : identité, RGE et activité validés par la rédaction.",
+  rédaction: "Choix de la rédaction : pro mis en avant pour la qualité de son dossier.",
+};
 const label = labels[tier];
+const tooltip = tooltips[tier];
 ---
 
-<span class={`medaille medaille-${tier} ${compact ? "medaille-compact" : ""}`}>
+<span
+  class={`medaille medaille-${tier} ${compact ? "medaille-compact" : ""}`}
+  title={tooltip}
+  aria-label={tooltip}
+>
   {showIcon && tier === "or" && (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.2" />

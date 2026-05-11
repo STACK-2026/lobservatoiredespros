@@ -85,8 +85,8 @@ const dateUpdatedFR = new Date().toLocaleDateString("fr-FR", {
 
 const title = `Etat du marche BTP ${dept.nom} (${dept.code}) , ${siteConfig.editionMonth} ${siteConfig.editionYear}`;
 const description = total > 0
-  ? `${total} pros BTP actifs en ${dept.nom} : ${metiersTrie.length} metiers, ${totalRGE} certifies RGE, age moyen ${ageMoyen} ans. Snapshot mensuel.`
-  : `Marche BTP en ${dept.nom} : panorama editorial des artisans observes par L'Observatoire des Pros.`;
+  ? `${total} pros BTP actifs en ${dept.nom} : ${metiersTrie.length} métiers, ${totalRGE} certifiés RGE, âge moyen ${ageMoyen} ans. Mise à jour mensuelle.`
+  : `Marché BTP en ${dept.nom} : panorama éditorial des artisans observés par L'Observatoire des Pros.`;
 const url = `${siteConfig.url}/observations/etat-du-marche/${dept.slug}/`;
 
 const jsonLd = [
@@ -137,14 +137,14 @@ const jsonLd = [
         { label: `Etat du marche ${dept.nom}` },
       ]} />
 
-      <Masthead category="ETAT DU MARCHE , SNAPSHOT" signature="Par la redaction" date={dateUpdatedFR} />
+      <Masthead category="ÉTAT DU MARCHÉ" signature="Par la rédaction" date={dateUpdatedFR} />
 
       <header class="market-header">
-        <h1 class="heading-display">Etat du marche BTP en {dept.nom} ({dept.code}).</h1>
+        <h1 class="heading-display">État du marché BTP en {dept.nom} ({dept.code}).</h1>
         <p class="lead">
-          Snapshot du marche des artisans et entreprises du batiment en {dept.nom},
-          {region}. Donnees agregees a partir des sources publiques Sirene INSEE,
-          ADEME RGE, BODACC et France Renov', mis a jour le {dateUpdatedFR}.
+          Photographie mensuelle du marché des artisans et entreprises du bâtiment
+          en {dept.nom}, {region}. Synthèse établie à partir des sources publiques
+          Sirene INSEE, ADEME RGE, BODACC et France Rénov', mise à jour le {dateUpdatedFR}.
         </p>
       </header>
 
@@ -290,9 +290,9 @@ const jsonLd = [
           <li><strong>Recherche Entreprises</strong> , API officielle (categorie, effectif, dirigeants).</li>
         </ul>
         <p class="meta-note">
-          Le snapshot est mis a jour automatiquement chaque mois. La methodologie complete est
-          disponible sur la <a href="/methode/">page Methode</a>. Les classements detailles par
-          metier sont consultables via <a href={`/departements/`}>la liste des departements</a>.
+          Cette photographie du marché est mise à jour automatiquement chaque mois. La méthodologie
+          complète est disponible sur la <a href="/methode/">page Méthode</a>. Les classements
+          détaillés par métier sont consultables via <a href={`/departements/`}>la liste des départements</a>.
         </p>
       </section>
 

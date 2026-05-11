@@ -423,6 +423,23 @@ const body = `Bonjour,%0D%0A%0D%0AJe souhaite obtenir les coordonnées directes 
   .cb-item.is-revealed .cb-v-masked { display: none; }
   .cb-item.is-revealed .cb-v-clear { display: inline; }
   .cb-item.is-revealed .cb-action::before { content: ""; }
+
+  /* Affordance permanente quand masqué : l'utilisateur doit voir que c'est cliquable. */
+  .cb-item.is-masked .cb-action {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--or-deep);
+    font-weight: 600;
+  }
+  @media (max-width: 540px) {
+    button.cb-item.is-masked .cb-action {
+      display: block;
+      grid-column: 1 / -1;
+      margin-top: 0.35rem;
+      text-align: right;
+      font-size: 0.72rem;
+    }
+  }
 </style>
 
 <script>
