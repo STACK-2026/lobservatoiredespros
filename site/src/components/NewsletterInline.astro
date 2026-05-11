@@ -1,0 +1,132 @@
+---
+/**
+ * NewsletterInline , mini-form 1 champ email pour fin de fiche / hub.
+ *
+ * Faible friction : 1 input email + RGPD inline + bouton. Pas de double
+ * confirmation, le merci est sur /newsletter/merci/. Honeypot present.
+ * Reuse `/api/newsletter` Cloudflare Function existante.
+ *
+ * Source par défaut "site" (fallback côté API si non whitelisté).
+ */
+interface Props {
+  /** Sert d'eyebrow au-dessus du titre. Default: "LETTRE MENSUELLE" */
+  eyebrow?: string;
+  /** Titre principal. Default editorial. */
+  title?: string;
+  /** Sous-titre court. */
+  subtitle?: string;
+  /** Identifiant source (whitelist API): "site" | "footer" | "observation" | "page-newsletter" | "home-hero-nl" | "merci". */
+  source?: string;
+}
+
+const {
+  eyebrow = "LETTRE MENSUELLE",
+  title = "La lettre de L'Observatoire",
+  subtitle = "Une fois par mois, une observation majeure, un portrait et une question de méthode. Pas de pub. Pas de pistage.",
+  source = "site",
+} = Astro.props;
+---
+
+<aside class="nli" aria-labelledby="nli-title">
+  <div class="nli-text">
+    <span class="meta-label-or">{eyebrow}</span>
+    <h2 id="nli-title" class="italic-fraunces nli-title">{title}</h2>
+    <p class="nli-sub">{subtitle}</p>
+  </div>
+  <form class="nli-form" method="post" action="/api/newsletter" data-form-id="newsletter">
+    <input type="hidden" name="source" value={source} />
+    <input
+      type="text"
+      name="company"
+      tabindex="-1"
+      autocomplete="off"
+      aria-hidden="true"
+      style="position:absolute;left:-9999px;height:0;width:0;opacity:0;"
+    />
+    <label class="sr-only" for={`nli-email-${source}`}>Adresse email</label>
+    <div class="nli-row">
+      <input
+        id={`nli-email-${source}`}
+        type="email"
+        name="email"
+        required
+        placeholder="votre adresse email"
+        autocomplete="email"
+      />
+      <button type="submit" class="btn btn-primary nli-submit">S'inscrire</button>
+    </div>
+    <label class="nli-rgpd">
+      <input type="checkbox" name="rgpd" required />
+      <span>
+        J'accepte que L'Observatoire conserve mon email pour l'envoi de sa lettre mensuelle
+        (<a href="/politique-confidentialite/">politique de confidentialité</a>).
+      </span>
+    </label>
+  </form>
+</aside>
+
+<style>
+  .nli {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    margin: 3rem 0 2rem;
+    padding: 1.6rem 1.8rem 1.7rem;
+    background: linear-gradient(135deg, var(--paper-warm) 0%, var(--paper) 60%);
+    border: 1px solid rgba(184, 134, 61, 0.28);
+    border-left: 3px solid var(--or);
+    border-radius: 0 14px 14px 0;
+    max-width: 56rem;
+  }
+  .nli-text { display: grid; gap: 0.35rem; }
+  .nli-title {
+    font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+    line-height: 1.1;
+    color: var(--ink);
+    margin: 0.1rem 0 0.2rem;
+  }
+  .nli-sub {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.4;
+  }
+  .nli-form { display: grid; gap: 0.7rem; }
+  .nli-row { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; }
+  .nli-row input[type="email"] {
+    padding: 0.7rem 0.9rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    border: 1px solid rgba(26, 22, 20, 0.2);
+    background: var(--paper);
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  .nli-row input[type="email"]:focus {
+    outline: none;
+    border-color: var(--or);
+    box-shadow: 0 0 0 3px rgba(184, 134, 61, 0.15);
+  }
+  .nli-submit { padding: 0.7rem 1.2rem; font-size: 0.92rem; }
+  .nli-rgpd {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem;
+    align-items: start;
+    font-size: 0.74rem;
+    color: var(--ink-muted);
+    line-height: 1.4;
+  }
+  .nli-rgpd input[type="checkbox"] { margin-top: 0.18rem; }
+  .nli-rgpd a {
+    color: var(--or-deep);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--or);
+  }
+  @media (max-width: 720px) {
+    .nli { grid-template-columns: 1fr; gap: 1.2rem; padding: 1.4rem 1.3rem; }
+    .nli-row { grid-template-columns: 1fr; }
+    .nli-submit { width: 100%; }
+  }
+</style>

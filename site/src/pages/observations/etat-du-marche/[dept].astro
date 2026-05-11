@@ -3,6 +3,7 @@ import type { GetStaticPaths } from "astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import Masthead from "../../../components/Masthead.astro";
+import NewsletterInline from "../../../components/NewsletterInline.astro";
 import { siteConfig } from "../../../utils/config";
 import { jsonLdBreadcrumbs, ORG_ID } from "../../../utils/seo";
 import { getMetiers, getAllProZones, getAllProMetiers, getAllProLite, getMetierDeptCombos } from "../../../lib/supabase";
@@ -296,9 +297,16 @@ const jsonLd = [
         </p>
       </section>
 
+      <NewsletterInline
+        eyebrow="LETTRE DE L'OBSERVATOIRE"
+        title="Recevoir le prochain état du marché"
+        subtitle="Chaque mois, les chiffres clés du marché BTP dans votre département, dès leur publication."
+        source="observation"
+      />
+
       <nav class="cta-suite">
         <a href="/observations/" class="btn-secondary">&larr; Toutes les observations</a>
-        <a href="/methode/" class="btn-primary">Lire la methode &rarr;</a>
+        <a href="/methode/" class="btn-primary">Lire notre méthode &rarr;</a>
       </nav>
     </div>
   </article>

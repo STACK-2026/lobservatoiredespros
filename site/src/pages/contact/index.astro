@@ -83,6 +83,33 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       </form>
     </section>
 
+    <script is:inline>
+      // Pré-remplit le formulaire depuis ?objet=signalement&pro=slug (CTA fiches pros)
+      (function () {
+        try {
+          var p = new URLSearchParams(window.location.search);
+          var objet = p.get("objet");
+          var pro = p.get("pro");
+          if (objet) {
+            var sel = document.getElementById("objet");
+            if (sel && [].some.call(sel.options, function (o) { return o.value === objet; })) {
+              sel.value = objet;
+            }
+          }
+          if (pro) {
+            var msg = document.getElementById("message");
+            if (msg && !msg.value) {
+              msg.value =
+                "Concerne la fiche : https://lobservatoiredespros.com/pro/" + pro + "/\n\n" +
+                "Élément à signaler ou à corriger :\n";
+              msg.focus();
+              try { msg.setSelectionRange(msg.value.length, msg.value.length); } catch (e) {}
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <section class="container-editorial contact-seal-section">
       <div class="contact-seal-block">
         <Seal size={110} variant="or" animated={true} />

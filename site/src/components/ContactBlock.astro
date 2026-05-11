@@ -60,6 +60,12 @@ function parseOpeningHours(raw: string | null | undefined): string | null {
 const horairesAffichage = parseOpeningHours(openingHours);
 const subject = `Coordonnées de ${nom}`;
 const body = `Bonjour,%0D%0A%0D%0AJe souhaite obtenir les coordonnées directes de ${nom}${ville ? ` (${ville})` : ""} pour un projet.%0D%0A%0D%0AMerci,`;
+
+// Pré-remplit le formulaire de contact en mode "signalement" avec le contexte du pro.
+const signalementUrl = slug
+  ? `/contact/?objet=signalement&pro=${encodeURIComponent(slug)}`
+  : `/contact/?objet=signalement`;
+const claimUrl = slug ? `/candidater/?pro=${encodeURIComponent(slug)}` : `/candidater/`;
 ---
 
 <section class="cb" aria-labelledby="cb-title">
@@ -176,6 +182,14 @@ const body = `Bonjour,%0D%0A%0D%0AJe souhaite obtenir les coordonnées directes 
           </span>
         </div>
       )}
+      <footer class="cb-foot">
+        <a class="cb-foot-link cb-foot-claim" href={claimUrl}>
+          Vous êtes {nom} ? Mettez à jour cette fiche <span aria-hidden="true">&rarr;</span>
+        </a>
+        <a class="cb-foot-link cb-foot-signal" href={signalementUrl}>
+          Signaler une erreur sur ces coordonnées
+        </a>
+      </footer>
     </div>
   ) : (
     <div class="cb-empty">
@@ -198,6 +212,11 @@ const body = `Bonjour,%0D%0A%0D%0AJe souhaite obtenir les coordonnées directes 
           </a>
         )}
       </div>
+      <footer class="cb-foot cb-foot-empty">
+        <a class="cb-foot-link cb-foot-signal" href={signalementUrl}>
+          Cette fiche contient une erreur ? Signaler à la rédaction
+        </a>
+      </footer>
     </div>
   )}
 </section>
@@ -423,6 +442,44 @@ const body = `Bonjour,%0D%0A%0D%0AJe souhaite obtenir les coordonnées directes 
   .cb-item.is-revealed .cb-v-masked { display: none; }
   .cb-item.is-revealed .cb-v-clear { display: inline; }
   .cb-item.is-revealed .cb-action::before { content: ""; }
+
+  /* Footer fiche : claim + signaler — discret mais permanent. */
+  .cb-foot {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.6rem 1.2rem;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed rgba(26, 22, 20, 0.12);
+  }
+  .cb-foot-empty {
+    margin-top: 1.1rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed rgba(30, 58, 82, 0.18);
+  }
+  .cb-foot-link {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 200ms, border-color 200ms;
+  }
+  .cb-foot-link:hover {
+    color: var(--or-deep);
+    border-bottom-color: rgba(184, 134, 61, 0.5);
+  }
+  .cb-foot-claim {
+    color: var(--or-deep);
+    font-weight: 500;
+  }
+  .cb-foot-claim:hover {
+    color: var(--ink);
+    border-bottom-color: var(--or);
+  }
 
   /* Affordance permanente quand masqué : l'utilisateur doit voir que c'est cliquable. */
   .cb-item.is-masked .cb-action {

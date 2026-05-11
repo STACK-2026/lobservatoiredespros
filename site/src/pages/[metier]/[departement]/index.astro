@@ -14,6 +14,7 @@ import GlossaireTerm from "../../../components/GlossaireTerm.astro";
 import InfoPill from "../../../components/InfoPill.astro";
 import SpeakableTLDR from "../../../components/SpeakableTLDR.astro";
 import DropCap from "../../../components/DropCap.astro";
+import NewsletterInline from "../../../components/NewsletterInline.astro";
 import { siteConfig } from "../../../utils/config";
 import { getMetiers, getZones, getProsByMetierDept, getMetierDeptCombos, getTopOgClassementSet } from "../../../lib/supabase";
 import {
@@ -562,6 +563,16 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
         </p>
         <a href="/candidater/" class="btn btn-primary magnetic">Candidater à l'édition suivante</a>
       </div>
+    </section>
+
+    <!-- NEWSLETTER INLINE — fin de hub, audience captive après classement -->
+    <section class="container-editorial">
+      <NewsletterInline
+        eyebrow="LETTRE DE L'OBSERVATOIRE"
+        title="Suivre les prochaines éditions"
+        subtitle="Chaque mois, un dossier sur le BTP français : nouvelles certifications, signalements, classements mis à jour."
+        source="site"
+      />
     </section>
   </article>
 </BaseLayout>

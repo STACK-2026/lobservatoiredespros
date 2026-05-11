@@ -19,6 +19,7 @@ import SourceBadge from "../../components/SourceBadge.astro";
 import EditorialVerdict from "../../components/EditorialVerdict.astro";
 import UnknownsCard from "../../components/UnknownsCard.astro";
 import QualificationsBlock from "../../components/QualificationsBlock.astro";
+import NewsletterInline from "../../components/NewsletterInline.astro";
 import { siteConfig } from "../../utils/config";
 import { supabase, getTopOgSlugs, OG_PRO_CAP } from "../../lib/supabase";
 import {
@@ -841,6 +842,16 @@ if (p.score_confiance && p.score_confiance >= 6) {
         </div>
       </section>
     )}
+
+    <!-- NEWSLETTER INLINE — bas de fiche, audience captive après contenu -->
+    <section class="container-editorial">
+      <NewsletterInline
+        eyebrow="LETTRE DE L'OBSERVATOIRE"
+        title="Suivre nos prochaines observations"
+        subtitle="Chaque mois, un dossier sur le BTP français : RGE, BODACC, scores. Pas de pub. Désabonnement en un clic."
+        source="site"
+      />
+    </section>
 
     <!-- FOOTER EDITORIAL -->
     <footer class="container-wide portrait-foot-v2">
