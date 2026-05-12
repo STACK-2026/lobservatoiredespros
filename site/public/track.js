@@ -1,12 +1,13 @@
-// STACK-2026 conversion tracker. Drop-in script: emits events to /api/track.
+// STACK-2026 conversion tracker. Drop-in script: emits events to /api/event AND forwards to GA4 (window.gtag).
 // No PII captured: only event type, target string, page path, session UUID.
 // Auto-instruments:
-//   - tel: links              -> phone_click
-//   - [data-cta]              -> cta_click   (target = data-cta value)
-//   - [data-form-id]          -> form_view (on first visibility),
-//                                form_focus (first focusin),
-//                                form_submit, form_abandon (unload w/o submit)
-//   - <a href^="/go/">        -> affiliate_click
+//   - a[href^="tel:"]          -> phone_click
+//   - a[href^="mailto:"]       -> email_click
+//   - [data-cta]               -> cta_click
+//   - a[href^="/go/"]          -> affiliate_click
+//   - a[href^="http"] (extern) -> website_click  (outbound to other domains)
+//   - [data-form-id]           -> form_view / form_focus / form_submit / form_abandon
+//   - scroll                   -> scroll_depth at 25/50/75/100% (once per session)
 (function () {
   if (window.__stackTrackerInit) return;
   window.__stackTrackerInit = true;
@@ -34,8 +35,10 @@
   }
   var SID = sid();
   var PAGE = location.pathname + location.search;
+  var HOST = location.hostname;
 
   function send(type, target) {
+    // 1. Custom backend: /api/event (Supabase events table)
     var payload = JSON.stringify({ type: type, target: target || null, page: PAGE, sid: SID });
     try {
       if (navigator.sendBeacon) {
@@ -51,27 +54,60 @@
     } catch (e) {
       /* swallow */
     }
+    // 2. GA4 forward (only if gtag bootstrapped + consent granted in GA4Tracker)
+    try {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", type, {
+          event_category: "engagement",
+          event_label: target || undefined,
+          page_path: PAGE,
+        });
+      }
+    } catch (e) {
+      /* swallow */
+    }
   }
 
-  // 1. Phone clicks
+  // 1. Phone clicks (tel:)
   document.addEventListener("click", function (ev) {
     var a = ev.target.closest && ev.target.closest('a[href^="tel:"]');
     if (a) send("phone_click", a.getAttribute("href"));
   });
 
-  // 2. CTA clicks
+  // 2. Email clicks (mailto:)
+  document.addEventListener("click", function (ev) {
+    var a = ev.target.closest && ev.target.closest('a[href^="mailto:"]');
+    if (a) send("email_click", a.getAttribute("href"));
+  });
+
+  // 3. CTA clicks ([data-cta])
   document.addEventListener("click", function (ev) {
     var el = ev.target.closest && ev.target.closest("[data-cta]");
     if (el) send("cta_click", el.getAttribute("data-cta"));
   });
 
-  // 3. Affiliate outbound (/go/*)
+  // 4. Affiliate outbound (/go/*)
   document.addEventListener("click", function (ev) {
     var a = ev.target.closest && ev.target.closest('a[href^="/go/"]');
     if (a) send("affiliate_click", a.getAttribute("href"));
   });
 
-  // 4. Form lifecycle. Each form must have data-form-id="<unique-name>".
+  // 5. Outbound clicks (a[href^="http"] to any non-host domain, excluding /go/ which is already affiliate)
+  document.addEventListener("click", function (ev) {
+    var a = ev.target.closest && ev.target.closest('a[href^="http"]');
+    if (!a) return;
+    var href = a.getAttribute("href") || "";
+    try {
+      var u = new URL(href, location.href);
+      if (u.hostname && u.hostname !== HOST && !u.pathname.startsWith("/go/")) {
+        send("website_click", u.hostname);
+      }
+    } catch (e) {
+      /* swallow */
+    }
+  });
+
+  // 6. Form lifecycle (each form needs data-form-id="<name>")
   var formsSeen = new Set();
   var formsFocused = new Set();
   var formsSubmitted = new Set();
@@ -79,8 +115,6 @@
   function instrumentForm(form) {
     var fid = form.getAttribute("data-form-id");
     if (!fid) return;
-
-    // First visibility -> form_view
     if (!formsSeen.has(fid) && "IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
@@ -93,20 +127,17 @@
       }, { threshold: 0.3 });
       io.observe(form);
     }
-
     form.addEventListener("focusin", function () {
       if (!formsFocused.has(fid)) {
         formsFocused.add(fid);
         send("form_focus", fid);
       }
     });
-
     form.addEventListener("submit", function () {
       formsSubmitted.add(fid);
       send("form_submit", fid);
     });
   }
-
   function scanForms() {
     document.querySelectorAll("form[data-form-id]").forEach(instrumentForm);
   }
@@ -115,12 +146,11 @@
   } else {
     scanForms();
   }
-  // Mutation observer for dynamically added forms (Astro islands etc).
   if ("MutationObserver" in window) {
     new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
   }
 
-  // Abandon = visibility loss after focus, before submit
+  // 7. Form abandon = visibility loss after focus, before submit
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState !== "hidden") return;
     formsFocused.forEach(function (fid) {
@@ -128,4 +158,30 @@
     });
     formsFocused.clear();
   });
+
+  // 8. Scroll depth (25 / 50 / 75 / 100 %), once per session per page
+  var scrollMarks = [25, 50, 75, 100];
+  var fired = new Set();
+  function pct() {
+    var doc = document.documentElement;
+    var body = document.body;
+    var total = Math.max(doc.scrollHeight, body.scrollHeight) - window.innerHeight;
+    if (total <= 0) return 100;
+    return Math.round(((window.scrollY || doc.scrollTop) / total) * 100);
+  }
+  var scrollTimer = null;
+  window.addEventListener("scroll", function () {
+    if (scrollTimer) return;
+    scrollTimer = setTimeout(function () {
+      scrollTimer = null;
+      var p = pct();
+      for (var i = 0; i < scrollMarks.length; i++) {
+        var m = scrollMarks[i];
+        if (p >= m && !fired.has(m)) {
+          fired.add(m);
+          send("scroll_depth", String(m));
+        }
+      }
+    }, 250);
+  }, { passive: true });
 })();

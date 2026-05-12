@@ -11,6 +11,7 @@ const ALLOWED = new Set([
   "cta_click",
   "form_view", "form_focus", "form_submit", "form_abandon",
   "affiliate_click",
+  "scroll_depth",
 ]);
 
 export async function onRequestPost({ request, env }) {
