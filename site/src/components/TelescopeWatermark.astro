@@ -63,3 +63,39 @@ const { side = "right", size = 520, parallax = 0.08 } = Astro.props;
     <span class="tw-anno-text">Édition originale, 1782<br /><em>, détail de la planche 8</em></span>
   </span>
 </div>
+
+<style>
+  /* Filigrane décoratif : positionné absolument pour ne pas pousser la
+     mise en page. Sans cette règle, la div avec width:480px entrait dans
+     le flow normal et faisait déborder la page sur mobile (cause du
+     scroll horizontal signalé 2026-05-13 sur /methode/). */
+  .telescope-watermark {
+    position: absolute;
+    top: 2rem;
+    opacity: 0.06;
+    pointer-events: none;
+    color: var(--ink);
+    z-index: 0;
+    max-width: 40vw;
+    /* La width inline (style="width: Xpx") sert de cible idéale,
+       max-width 40vw la cap relative au viewport pour le mobile. */
+  }
+  .telescope-watermark .tw-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .tw-annotation { display: none; }
+
+  /* Sur mobile et tablette : masquer complètement le filigrane.
+     Décoratif uniquement, pas essentiel à la compréhension. Évite
+     toute interaction avec le scroll mobile et libère la place pour
+     le contenu. */
+  @media (max-width: 900px) {
+    .telescope-watermark { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .telescope-watermark { transition: none; }
+  }
+</style>
