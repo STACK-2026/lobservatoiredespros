@@ -165,13 +165,28 @@ const ed = `N°${siteConfig.editionNumber} · ${siteConfig.editionMonth} ${siteC
     list-style: none; margin: 0; padding: 1.2rem 1.5rem 1.6rem;
     display: flex; flex-direction: column; gap: 0.2rem;
   }
-  .mobile-menu li a {
+  /* Lien de menu standard. :not(.btn) évite de casser le contraste du CTA
+     final qui a sa propre couleur dans .btn-primary (texte clair sur fond
+     ink) -- ce sélecteur perdait la guerre de spécificité, le CTA devenait
+     texte noir sur fond noir. */
+  .mobile-menu li a:not(.btn) {
     display: block; padding: 0.85rem 0;
     font-family: var(--font-display); font-size: 1.25rem;
     color: var(--ink); text-decoration: none;
     border-bottom: 1px solid rgba(26, 22, 20, 0.08);
   }
-  .mobile-menu li a:hover { color: var(--or-deep); }
+  .mobile-menu li a:not(.btn):hover { color: var(--or-deep); }
+  /* CTA mobile : full-width, centré, padding généreux pour un tap target
+     confortable. Hérite couleur de .btn-primary (paper sur ink). */
+  .mobile-menu li a.btn-primary {
+    display: block;
+    text-align: center;
+    padding: 1rem 1.25rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    border-radius: 0.6rem;
+  }
   .mobile-menu-sep { height: 1rem; }
   .header-spacer { height: 0; }
 
