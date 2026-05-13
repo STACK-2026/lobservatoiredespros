@@ -1,9 +1,12 @@
 /**
- * Guides editoriaux "Comment choisir son [metier]" , 15 metiers BTP
+ * Guides editoriaux "Comment choisir son [metier]" , 16 metiers BTP
  * 1 article par metier : criteres / drapeaux rouges / questions devis / FAQ.
  * Source : reglementation FR 2026, NF DTU, ADEME, France Renov', DGCCRF, Capeb.
  *
  * Aucune mention generique. Chaque entree est specifique au metier.
+ *
+ * 2026-05-13: ajout du metier "multiservices" (NAF 43.39Z) suite signalement
+ * /contact/ d'un artisan mal classe plaquiste. Voir migration 012.
  */
 
 export interface CritereSelection {
@@ -987,6 +990,109 @@ GUIDES_METIERS.push({
   sources: [
     { label: "UFFEP fédération parqueteurs", url: "https://www.uffep.fr/" },
     { label: "FFB metier parquetiers", url: "https://www.ffbatiment.fr/" },
+  ],
+});
+
+// MULTISERVICES (NAF 43.39Z "Autres travaux de finition")
+GUIDES_METIERS.push({
+  metier: "multiservices",
+  titre: "Comment choisir un bon artisan multiservices",
+  meta_description: "RC pro, SIRET 43.39Z, devis ecrit : critères pour choisir un artisan multiservices fiable (homme toutes mains) et eviter les arnaques. Guide editorial 2026.",
+  intro: "L'artisan multiservices, ou homme toutes mains, intervient sur les petits travaux du quotidien : montage de meuble, fixation murale, retouche peinture, ajustement de porte, pose d'etagere. C'est le bon choix pour les chantiers que ne prendraient pas un specialiste, mais c'est aussi le métier le moins encadre par la reglementation BTP. La rigueur du tri est donc primordiale.",
+  enjeu: "Le code NAF 43.39Z 'Autres travaux de finition' couvre une palette large : plâtrerie, plaques de plâtre, enduits, nettoyage chantier, finitions diverses, et les artisans polyvalents handymen. Plus de 6 000 entreprises sont declarees sous ce code en France. Faute d'encadrement specifique, la qualite varie de l'excellent au catastrophique. Bien choisir son artisan multiservices, c'est verifier les fondamentaux : SIRET actif, RC pro, devis ecrit, et perimetre d'intervention coherent avec la realite du marché.",
+  criteres: [
+    {
+      titre: "SIRET actif et code NAF coherent",
+      description: "Un artisan declare doit avoir un SIRET vérifiable sur sirene.gouv.fr ou via notre outil /outils/vérifier-siret/. Le code APE/NAF doit etre coherent : 43.39Z (Autres travaux de finition), 81.21Z (Nettoyage courant des batiments), 96.09Z (Autres services personnels). Mefiez-vous d'un artisan sans SIRET ou sous code totalement different (commerce, transport).",
+      niveau: "critique",
+    },
+    {
+      titre: "Assurance Responsabilite Civile Professionnelle (RC pro)",
+      description: "Obligatoire pour tout artisan. L'attestation doit etre nominative, datee de moins de 12 mois, et mentionner les activités couvertes (montage, finitions, petite manutention). Sans RC pro : en cas de degat (carrelage casse, mur ebreche, fuite causee), aucune couverture, ni la votre ni la sienne.",
+      niveau: "critique",
+    },
+    {
+      titre: "Devis ecrit obligatoire au-dela de 100 euros TTC",
+      description: "Article L.111-1 du Code de la consommation. Pour toute intervention superieure a 100 euros TTC : devis ecrit obligatoire avec coordonnees artisan, descriptif des taches, prix unitaire, total HT et TTC. Sans devis : vous pouvez refuser de payer la difference avec ce qui etait annonce verbalement.",
+      niveau: "critique",
+    },
+    {
+      titre: "Perimetre d'intervention realiste et explicite",
+      description: "Un bon artisan multiservices definit ce qu'il fait ET ce qu'il ne fait pas. Exemples coherents : montage meuble + pose etagere + petites reparations + retouches peinture. Exemples suspects : 'tous travaux y compris electricite, plomberie, gros oeuvre, toiture' , sans habilitations specialisees, c'est de la concurrence deloyale et un risque pour vous.",
+      niveau: "elevee",
+    },
+    {
+      titre: "Tarification claire : horaire ou forfait, et minimum d'intervention",
+      description: "Tarif horaire 35 a 65 euros selon region. Forfait journée 250 a 450 euros. Forfait minimum 80 a 100 euros pour les courtes interventions (deplacement + 1h). Tarif affiche avant intervention. Refusez 'on verra a la fin' qui ouvre la porte aux mauvaises surprises.",
+      niveau: "elevee",
+    },
+    {
+      titre: "Photos de chantiers anciens (plus de 6 mois)",
+      description: "Demandez 3 a 5 photos de chantiers anciens : montage meuble, pose etagere, finition, retouche peinture. Un artisan qui n'a rien a montrer ou seulement des photos floues = signal alerte. Un pro serieux documente son travail.",
+      niveau: "utile",
+    },
+  ],
+  drapeaux_rouges: [
+    "Refus de fournir l'attestation RC pro datée de moins de 12 mois , illegal et risque non couvert.",
+    "Annonce 'tous travaux' incluant electricite, plomberie ou gaz sans habilitations specifiques , concurrence deloyale et danger.",
+    "Tarif horaire sous 25 euros TTC , artisan probablement non declare ou en perte (qualite degradee garantie).",
+    "Demande paiement integral en especes sans facture , travail dissimule, vous etes complice.",
+    "Devis verbal pour intervention superieure a 100 euros TTC , illegal.",
+    "Pas de minimum d'intervention affiche , vous risquez 30 euros de devis pour 2 minutes sur place.",
+    "Demarchage telephonique 'verification gratuite de votre logement' , 90 pourcents d'arnaques en multiservices.",
+  ],
+  questions_devis: [
+    {
+      q: "Pouvez-vous me communiquer votre SIRET et l'attestation RC pro datée de moins de 12 mois ?",
+      r: "Reponse obligatoire en moins de 24 h, par email ou SMS. SIRET 14 chiffres vérifiable sur sirene.gouv.fr. Attestation RC nominative au format PDF, avec date d'echeance et activités couvertes. Refus ou delai > 48 h : changer d'artisan.",
+    },
+    {
+      q: "Quelles taches faites-vous, et lesquelles ne faites-vous pas ?",
+      r: "Un pro serieux liste clairement : 'oui pour montage meuble, fixation murale, petite peinture, ajustement porte. Non pour electricite > simple remplacement ampoule, plomberie > simple joint, ravalement, toiture, gros oeuvre.' Mefiez-vous des 'je fais tout'.",
+    },
+    {
+      q: "Quel est votre tarif (horaire ou forfait) et le minimum d'intervention ?",
+      r: "Reponse attendue : tarif horaire de XX a YY euros TTC, forfait journee ZZ euros TTC, minimum d'intervention AA euros (qui couvre deplacement + 1h). Sans ces 3 informations en clair : artisan flou ou impro.",
+    },
+    {
+      q: "Apportez-vous le materiel (visserie, chevilles, enduit) ou je dois l'acheter ?",
+      r: "Standard : le client achete le materiel principal (visserie, chevilles, enduit, peinture). L'artisan apporte ses outils. S'il fournit le materiel : marge 20 a 40 pourcents en sus du prix d'achat , souvent moins cher d'acheter soi-meme.",
+    },
+    {
+      q: "Avez-vous 2 ou 3 clients récents que je peux contacter pour reference ?",
+      r: "Un pro avec plus de 1 an d'activité doit pouvoir fournir 2 a 3 references avec accord client. 'Mme Dupont 26100 Romans, son numero avec son accord.' Pas de reference apres 1 an d'activité : signal alerte.",
+    },
+  ],
+  cas_concret: {
+    titre: "Anatomie d'une journée artisan multiservices reussie",
+    texte: "Sur la fiche pro Romans-sur-Isère 26100, l'artisan multiservices livré pour une journée de 7 heures : montage d'une armoire IKEA PAX 2 portes (2 h), pose de 3 etageres murales sur placo avec chevilles Molly (1 h), refection d'un joint silicone SDB (45 min), rebouchage de 12 trous de chevilles + retouche peinture couleur fournie (2 h), pose d'une tringle de rideau + ajustement d'une porte qui frotte (1 h 15). Materiel fourni par le client (200 euros visserie + enduit + joint). Total artisan : 320 euros TTC (45 euros/h x 7 + 5 euros TVA). Devis signe la veille, RC pro fournie, paiement par virement. La SIRET 43.39Z a 4 ans d'antériorité.",
+  },
+  faq: [
+    {
+      q: "Quelle difference entre un artisan multiservices et une entreprise specialisée ?",
+      r: "Le multiservices est polyvalent sur les petits travaux. Un specialiste (plombier, electricien, peintre, menuisier) a une formation et des habilitations specifiques, et facture plus cher mais pour des gros chantiers. Regle simple : moins de 4 h par tache et sans habilitation specifique > multiservices. Plus de 4 h ou tache reglementee > specialiste.",
+    },
+    {
+      q: "Pourquoi le code NAF 43.39Z peut etre trompeur ?",
+      r: "Le 43.39Z 'Autres travaux de finition' INSEE est un code fourre-tout qui couvre plâtrerie, enduits, plaques de plâtre, nettoyage chantier, ET les artisans multiservices. Une entreprise sous 43.39Z peut etre uniquement plâtrière, ou uniquement handyman, ou mixte. Verifiez toujours l'activité reelle declaree sur sa fiche, pas seulement le code.",
+    },
+    {
+      q: "Quel budget pour une journée de petits travaux ?",
+      r: "Tarif rural : 250 a 320 euros. Tarif urbain hors Paris : 280 a 380 euros. Tarif Paris et grande couronne : 350 a 450 euros. Materiel en sus 50 a 200 euros selon volume. Voir /tarifs/multiservices/.",
+    },
+    {
+      q: "L'artisan multiservices peut-il toucher a l'electricite ?",
+      r: "Uniquement pour des taches simples non reglementees : remplacement d'une ampoule, pose d'une prise simple sur circuit existant, fixation d'un interrupteur deja relié. Pour toute installation electrique neuve, modification de tableau, ou raccordement compteur : il faut un electricien certifié Qualifelec ou Consuel. Sinon assurance habitation refuse de couvrir en cas de sinistre.",
+    },
+    {
+      q: "Et la plomberie, le gaz, la toiture ?",
+      r: "Idem : un multiservices peut refaire un joint silicone, remplacer un flexible de robinet. Mais il ne peut pas souder, raccorder un chauffe-eau, installer une chaudiere. La toiture exige une habilitation travail en hauteur. Le gaz exige une habilitation PG ou PGN. Sans ces certifications : illegal et dangereux.",
+    },
+  ],
+  sources: [
+    { label: "INSEE Sirene code NAF 43.39Z", url: "https://www.sirene.fr/sirene/public/recherche" },
+    { label: "Capeb statistiques artisans multiservices", url: "https://www.capeb.fr/" },
+    { label: "DGCCRF devis et arnaques BTP", url: "https://www.economie.gouv.fr/dgccrf" },
   ],
 });
 

@@ -331,7 +331,7 @@ export async function getHomeStats(): Promise<{ prosTotal: number; deptCount: nu
 
 /**
  * Combos (metierSlug, deptSlug) qui ont au moins un pro actif.
- * Unique requête, évite 1440 pages vides (15 métiers × 96 dpts seed national).
+ * Unique requête, évite 1536 pages vides (16 métiers × 96 dpts seed national).
  * Retourne un Set de clés "metierSlug:deptSlug".
  */
 let _comboCache: Set<string> | null = null;

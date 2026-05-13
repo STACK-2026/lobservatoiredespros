@@ -1,9 +1,12 @@
 /**
- * Tarifs prestations BTP , 60 entrees (15 metiers x 4 prestations)
+ * Tarifs prestations BTP , 64 entrees (16 metiers x 4 prestations)
  * Sources : France Renov', ADEME, INSEE BTP, Capeb, federations metier
  *
  * Toutes les fourchettes : 2026, hors aides (MaPrimeRenov', CEE, eco-PTZ).
  * Pose et fourniture comprises sauf mention contraire dans `notes`.
+ *
+ * 2026-05-13: ajout du metier "multiservices" (NAF 43.39Z) suite signalement
+ * /contact/ d'un artisan mal classe plaquiste. Voir migration 012.
  */
 
 export interface Tarif {
@@ -2011,6 +2014,141 @@ export const TARIFS: Tarif[] = [
       { q: "Sur sol plein possible ?", r: "Oui, a coller sur chape parfaitement plane (défaut maxi 2 mm/m)." },
     ],
     source: { label: "Fédération française menuiserie parquets", url: "https://www.ffbatiment.fr/" },
+  },
+
+  // ============================================================
+  // MULTISERVICES (NAF 43.39Z "Autres travaux de finition")
+  // ============================================================
+  {
+    slug: "forfait-depannage-handyman",
+    metier: "multiservices",
+    nom: "Forfait dépannage et petits travaux",
+    accroche: "Petite intervention multiservices : 80 a 180 euros par passage selon temps et distance.",
+    prix_min: 80,
+    prix_max: 180,
+    unite: "intervention",
+    inclus: "tout-compris",
+    facteurs: [
+      "Distance domicile artisan (forfait deplacement 25 a 60 euros)",
+      "Durée intervention (1 a 2 heures standard)",
+      "Type de tache (montage, fixation, debouchage, ajustement)",
+      "Materiel apporte ou fourni par le client",
+      "Horaire (jour ouvre vs samedi/soir : majoration jusqu'a 50 pourcents)",
+    ],
+    variantes: [
+      { nom: "Intervention courte (moins d'1 heure) zone urbaine", prix_min: 80, prix_max: 110 },
+      { nom: "Intervention 1 a 2 heures avec deplacement standard", prix_min: 110, prix_max: 150 },
+      { nom: "Intervention samedi ou soir, ou zone rurale eloignee", prix_min: 130, prix_max: 180 },
+    ],
+    economies: [
+      "Regrouper plusieurs taches dans une seule visite (eviter de payer 2 deplacements)",
+      "Préparer materiel et acces avant arrivee (gain 30 minutes facturees)",
+      "Prendre creneau en semaine en journee (pas de majoration soir/weekend)",
+    ],
+    faq: [
+      { q: "Qu'est-ce qu'un artisan multiservices peut faire ?", r: "Montage meuble, fixation murale, pose d'etagere, debouchage simple, ajustement de porte, remplacement de joint, petite peinture de retouche, pose de tringle. Pour gros chantiers, mieux vaut un specialiste." },
+      { q: "Y a-t-il un minimum de facturation ?", r: "Oui, la plupart appliquent un forfait minimum 80 a 100 euros qui couvre 1 heure de main d'oeuvre + le deplacement. Sous ce seuil, l'intervention n'est pas rentable pour l'artisan." },
+      { q: "Le devis est-il obligatoire ?", r: "Au-dela de 100 euros TTC : oui, devis ecrit obligatoire (article L.111-1 Code conso). En dessous : un ordre de mission ou bon d'intervention signe suffit." },
+    ],
+    source: { label: "Capeb statistiques artisans multiservices", url: "https://www.capeb.fr/" },
+    notes: "Le code NAF 43.39Z couvre une large palette de finitions. Les artisans declares sous ce code peuvent etre plaquistes, platriers, ou homme toutes mains. Verifiez l'activite reelle avant de commander.",
+  },
+  {
+    slug: "journee-handyman",
+    metier: "multiservices",
+    nom: "Journée complète artisan multiservices",
+    accroche: "Journée complète 7 a 8 heures sur place : 250 a 450 euros tout compris.",
+    prix_min: 250,
+    prix_max: 450,
+    unite: "intervention",
+    inclus: "tout-compris",
+    facteurs: [
+      "Durée effective sur site (journee 7h ou 8h)",
+      "Nature des taches (rénovation legere, pose, finitions)",
+      "Materiel fourni par le client ou par l'artisan",
+      "Distance et temps de trajet (parfois facture en sus)",
+      "Region (Île-de-France 30 a 50 pourcents plus cher que zones rurales)",
+    ],
+    variantes: [
+      { nom: "Journée tarif rural ou périurbain", prix_min: 250, prix_max: 320 },
+      { nom: "Journée tarif urbain hors Paris", prix_min: 280, prix_max: 380 },
+      { nom: "Journée tarif Paris et grande couronne", prix_min: 350, prix_max: 450 },
+    ],
+    economies: [
+      "Lister precisement les taches a faire avant de commander (eviter le temps perdu en redefinition)",
+      "Acheter et avoir sur place le materiel necessaire (visserie, chevilles, joints, peinture)",
+      "Eviter les chantiers le vendredi apres-midi (artisan presse de finir)",
+    ],
+    faq: [
+      { q: "Combien de taches en une journée ?", r: "Realiste : 4 a 6 taches moyennes (montage 2 meubles + pose 1 etagere + reparation joint + retouche peinture). Trop ambitieux : 10 taches dans une journee se solde par bacle." },
+      { q: "Faut-il fournir les materiaux ?", r: "Oui par defaut. L'artisan multiservices ne stock pas et facture les materiaux au prix plein s'il les achete (perte de temps + marge). Acheter soi-meme = 20 a 40 pourcents d'economie." },
+      { q: "Quelle assurance couvre les degats ?", r: "L'assurance Responsabilite Civile Professionnelle de l'artisan couvre les dommages causes pendant l'intervention. Verifiez son attestation RC pro datée de moins de 12 mois." },
+    ],
+    source: { label: "INSEE tarifs services a domicile 2026", url: "https://www.insee.fr/" },
+  },
+  {
+    slug: "pose-meuble-etagere",
+    metier: "multiservices",
+    nom: "Pose meubles, étagères et accessoires",
+    accroche: "Pose unitaire 40 a 120 euros par meuble selon complexite et fixation murale.",
+    prix_min: 40,
+    prix_max: 120,
+    unite: "u",
+    inclus: "pose-seule",
+    facteurs: [
+      "Type de meuble (kit IKEA simple, dressing modulaire, meuble haut suspendu)",
+      "Type de mur (placo, beton, brique, pierre, plaque) car chevilles différentes",
+      "Hauteur ou difficulte de pose (au-dessus 2 m necessite escabeau)",
+      "Volume (1 meuble vs 4 meubles dans la meme visite)",
+    ],
+    variantes: [
+      { nom: "Etagere ou tringle simple (perçage + chevilles classiques)", prix_min: 40, prix_max: 60 },
+      { nom: "Meuble kit standard (table, chaise, commode IKEA)", prix_min: 50, prix_max: 90 },
+      { nom: "Meuble haut suspendu ou dressing modulaire", prix_min: 80, prix_max: 120 },
+    ],
+    economies: [
+      "Demonter l'emballage et trier les pieces avant l'arrivee de l'artisan",
+      "Regrouper 3 a 4 meubles dans une seule visite (le tarif unitaire baisse de 20 a 30 pourcents)",
+      "Vérifier l'absence de pieces manquantes avant signature du bon d'intervention",
+    ],
+    faq: [
+      { q: "Combien de temps pour monter un meuble IKEA ?", r: "Commode 3 tiroirs : 30 a 45 min. Armoire PAX 2 portes : 1h30 a 2h. Cuisine METOD 6 elements : 4 a 6 h par professionnel. Un amateur double ces durees." },
+      { q: "Quelles chevilles selon le mur ?", r: "Placo : Molly metallique 8 mm pour charge moyenne, Fischer DuoPower. Beton : cheville nylon Fischer SX 8x40 + vis. Brique creuse : Fischer DuoPower ou Knauf Hartmut. Pierre : tamponner et resine." },
+      { q: "L'artisan peut-il faire la livraison ?", r: "Non en general. L'artisan multiservices vient seul ou a 2, sans camion. Pour livraison de meuble lourd, prevoir transporteur separe (Cocolis, voisins, location utilitaire)." },
+    ],
+    source: { label: "Que Choisir comparatif tarifs assemblage", url: "https://www.quechoisir.org/" },
+  },
+  {
+    slug: "petits-travaux-finition",
+    metier: "multiservices",
+    nom: "Petits travaux et reprises de finition",
+    accroche: "Tarif horaire 35 a 65 euros, intervention typique 1 a 3 heures.",
+    prix_min: 35,
+    prix_max: 65,
+    unite: "h",
+    inclus: "pose-seule",
+    facteurs: [
+      "Nature de la finition (rebouchage trou, retouche peinture, pose plinthe, joint sanitaire)",
+      "Complexite (1 trou de cheville vs 20 trous a reboucher)",
+      "Materiel fourni par le client ou pas",
+      "Hauteur sous plafond et accessibilité",
+    ],
+    variantes: [
+      { nom: "Tarif horaire rural ou périurbain", prix_min: 35, prix_max: 45 },
+      { nom: "Tarif horaire urbain hors Paris", prix_min: 40, prix_max: 55 },
+      { nom: "Tarif horaire Paris et grande couronne", prix_min: 50, prix_max: 65 },
+    ],
+    economies: [
+      "Préparer la surface (depoussierer, vider la pièce) avant arrivee artisan",
+      "Acheter materiel finition de qualite moyenne (les marques premium sont surcoteees pour ces usages)",
+      "Demander un forfait plutot qu'un tarif horaire si plus de 3 heures previsibles",
+    ],
+    faq: [
+      { q: "Quelles finitions un artisan multiservices peut faire ?", r: "Rebouchage trous (enduit + ponce), retouche peinture (1 couleur claire), pose plinthe ou quart-de-rond, refection joint silicone SDB/cuisine, pose poignee ou crochet, ajustement de porte qui frotte. Pour finitions complexes (decoratives, façades) : peintre specialise." },
+      { q: "Combien de trous l'artisan peut-il reboucher en 1 heure ?", r: "Standard : 10 a 15 trous de chevilles ou de clous (enduit + 1 ponce). Avec retouche peinture coordonnee : 5 a 8 trous par heure car sechage entre enduit et peinture." },
+      { q: "Le tarif horaire inclut-il le materiel ?", r: "Non par defaut. L'artisan facture enduit, ruban de masquage, joint silicone en sus a prix coutant + marge. Pour gros volume : acheter soi-meme et lui faire poser." },
+    ],
+    source: { label: "Capeb tarifs petits travaux 2026", url: "https://www.capeb.fr/" },
   },
 ];
 
