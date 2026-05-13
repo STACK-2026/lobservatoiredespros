@@ -819,20 +819,34 @@ a.link-fancy:hover::after { right: 0; }
 /* ------------------------------------------------------------------
    Utilities
    ------------------------------------------------------------------ */
+/* Container padding mobile-first : 1.5rem min (24px standard iOS/Material).
+   2026-05-13 bump : remplace 1.25rem (20px) qui faisait trop "edge-to-edge"
+   sur mobile. Au-dessus 480px le clamp(5vw) prend le relais et augmente
+   progressivement jusqu'au max. */
 .container-editorial {
   max-width: 72rem;
   margin: 0 auto;
-  padding-inline: clamp(1.25rem, 5vw, 5rem);
+  padding-inline: clamp(1.5rem, 5vw, 5rem);
 }
 .container-prose {
   max-width: 42rem;
   margin: 0 auto;
-  padding-inline: clamp(1.25rem, 5vw, 2rem);
+  padding-inline: clamp(1.5rem, 5vw, 2rem);
 }
 .container-wide {
   max-width: 84rem;
   margin: 0 auto;
-  padding-inline: clamp(1.25rem, 5vw, 5rem);
+  padding-inline: clamp(1.5rem, 5vw, 5rem);
+}
+
+/* Très petits écrans (iPhone SE, anciens Androids) : bump à 1.75rem (28px)
+   pour garder une marge confortable malgré la largeur réduite. */
+@media (max-width: 380px) {
+  .container-editorial,
+  .container-prose,
+  .container-wide {
+    padding-inline: 1.75rem;
+  }
 }
 
 .hairline {
