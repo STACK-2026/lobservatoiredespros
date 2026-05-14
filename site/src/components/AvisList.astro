@@ -1,0 +1,274 @@
+---
+interface AvisResponse {
+  texte: string;
+  created_at: string;
+  updated_at?: string | null;
+}
+interface AvisItem {
+  id: string;
+  pseudo: string;
+  verdict: "oui" | "non" | "mitige";
+  texte: string;
+  published_at: string;
+  pro_avis_responses?: AvisResponse[];
+}
+interface Props {
+  avis_nombre: number;
+  avis_moyen: number | null;
+  avis: AvisItem[];
+  proSlug: string;
+  nomEntreprise: string;
+}
+
+const { avis_nombre, avis_moyen, avis, proSlug, nomEntreprise } = Astro.props;
+
+// Stats par verdict
+const ouiCount = avis.filter((a) => a.verdict === "oui").length;
+const mitigeCount = avis.filter((a) => a.verdict === "mitige").length;
+const nonCount = avis.filter((a) => a.verdict === "non").length;
+const totalPublied = avis.length;
+const recommandePct = totalPublied > 0 ? Math.round((ouiCount / totalPublied) * 100) : 0;
+
+const verdictLabel = (v: string) => v === "oui" ? "Recommande" : v === "non" ? "Deconseille" : "Mitige";
+const verdictClass = (v: string) => `pill-verdict ${v}`;
+
+const formatDate = (iso: string) => {
+  try {
+    return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  } catch { return iso.slice(0, 10); }
+};
+---
+
+<section class="avis-list-section" id="avis" aria-labelledby="avis-h">
+  <h2 id="avis-h" class="heading-display avis-heading">Avis des visiteurs</h2>
+
+  {avis_nombre === 0 ? (
+    <div class="avis-empty">
+      <p>Aucun avis publie pour {nomEntreprise} pour l'instant. Soyez le premier a partager votre experience.</p>
+      <a class="btn-cta" href={`/pro/${proSlug}/donner-mon-avis/`}>Laisser mon avis</a>
+    </div>
+  ) : (
+    <>
+      <div class="avis-stats">
+        <div class="avis-stats-headline">
+          <strong>{avis_nombre} avis</strong>
+          {avis_nombre >= 3 && (
+            <span class="avis-stats-recommand">· {recommandePct} % recommandent</span>
+          )}
+        </div>
+        <div class="avis-stats-bars" aria-hidden="true">
+          <div class="avis-bar oui" style={`flex: ${ouiCount || 0.01}`} title={`${ouiCount} oui`}></div>
+          <div class="avis-bar mitige" style={`flex: ${mitigeCount || 0.01}`} title={`${mitigeCount} mitige`}></div>
+          <div class="avis-bar non" style={`flex: ${nonCount || 0.01}`} title={`${nonCount} non`}></div>
+        </div>
+        <div class="avis-stats-legend">
+          <span class="legend oui">{ouiCount} oui</span>
+          <span class="legend mitige">{mitigeCount} mitige</span>
+          <span class="legend non">{nonCount} non</span>
+        </div>
+      </div>
+
+      <div class="avis-filters" role="tablist">
+        <button class="avis-filter is-active" data-filter="all">Tous</button>
+        <button class="avis-filter" data-filter="oui">Recommandent</button>
+        <button class="avis-filter" data-filter="mitige">Mitiges</button>
+        <button class="avis-filter" data-filter="non">Deconseillent</button>
+      </div>
+
+      <ol class="avis-items">
+        {avis.map((a) => (
+          <li class="avis-item" data-verdict={a.verdict} id={`avis-${a.id}`}>
+            <div class="avis-item-head">
+              <span class="avis-author"><strong>{a.pseudo}</strong></span>
+              <span class="avis-date">{formatDate(a.published_at)}</span>
+              <span class={verdictClass(a.verdict)}>{verdictLabel(a.verdict)}</span>
+            </div>
+            <p class="avis-body">{a.texte}</p>
+            {a.pro_avis_responses && a.pro_avis_responses[0] && (
+              <details class="avis-response" open>
+                <summary>Reponse de {nomEntreprise}</summary>
+                <p>{a.pro_avis_responses[0].texte}</p>
+                <p class="avis-response-date">{formatDate(a.pro_avis_responses[0].created_at)}</p>
+              </details>
+            )}
+          </li>
+        ))}
+      </ol>
+
+      <p class="avis-cta-bottom">
+        <a class="btn-cta" href={`/pro/${proSlug}/donner-mon-avis/`}>Partager mon experience</a>
+      </p>
+    </>
+  )}
+</section>
+
+<style>
+  .avis-list-section {
+    margin: 3rem 0;
+    padding-block: clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .avis-heading {
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    margin: 0 0 1.5rem;
+    font-weight: 500;
+  }
+  .avis-empty {
+    background: var(--paper-warm, #EEE6DC);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--ink-soft, #403832);
+  }
+  .avis-empty p { margin: 0 0 1rem; }
+  .avis-stats {
+    background: #fff;
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .avis-stats-headline {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+  }
+  .avis-stats-recommand { color: var(--ink-muted, #7A6F66); margin-left: 0.4rem; }
+  .avis-stats-bars {
+    display: flex;
+    height: 0.45rem;
+    border-radius: 0.3rem;
+    overflow: hidden;
+    background: var(--paper-warm, #EEE6DC);
+  }
+  .avis-bar.oui { background: #1A7A3C; }
+  .avis-bar.mitige { background: #B8863D; }
+  .avis-bar.non { background: #A82A2A; }
+  .avis-stats-legend {
+    display: flex;
+    gap: 1.2rem;
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--ink-muted, #7A6F66);
+  }
+  .legend::before {
+    content: "";
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  .legend.oui::before { background: #1A7A3C; }
+  .legend.mitige::before { background: #B8863D; }
+  .legend.non::before { background: #A82A2A; }
+  .avis-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .avis-filter {
+    font-family: inherit;
+    font-size: 0.88rem;
+    padding: 0.45rem 0.95rem;
+    background: #fff;
+    border: 1px solid rgba(26, 22, 20, 0.15);
+    border-radius: 0.4rem;
+    cursor: pointer;
+    color: var(--ink-soft, #403832);
+  }
+  .avis-filter.is-active {
+    background: var(--ink, #1A1614);
+    color: var(--paper, #F7F3EC);
+    border-color: var(--ink, #1A1614);
+  }
+  .avis-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+  .avis-item {
+    background: #fff;
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+  }
+  .avis-item.is-hidden { display: none; }
+  .avis-item-head {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.7rem;
+    font-size: 0.92rem;
+  }
+  .avis-author strong { color: var(--ink, #1A1614); }
+  .avis-date { color: var(--ink-muted, #7A6F66); }
+  .pill-verdict {
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.25rem 0.65rem;
+    border-radius: 0.35rem;
+    background: #fff;
+    border: 1px solid rgba(26, 22, 20, 0.12);
+  }
+  .pill-verdict.oui { border-color: #1A7A3C; color: #1A7A3C; background: rgba(26, 122, 60, 0.06); }
+  .pill-verdict.mitige { border-color: #B8863D; color: #B8863D; background: rgba(184, 134, 61, 0.08); }
+  .pill-verdict.non { border-color: #A82A2A; color: #A82A2A; background: rgba(168, 42, 42, 0.06); }
+  .avis-body {
+    margin: 0;
+    color: var(--ink-soft, #403832);
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+  .avis-response {
+    margin-top: 1rem;
+    background: var(--paper-warm, #EEE6DC);
+    border-left: 3px solid var(--or, #B8863D);
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 0.8rem 1.1rem;
+    font-size: 0.92rem;
+  }
+  .avis-response summary {
+    cursor: pointer;
+    font-family: var(--font-display, Fraunces, serif);
+    font-style: italic;
+    color: var(--ink, #1A1614);
+    font-weight: 500;
+  }
+  .avis-response p { margin: 0.6rem 0 0; color: var(--ink-soft, #403832); }
+  .avis-response-date { font-size: 0.82rem; color: var(--ink-muted, #7A6F66) !important; }
+  .avis-cta-bottom { text-align: center; margin-top: 1.5rem; }
+  .btn-cta {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: var(--ink, #1A1614);
+    color: var(--paper, #F7F3EC);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background 0.15s;
+  }
+  .btn-cta:hover { background: var(--observatoire, #1E3A52); }
+</style>
+
+<script>
+  document.querySelectorAll(".avis-filter").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const filter = btn.getAttribute("data-filter") || "all";
+      document.querySelectorAll(".avis-filter").forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      document.querySelectorAll(".avis-item").forEach((item) => {
+        const v = item.getAttribute("data-verdict") || "";
+        if (filter === "all" || filter === v) item.classList.remove("is-hidden");
+        else item.classList.add("is-hidden");
+      });
+    });
+  });
+</script>

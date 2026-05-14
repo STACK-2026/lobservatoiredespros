@@ -32,6 +32,7 @@ import {
 import { REGION_BY_DEPT_CODE } from "../../data/geo_fr";
 import wave1Pros from "../../data/wave1_pros.json";
 import { sanitizeDashes } from "../../utils/sanitize";
+import AvisList from "../../components/AvisList.astro";
 
 export async function getStaticPaths() {
   // Hybride SSG + SSR pattern (clone ratingcafe wave1 + Pages Function).
@@ -124,6 +125,28 @@ export async function getStaticPaths() {
     if (z) zoneByPro[row.pro_id] = z;
   }
 
+  // Fetch des avis publies par pro (paginé par batch IN)
+  const avisByPro: Record<string, Array<any>> = {};
+  for (let i = 0; i < proIds.length; i += chunkIn) {
+    const batch = proIds.slice(i, i + chunkIn);
+    if (batch.length === 0) continue;
+    for (let start = 0; ; start += page) {
+      const { data: avisRows, error: avisError } = await supabase
+        .from("pro_avis")
+        .select("id, pro_id, pseudo, verdict, texte, published_at, pro_avis_responses(texte, created_at, updated_at)")
+        .in("pro_id", batch)
+        .eq("status", "publie")
+        .order("published_at", { ascending: false })
+        .range(start, start + page - 1);
+      if (avisError || !avisRows || avisRows.length === 0) break;
+      for (const av of avisRows) {
+        if (!avisByPro[av.pro_id]) avisByPro[av.pro_id] = [];
+        avisByPro[av.pro_id].push(av);
+      }
+      if (avisRows.length < page) break;
+    }
+  }
+
   // wave1_pros.json a deja applique le top10-par-combo + must_keep floor cote
   // Python (scripts/regen_wave1_pros.py). Le filtre est applique en amont
   // dans la boucle DB. Les pros restants (long-tail ~85k) sont servis par
@@ -135,11 +158,12 @@ export async function getStaticPaths() {
       legalEvents: eventsByPro[p.id] || [],
       metierLink: metierByPro[p.id] || null,
       zoneLink: zoneByPro[p.id] || null,
+      avis_publies: avisByPro[p.id] || [],
     },
   }));
 }
 
-const { pro, legalEvents = [], metierLink, zoneLink } = Astro.props;
+const { pro, legalEvents = [], metierLink, zoneLink, avis_publies = [] } = Astro.props;
 const p = pro;
 
 const metierSlug = metierLink?.slug || null;
@@ -418,6 +442,17 @@ if (p.score_confiance && p.score_confiance >= 6) {
     <!-- QUALIFICATIONS RGE , REMONTÉES juste après le hero , DA glassmorphism premium -->
     <section class="container-wide portrait-qualifs-top">
       <QualificationsBlock proId={p.id} siret={p.siret} />
+    </section>
+
+    <!-- AVIS VISITEURS -->
+    <section class="container-wide portrait-avis">
+      <AvisList
+        avis_nombre={pro.avis_nombre || 0}
+        avis_moyen={pro.avis_moyen || null}
+        avis={avis_publies}
+        proSlug={pro.slug}
+        nomEntreprise={pro.nom_entreprise}
+      />
     </section>
 
     <!-- CONTACT , visible tôt dans la fiche -->

@@ -47,6 +47,8 @@ interface ProRow {
   tranche_effectif: string | null;
   niveau_confiance: string | null;
   etat_administratif: string | null;
+  avis_nombre?: number;
+  avis_moyen?: number | null;
   pro_metiers?: { metier_id: string; metiers: { id: string; slug: string; nom: string; nom_pluriel: string; code_naf: string | null } | null }[];
   pro_zones?: { zone_id: string; zones: { id: string; slug: string; nom: string; code: string | null; type: string } | null }[];
 }
@@ -370,7 +372,48 @@ function buildJsonLd(ctx: JsonLdContext): unknown[] {
   return ldArray;
 }
 
-function renderHtml(ctx: JsonLdContext): string {
+function buildAvisListHtml(avis: Array<any>, avisNombre: number, proSlug: string, nomEntreprise: string): string {
+  if (avis.length === 0) {
+    return `<section class="avis-section" id="avis" style="margin:3rem 0">
+      <h2 class="display">Avis des visiteurs</h2>
+      <p>Aucun avis publie pour ${escapeHtml(nomEntreprise)} pour l'instant.</p>
+      <p><a class="btn" href="/pro/${encodeURIComponent(proSlug)}/donner-mon-avis/">Soyez le premier a publier votre experience</a></p>
+    </section>`;
+  }
+  const ouiCount = avis.filter((a) => a.verdict === "oui").length;
+  const mitigeCount = avis.filter((a) => a.verdict === "mitige").length;
+  const nonCount = avis.filter((a) => a.verdict === "non").length;
+  const pct = avisNombre >= 3 ? Math.round((ouiCount / avisNombre) * 100) : null;
+  const verdictLbl = (v: string) => v === "oui" ? "Recommande" : v === "non" ? "Deconseille" : "Mitige";
+  const fmt = (iso: string) => { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }); } catch { return iso.slice(0, 10); } };
+
+  const items = avis.map((a) => {
+    const resp = (a.pro_avis_responses || [])[0];
+    const verdictStyle = a.verdict === "oui"
+      ? "border-color:#1A7A3C;color:#1A7A3C;background:rgba(26,122,60,.06)"
+      : a.verdict === "non"
+      ? "border-color:#A82A2A;color:#A82A2A;background:rgba(168,42,42,.06)"
+      : "border-color:#B8863D;color:#B8863D;background:rgba(184,134,61,.08)";
+    return `<li style="background:#fff;border:1px solid rgba(26,22,20,.08);border-radius:.75rem;padding:1.25rem 1.5rem">
+      <div style="display:flex;gap:.85rem;align-items:center;flex-wrap:wrap;margin-bottom:.7rem;font-size:.92rem">
+        <strong style="color:var(--ink)">${escapeHtml(a.pseudo)}</strong>
+        <span style="color:var(--ink-muted)">${fmt(a.published_at)}</span>
+        <span style="font-size:.78rem;font-weight:500;padding:.25rem .65rem;border-radius:.35rem;border:1px solid;${verdictStyle}">${verdictLbl(a.verdict)}</span>
+      </div>
+      <p style="margin:0;color:var(--ink-soft);line-height:1.65;white-space:pre-wrap">${escapeHtml(a.texte)}</p>
+      ${resp ? `<div style="margin-top:1rem;background:var(--paper-warm);border-left:3px solid var(--or);border-radius:0 .5rem .5rem 0;padding:.8rem 1.1rem;font-size:.93rem"><strong style="font-style:italic;font-family:Fraunces,serif">Reponse de ${escapeHtml(nomEntreprise)}</strong><p style="margin:.5rem 0 0;color:var(--ink-soft)">${escapeHtml(resp.texte)}</p></div>` : ""}
+    </li>`;
+  }).join("");
+
+  return `<section class="avis-section" id="avis" style="margin:3rem 0">
+    <h2 class="display">Avis des visiteurs</h2>
+    <div style="background:#fff;border:1px solid rgba(26,22,20,.08);border-radius:.75rem;padding:1.1rem 1.4rem;margin:1.2rem 0"><strong>${avisNombre} avis</strong>${pct !== null ? ` · ${pct} % recommandent` : ""} <span style="color:var(--ink-muted);font-size:.9rem">(${ouiCount} oui · ${mitigeCount} mitige · ${nonCount} non)</span></div>
+    <ol style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1rem">${items}</ol>
+    <p style="text-align:center;margin-top:1.5rem"><a class="btn" href="/pro/${encodeURIComponent(proSlug)}/donner-mon-avis/">Partager mon experience</a></p>
+  </section>`;
+}
+
+function renderHtml(ctx: JsonLdContext, avis: Array<any> = []): string {
   const { pro, pageUrl, metier, zone, region, anciennete, dateCreationFR, fullDescription, faqEntries } = ctx;
   const deptCode = zone?.code || (pro.code_postal ? pro.code_postal.slice(0, 2) : "");
   const tier = pro.tier || "gratuit";
@@ -607,6 +650,8 @@ ${ldScripts}
     </div>
   </section>
 
+  ${buildAvisListHtml(avis, pro.avis_nombre || avis.length, pro.slug, pro.nom_entreprise)}
+
   ${faqHtml}
 
   <section class="byline">
@@ -672,9 +717,14 @@ export async function onRequest(context: any): Promise<Response> {
   const pro = await fetchPro(slug);
   if (!pro || !pro.active) return notFoundHtml();
 
+  // Fetch avis publies pour ce pro
+  const avisUrl = `${SUPABASE_URL}/rest/v1/pro_avis?pro_id=eq.${encodeURIComponent(pro.id)}&status=eq.publie&select=id,pseudo,verdict,texte,published_at,pro_avis_responses(texte,created_at)&order=published_at.desc`;
+  const avisRes = await fetch(avisUrl, { headers: SB_HEADERS });
+  const avis = avisRes.ok ? (await avisRes.json() as Array<any>) : [];
+
   const pageUrl = `${SITE}/pro/${slug}/`;
   const ctx = buildContext(pro, pageUrl);
-  const html = renderHtml(ctx);
+  const html = renderHtml(ctx, avis);
 
   return new Response(html, {
     headers: {
