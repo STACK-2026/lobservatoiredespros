@@ -27,6 +27,8 @@ import {
   jsonLdLocalBusiness,
   jsonLdEditorialReview,
   jsonLdSpeakable,
+  jsonLdReview,
+  jsonLdAggregateRating,
   schemaTypeForNaf,
 } from "../../utils/seo";
 import { REGION_BY_DEPT_CODE } from "../../data/geo_fr";
@@ -255,6 +257,36 @@ const richDescription = generateVerdictText();
 const region = deptCode ? REGION_BY_DEPT_CODE[deptCode] : undefined;
 const fullDescription = richDescription + ` ${metierNom} à ${p.ville} (${deptCode}). Inscrit au registre Sirene de l'INSEE, code NAF ${metierNaf}.`;
 
+const businessSchema = jsonLdLocalBusiness({
+  name: p.nom_entreprise,
+  url,
+  description: fullDescription,
+  phone: p.telephone,
+  email: p.email || undefined,
+  url_web: p.site_web || undefined,
+  openingHours: sanitizeDashes(p.opening_hours) || undefined,
+  naf: metierNaf,
+  address: {
+    streetAddress: p.adresse || undefined,
+    addressLocality: p.ville || undefined,
+    postalCode: p.code_postal || undefined,
+    addressRegion: region,
+    addressCountry: "FR",
+  },
+  geo: p.lat && p.lng ? { lat: Number(p.lat), lng: Number(p.lng) } : null,
+  sameAs: [p.site_web],
+  identifier: { siret: p.siret, siren: p.siren },
+  foundingDate: p.date_creation_entreprise || undefined,
+  numberOfEmployees: p.tranche_effectif || undefined,
+}) as Record<string, unknown>;
+
+// Enrichissement avis utilisateurs : AggregateRating (seuil 3 avis minimum)
+// + Review individuel par avis publie.
+const aggregateRating = jsonLdAggregateRating(p.avis_nombre || 0, p.avis_moyen ?? null);
+const avisReviews = (avis_publies || []).map(jsonLdReview);
+if (aggregateRating) businessSchema.aggregateRating = aggregateRating;
+if (avisReviews.length > 0) businessSchema.review = avisReviews;
+
 const jsonLd: Record<string, unknown>[] = [
   jsonLdBreadcrumbs([
     { name: "Accueil", url: siteConfig.url },
@@ -262,28 +294,7 @@ const jsonLd: Record<string, unknown>[] = [
     ...(metierSlug && deptSlug ? [{ name: deptNom, url: `${siteConfig.url}/${metierSlug}/${deptSlug}/` }] : []),
     { name: p.nom_entreprise, url },
   ]),
-  jsonLdLocalBusiness({
-    name: p.nom_entreprise,
-    url,
-    description: fullDescription,
-    phone: p.telephone,
-    email: p.email || undefined,
-    url_web: p.site_web || undefined,
-    openingHours: sanitizeDashes(p.opening_hours) || undefined,
-    naf: metierNaf,
-    address: {
-      streetAddress: p.adresse || undefined,
-      addressLocality: p.ville || undefined,
-      postalCode: p.code_postal || undefined,
-      addressRegion: region,
-      addressCountry: "FR",
-    },
-    geo: p.lat && p.lng ? { lat: Number(p.lat), lng: Number(p.lng) } : null,
-    sameAs: [p.site_web],
-    identifier: { siret: p.siret, siren: p.siren },
-    foundingDate: p.date_creation_entreprise || undefined,
-    numberOfEmployees: p.tranche_effectif || undefined,
-  }),
+  businessSchema,
   jsonLdSpeakable({
     url,
     cssSelectors: [".portrait-hero", ".speakable-tldr", "h1", ".editorial-verdict"],

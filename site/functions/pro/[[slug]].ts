@@ -241,7 +241,7 @@ function buildContext(pro: ProRow, pageUrl: string): JsonLdContext {
   };
 }
 
-function buildJsonLd(ctx: JsonLdContext): unknown[] {
+function buildJsonLd(ctx: JsonLdContext, avis: Array<any> = []): unknown[] {
   const { pro, pageUrl, metier, zone, region, faqEntries, fullDescription } = ctx;
   const deptCode = zone?.code || (pro.code_postal ? pro.code_postal.slice(0, 2) : "");
   const lbType = schemaTypeForNaf(metier?.code_naf);
@@ -299,6 +299,29 @@ function buildJsonLd(ctx: JsonLdContext): unknown[] {
   if (pro.siret) ids.push({ "@type": "PropertyValue", propertyID: "SIRET", value: pro.siret });
   if (pro.siren) ids.push({ "@type": "PropertyValue", propertyID: "SIREN", value: pro.siren });
   if (ids.length) lb.identifier = ids;
+
+  // Avis utilisateurs : Review individuel + AggregateRating (seuil >= 3 avis)
+  const ratingVal = (v: string) => v === "oui" ? 5 : v === "mitige" ? 3 : 1;
+  if (avis.length > 0) {
+    lb.review = avis.map((a: any) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: a.pseudo },
+      datePublished: (a.published_at || "").slice(0, 10),
+      reviewBody: a.texte,
+      reviewRating: { "@type": "Rating", ratingValue: ratingVal(a.verdict), bestRating: 5, worstRating: 1 },
+    }));
+  }
+  const avisNombre = pro.avis_nombre || 0;
+  const avisMoyen = pro.avis_moyen ?? null;
+  if (avisNombre >= 3 && avisMoyen !== null) {
+    lb.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: avisMoyen.toFixed(1),
+      bestRating: "5",
+      worstRating: "1",
+      reviewCount: avisNombre,
+    };
+  }
 
   // Speakable
   const speakableLd = {
@@ -477,7 +500,7 @@ function renderHtml(ctx: JsonLdContext, avis: Array<any> = []): string {
     return "Dossier en cours. L'entreprise est immatriculée mais les sources publiques disponibles ne suffisent pas à un classement éditorial à ce stade.";
   })();
 
-  const ld = buildJsonLd(ctx);
+  const ld = buildJsonLd(ctx, avis);
   const ldScripts = ld
     .map(
       (item) =>

@@ -356,3 +356,44 @@ export function jsonLdSpeakable(opts: {
     },
   };
 }
+
+/**
+ * Schema.org Review individuel pour un avis publie.
+ * verdict -> ratingValue : oui=5, mitige=3, non=1.
+ */
+export function jsonLdReview(avis: {
+  pseudo: string;
+  verdict: "oui" | "non" | "mitige";
+  texte: string;
+  published_at: string;
+}): object {
+  const ratingValue = avis.verdict === "oui" ? 5 : avis.verdict === "mitige" ? 3 : 1;
+  const date = (avis.published_at || "").slice(0, 10);
+  return {
+    "@type": "Review",
+    author: { "@type": "Person", name: avis.pseudo },
+    datePublished: date,
+    reviewBody: avis.texte,
+    reviewRating: {
+      "@type": "Rating",
+      ratingValue,
+      bestRating: 5,
+      worstRating: 1,
+    },
+  };
+}
+
+/**
+ * Schema.org AggregateRating, publie uniquement si >= 3 avis pour eviter
+ * la pseudo-precision a faible volume.
+ */
+export function jsonLdAggregateRating(avis_nombre: number, avis_moyen: number | null): object | null {
+  if (avis_nombre < 3 || avis_moyen === null) return null;
+  return {
+    "@type": "AggregateRating",
+    ratingValue: avis_moyen.toFixed(1),
+    bestRating: "5",
+    worstRating: "1",
+    reviewCount: avis_nombre,
+  };
+}

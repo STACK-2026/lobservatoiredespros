@@ -1,0 +1,23 @@
+name: RGPD anonymisation avis > 3 ans
+on:
+  schedule:
+    - cron: "0 4 1 * *"
+  workflow_dispatch: {}
+
+jobs:
+  anonymize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Anonymize avis > 3 ans
+        env:
+          SUPABASE_PAT: ${{ secrets.SUPABASE_PAT }}
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer $SUPABASE_PAT" \
+            -H "Content-Type: application/json" \
+            "https://api.supabase.com/v1/projects/apuyeakgxjgdcfssrtek/database/query" \
+            -d '{"query": "UPDATE public.pro_avis SET email = NULL, ip_hash = NULL, user_agent = NULL, anonymized_at = now() WHERE published_at < (now() - interval '\''3 years'\'') AND anonymized_at IS NULL RETURNING id;"}')
+          echo "Result: $RESPONSE"
+          COUNT=$(echo "$RESPONSE" | python3 -c "import sys, json; d = json.load(sys.stdin); print(len(d) if isinstance(d, list) else 0)")
+          echo "Avis anonymises : $COUNT"
