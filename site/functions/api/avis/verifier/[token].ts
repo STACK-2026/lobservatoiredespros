@@ -1,4 +1,4 @@
-import { signToken, hashToken } from "../../../../_lib/token";
+import { signToken, hashToken } from "../../../_lib/token";
 
 interface Env {
   SUPABASE_URL?: string;
