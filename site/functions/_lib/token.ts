@@ -61,6 +61,18 @@ export async function verifyToken(token: string, secret: string): Promise<TokenP
   try {
     const json = new TextDecoder().decode(b64urlDecode(payloadB64));
     const payload = JSON.parse(json) as TokenPayload;
+
+    // Validate all required fields (defense-in-depth)
+    if (
+      !payload.avis_id ||
+      !payload.pro_id ||
+      !payload.type ||
+      !payload.nonce ||
+      !["preavis", "reponse"].includes(payload.type)
+    ) {
+      return null;
+    }
+
     if (payload.exp && payload.exp < Date.now() / 1000) return null;
     return payload;
   } catch {
