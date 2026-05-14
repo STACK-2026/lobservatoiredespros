@@ -15,6 +15,7 @@
 interface Env {
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_KEY?: string;
   PUBLIC_SUPABASE_URL?: string;
   PUBLIC_SUPABASE_ANON_KEY?: string;
   AVIS_TOKEN_SECRET: string;

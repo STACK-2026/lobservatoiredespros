@@ -1,6 +1,7 @@
 interface Env {
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_KEY?: string;
   PUBLIC_SUPABASE_URL?: string;
   PUBLIC_SUPABASE_ANON_KEY?: string;
   ADMIN_MODERATION_TOKEN?: string;
@@ -28,7 +29,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   const supabaseUrl = context.env.SUPABASE_URL || context.env.PUBLIC_SUPABASE_URL || "";
-  const supabaseAnonKey = context.env.SUPABASE_ANON_KEY || context.env.PUBLIC_SUPABASE_ANON_KEY || "";
+  const supabaseAnonKey =
+    context.env.SUPABASE_SERVICE_KEY ||
+    context.env.SUPABASE_ANON_KEY ||
+    context.env.PUBLIC_SUPABASE_ANON_KEY ||
+    "";
   if (!supabaseUrl || !supabaseAnonKey) {
     return htmlPage("Configuration manquante", "<h1>Configuration manquante</h1><p>Supabase n'est pas configuré côté serveur.</p>", 500);
   }

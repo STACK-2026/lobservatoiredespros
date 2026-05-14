@@ -6,6 +6,7 @@ interface Env {
   TURNSTILE_SECRET_KEY?: string;
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
+  SUPABASE_SERVICE_KEY?: string;
   PUBLIC_SUPABASE_URL?: string;
   PUBLIC_SUPABASE_ANON_KEY?: string;
   AVIS_MOTS_FLAGS_CSV?: string;
@@ -26,7 +27,11 @@ function jsonError(error: string, status: number): Response {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   // Recuperer config Supabase (CF Pages expose PUBLIC_ et non-PUBLIC_ selon setup)
   const supabaseUrl = context.env.SUPABASE_URL || context.env.PUBLIC_SUPABASE_URL || "";
-  const supabaseAnonKey = context.env.SUPABASE_ANON_KEY || context.env.PUBLIC_SUPABASE_ANON_KEY || "";
+  const supabaseAnonKey =
+    context.env.SUPABASE_SERVICE_KEY ||
+    context.env.SUPABASE_ANON_KEY ||
+    context.env.PUBLIC_SUPABASE_ANON_KEY ||
+    "";
   if (!supabaseUrl || !supabaseAnonKey) return jsonError("supabase_not_configured", 500);
 
   // 1. Parse form

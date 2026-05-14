@@ -3,6 +3,7 @@ import { signToken, hashToken } from "../../../_lib/token";
 interface Env {
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_KEY?: string;
   PUBLIC_SUPABASE_URL?: string;
   PUBLIC_SUPABASE_ANON_KEY?: string;
   RESEND_API_KEY?: string;
@@ -55,7 +56,10 @@ export const onRequestGet: PagesFunction<Env, "token"> = async (context) => {
   const supabaseUrl =
     context.env.SUPABASE_URL || context.env.PUBLIC_SUPABASE_URL || "";
   const supabaseAnonKey =
-    context.env.SUPABASE_ANON_KEY || context.env.PUBLIC_SUPABASE_ANON_KEY || "";
+    context.env.SUPABASE_SERVICE_KEY ||
+    context.env.SUPABASE_ANON_KEY ||
+    context.env.PUBLIC_SUPABASE_ANON_KEY ||
+    "";
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return Response.redirect(
