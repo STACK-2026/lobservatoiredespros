@@ -12,6 +12,16 @@ const ASSET_EXT = /\.(js|mjs|css|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|
 
 export async function onRequest(context) {
   const { request, next, env, waitUntil } = context;
+
+  // ---- Canonical host: www → apex 301 ----
+  const reqUrl = new URL(request.url);
+  if (reqUrl.hostname === "www.lobservatoiredespros.com") {
+    return Response.redirect(
+      `https://lobservatoiredespros.com${reqUrl.pathname}${reqUrl.search}`,
+      301,
+    );
+  }
+
   const response = await next();
 
   try {
