@@ -42,3 +42,17 @@ def test_build_update_body_phone_string_normalization():
 
 def test_build_update_url_uses_id():
     assert build_update_url("abc-123") == "pros?id=eq.abc-123"
+
+
+def test_build_pros_query_order_clause_is_last():
+    """Regression: count_pros_for_phase strips '&order=...' as the trailing slice.
+    Phase filters must be BEFORE '&order=' to survive the strip.
+    Before fix: site_web filter was after &order=id and got dropped by count.
+    """
+    for phase in ("A", "B", "Bprime"):
+        q = build_pros_query(phase)
+        order_idx = q.index("&order=")
+        # everything after &order= must NOT contain filter clauses
+        tail = q[order_idx:]
+        assert "site_web" not in tail
+        assert "coords_source" not in tail

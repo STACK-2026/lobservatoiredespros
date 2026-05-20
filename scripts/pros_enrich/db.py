@@ -32,7 +32,10 @@ def get_service_key() -> str:
         raise RuntimeError("Need SUPABASE_SERVICE_ROLE_KEY or SUPABASE_PAT in env or .env.master")
     req = urllib.request.Request(
         "https://api.supabase.com/v1/projects/apuyeakgxjgdcfssrtek/api-keys?reveal=true",
-        headers={"Authorization": f"Bearer {pat}"},
+        headers={
+            "Authorization": f"Bearer {pat}",
+            "User-Agent": "ObservatoireDesProsBot/1.0",
+        },
     )
     with urllib.request.urlopen(req, timeout=10) as r:
         keys = json.loads(r.read().decode("utf-8"))
@@ -62,16 +65,18 @@ def build_pros_query(phase: str) -> str:
         "?select=id,slug,siren,site_web,telephone,email"
         "&active=eq.true"
         "&coords_enriched_at=is.null"
-        "&order=id"
     )
     if phase == "B":
-        return base + "&site_web=not.is.null"
-    if phase == "A":
-        return base + "&site_web=is.null"
-    if phase == "Bprime":
+        filters = "&site_web=not.is.null"
+    elif phase == "A":
+        filters = "&site_web=is.null"
+    elif phase == "Bprime":
         # Re-crawl pros whose site_web was discovered in Phase A (source=annuaire)
-        return base + "&site_web=not.is.null&coords_source=eq.annuaire"
-    raise ValueError(f"unknown phase: {phase}")
+        filters = "&site_web=not.is.null&coords_source=eq.annuaire"
+    else:
+        raise ValueError(f"unknown phase: {phase}")
+    # order MUST come last: count_pros_for_phase splits on '&order=' to strip it
+    return base + filters + "&order=id"
 
 
 def build_update_body(result: dict, source: str) -> dict:
