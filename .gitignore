@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 
 # Wrangler local cache
 site/.wrangler/
+.logs/
