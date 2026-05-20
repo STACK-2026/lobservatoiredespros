@@ -38,6 +38,10 @@ def normalize_email(e: str) -> str:
 
 
 def is_valid_email(e: str) -> bool:
+    """True if `e` looks like a real contact email worth storing.
+    Rejects junk extracted from text: short locals (le/la/de),
+    non-whitelisted TLDs, image/asset patterns, noreply/test placeholders.
+    """
     if "@" not in e or e.count("@") != 1:
         return False
     local, domain = e.split("@")
