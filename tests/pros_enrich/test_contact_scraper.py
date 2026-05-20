@@ -17,3 +17,21 @@ def test_extract_contacts_from_html_filters_off_domain_emails():
     result = extract_contacts_from_html(html, base_domain="plombier-dupont.fr")
     assert result["primary_email"] == "contact@plombier-dupont.fr"
     assert "spam@othersite.com" not in result["all_emails"]
+
+
+def test_extract_contacts_from_html_rejects_evil_twin_domain():
+    """endswith trap: 'notplombier-dupont.fr' must NOT match 'plombier-dupont.fr'."""
+    html = (
+        '<a href="mailto:hack@notplombier-dupont.fr">evil</a> '
+        '<a href="mailto:contact@plombier-dupont.fr">good</a>'
+    )
+    result = extract_contacts_from_html(html, base_domain="plombier-dupont.fr")
+    assert result["primary_email"] == "contact@plombier-dupont.fr"
+    assert "hack@notplombier-dupont.fr" not in result["all_emails"]
+
+
+def test_extract_contacts_from_html_accepts_subdomain():
+    """Real subdomains (mail.plombier-dupont.fr) should match base_domain."""
+    html = '<a href="mailto:contact@mail.plombier-dupont.fr">sub</a>'
+    result = extract_contacts_from_html(html, base_domain="plombier-dupont.fr")
+    assert result["primary_email"] == "contact@mail.plombier-dupont.fr"

@@ -110,13 +110,11 @@ def extract_contacts_from_html(html: str, base_domain: str | None = None) -> dic
     phones_raw = extract_phones_from_text(text)
     phones = sorted({normalize_phone_fr(p) for p in phones_raw if len(normalize_phone_fr(p)) >= 11})
 
-    # Own-domain filter: when base_domain is set, both all_emails and primary_email
-    # are restricted to emails whose domain ends with base_domain.
-    # Note: endswith could match "notplombier-dupont.fr" for base_domain="plombier-dupont.fr".
-    # In practice the corpus is small enough that false positives are harmless, but callers
-    # wanting strict equality should pass the full SLD+TLD and rely on the sorted preference list.
     if base_domain:
-        own = {e for e in emails if e.split("@")[1].endswith(base_domain)}
+        own = {
+            e for e in emails
+            if e.split("@")[1] == base_domain or e.split("@")[1].endswith("." + base_domain)
+        }
         display_emails = sorted(own)
     else:
         own = set(emails)
