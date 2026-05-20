@@ -15,6 +15,12 @@ python3 scripts/enrich_pros_coords.py --phase B --workers 6 --commit
 # See plan amendment 2026-05-20 17:25 for alternatives.
 
 # Phase Bprime (re-crawl new site_web from Phase A) - blocked while Phase A is blocked.
+
+# Phase P (Google Places NEW Text Search Pro, escargot mode)
+# Ranked by score_confiance DESC, rge DESC, qualif DESC - top tier first
+# Free tier ~6 250 calls/month (200 USD / 32 USD/1000 calls)
+# Live match rate observed on top-tier RGE pros : 90% phone, 60% site
+python3 scripts/enrich_pros_coords.py --phase P --limit 6000 --workers 2 --commit
 ```
 
 ## Background run pattern
@@ -55,13 +61,28 @@ done
 
 ## Timings (empirical, May 20 2026)
 
-| Phase | Pros | Workers | Time | Rate |
-|---|---|---|---|---|
-| Smoke B | 5 | 2 | 29 s | 0.17/s |
-| B test 50 | 50 | 4 | 134 s | 0.37/s |
-| B full 3 519 | 3 519 | 6 | ~26 min (proj) | 2.3/s |
+| Phase | Pros | Workers | Time | Rate | Match (phone / site) |
+|---|---|---|---|---|---|
+| Smoke B | 5 | 2 | 29 s | 0.17/s | 60% / 40% (5-pro variance) |
+| B test 50 | 50 | 4 | 134 s | 0.37/s | 38% / 0% (most already had) |
+| B full 3 519 | 3 519 | 6 | ~26 min (proj) | 2.3/s | ~90% / 0% (site_web pre-known) |
+| P smoke 5 | 5 | 1 | 3 s | 1.6/s | 100% / 80% (top-tier RGE) |
+| P test 50 | 50 | 2 | 18 s | 2.8/s | 90% / 60% (top-tier RGE) |
+| P escargot 500 | 500 | 2 | ~3 min | 2.8/s | (running) |
 
-Bottleneck : `MIN_DELAY=0.4` to `MAX_DELAY=1.2` random delay per HTTP fetch + 7 paths per pro. DEAD_DOMAINS cache short-circuits poorly-maintained sites.
+Bottleneck Phase B : `MIN_DELAY=0.4` to `MAX_DELAY=1.2` random delay per HTTP fetch + 7 paths per pro.
+Bottleneck Phase P : `MIN_DELAY=0.3` between Google calls (60 QPS soft limit, well under).
+DEAD_DOMAINS cache short-circuits poorly-maintained sites.
+
+## Phase P free tier budget
+
+- 200 USD/month Google Maps Platform credit (GCP project 3729498435)
+- Text Search Pro field mask : 32 USD / 1000 calls
+- Monthly capacity : ~6 250 calls free
+- Cost per nickel contact (normalized phone) : ~0.022 USD at 90% match rate
+
+To check current quota consumed manually :
+`https://console.cloud.google.com/google/maps-apis/quotas?project=3729498435`
 
 ## Idempotence
 
