@@ -1352,3 +1352,33 @@ Then update `docs/SESSION_STATE.md` with new coverage stats.
 **2. Inline Execution** — J'exécute task par task dans cette session, checkpoint manuel entre tasks. Plus lent mais 100 % visible.
 
 **Which approach?**
+
+---
+
+## Plan amendment 2026-05-20 17:25 - Phase A blocker discovered
+
+**Discovery during Task 4 implementation:**
+
+`annuaire-entreprises.data.gouv.fr` is a legal/administrative directory ONLY. By design, the upstream Sirene data and the public site do NOT publish contact data (telephone, email, site_web) for entreprises. Quote from the site's own React source code (component `ContactCompanyAnswer`): "It's impossible to contact a company on this site."
+
+The same applies to `recherche-entreprises.api.gouv.fr` API. The fields `siege.telephone`, `siege.adresse_mail`, `siege.site_internet` are always `null` in the public JSON.
+
+**Impact on plan:**
+
+- **Phase B** (Task 7, 3 519 pros with site_web already known) : UNCHANGED. Running.
+- **Phase A** (Task 8 Steps 1-5, enrich site_web for 100 132 pros) : BLOCKED by source. Module `api_gouv.py` retained as defensive stub returning `{}` on all queries.
+- **Phase B'** (Task 8 Steps 6-7) : DEPENDS on Phase A. Skipped until alternative source decided.
+
+**Alternative sources for Phase A (decision pending user):**
+
+| Source | Coverage | Cost | Risk |
+|---|---|---|---|
+| Google Places API free tier | ~10 k pros | $0 (200$/mo credits) | None |
+| Google Places API full | 100 k pros | ~$2 000 | None |
+| Pages Jaunes scraping | ~50 % | $20-50/mo proxy | ToS violation, ban IP risk |
+| Brave Search API free | 2 k pros | $0 | Quota too low |
+| Re-run enrich_osm.py | Marginal | $0 | Already exhausted (~4 850 max) |
+
+**Recommendation:** Wait for Phase B results, then either accept Phase B as ceiling (~3 519 / 103 651 = 3,4 % full coverage) OR pivot to Google Places free tier for the next 10 k pros.
+
+**Status of Task 8 / Task 9 in this plan:** Task 8 Steps 1-5 are ABORTED. Task 9 (verification) will be adapted to verify Phase B results only.
