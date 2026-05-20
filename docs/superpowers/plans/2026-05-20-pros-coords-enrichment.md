@@ -1,4 +1,4 @@
-# Pipeline enrichissement coordonnees pros — Implementation Plan
+# Pipeline enrichissement coordonnees pros : Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -172,9 +172,9 @@ cd /Users/lestoilettesdeminette/stack-2026/lobservatoiredespros
 python3 -m pytest tests/pros_enrich/test_helpers.py -v
 ```
 
-Expected: FAIL — `ModuleNotFoundError: scripts.pros_enrich.helpers`.
+Expected: FAIL : `ModuleNotFoundError: scripts.pros_enrich.helpers`.
 
-- [ ] **Step 4: Implement helpers.py — copy regex from scrape.py + add normalize_phone_fr**
+- [ ] **Step 4: Implement helpers.py : copy regex from scrape.py + add normalize_phone_fr**
 
 `scripts/pros_enrich/helpers.py`:
 
@@ -346,7 +346,7 @@ def test_extract_contacts_from_html_filters_off_domain_emails():
 python3 -m pytest tests/pros_enrich/test_contact_scraper.py -v
 ```
 
-Expected: FAIL — `ModuleNotFoundError`.
+Expected: FAIL : `ModuleNotFoundError`.
 
 - [ ] **Step 3: Implement contact_scraper.py**
 
@@ -580,7 +580,7 @@ def test_parse_annuaire_entreprise_handles_empty():
 python3 -m pytest tests/pros_enrich/test_api_gouv.py -v
 ```
 
-Expected: FAIL — `ModuleNotFoundError`.
+Expected: FAIL : `ModuleNotFoundError`.
 
 - [ ] **Step 4: Inspect fixture HTML structure**
 
@@ -1226,7 +1226,7 @@ curl -sS "https://apuyeakgxjgdcfssrtek.supabase.co/rest/v1/pros?select=id&active
 
 Expected: 3519 → ~30-40 k pros with site_web.
 
-- [ ] **Step 6: Phase Bprime — re-crawl new sites**
+- [ ] **Step 6: Phase Bprime : re-crawl new sites**
 
 ```bash
 nohup python3 scripts/enrich_pros_coords.py --phase Bprime --workers 6 --commit > .logs/enrich-phase-Bprime-$(date +%Y%m%d-%H%M).log 2>&1 &
@@ -1291,7 +1291,7 @@ python3 scripts/check_cross_project_leaks.py 2>/dev/null || grep -rE "augustinfo
 
 Expected: no matches (no portfolio cross-leak in code).
 
-- [ ] **Step 6: Sample QA — 10 random enriched pros, visit pages**
+- [ ] **Step 6: Sample QA : 10 random enriched pros, visit pages**
 
 ```bash
 curl -sS "https://apuyeakgxjgdcfssrtek.supabase.co/rest/v1/pros?select=slug,telephone,email,site_web&coords_enriched_at=not.is.null&order=random&limit=10" -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" | python3 -m json.tool
@@ -1329,7 +1329,7 @@ Then update `docs/SESSION_STATE.md` with new coverage stats.
 **Spec coverage check** :
 - ✓ Réutiliser scraper SEO Agency : Task 2 (helpers.py) + Task 3 (contact_scraper.py) reprennent EMAIL_RE/PHONE_FR_RE/is_valid_email/cache_get/SSL fallback.
 - ✓ Sources gratuites validées (gouv API + crawl sites) : Task 3 + Task 4 + Task 8.
-- ✓ Pages Jaunes / Société.com (user a coché) : **non-couvert dans ce plan** — c'est une phase fallback C future, à scoper séparément (risque ban IP nécessite proxy rotator). Décision : sortir du périmètre v1 et ouvrir plan #2 si Phase A+B' n'atteignent pas 40 %.
+- ✓ Pages Jaunes / Société.com (user a coché) : **non-couvert dans ce plan**. C.est une phase fallback C future, à scoper séparément (risque ban IP nécessite proxy rotator). Décision : sortir du périmètre v1 et ouvrir plan #2 si Phase A+B' n'atteignent pas 40 %.
 - ✓ Idempotence : `coords_enriched_at` colonne + query filter `is.null` (Task 1 + 5).
 - ✓ Rate limit / cache : `MIN_DELAY`/`MAX_DELAY` + disk cache (Task 3).
 - ✓ Tests : unit tests sur 3 modules (Task 2/3/4/5).
@@ -1347,7 +1347,7 @@ Then update `docs/SESSION_STATE.md` with new coverage stats.
 
 **Plan complete and saved to `docs/superpowers/plans/2026-05-20-pros-coords-enrichment.md`. Two execution options:**
 
-**1. Subagent-Driven (recommended)** — Je dispatche un subagent frais par task, review entre tasks, iteration rapide. Optimal pour ce plan (9 tasks, ~3h de code + plusieurs heures de runs background).
+**1. Subagent-Driven (recommended)**. Je dispatche un subagent frais par task, review entre tasks, iteration rapide. Optimal pour ce plan (9 tasks, ~3h de code + plusieurs heures de runs background).
 
 **2. Inline Execution** — J'exécute task par task dans cette session, checkpoint manuel entre tasks. Plus lent mais 100 % visible.
 
