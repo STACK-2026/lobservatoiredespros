@@ -6,6 +6,7 @@ Usage:
   python3 scripts/enrich_pros_coords.py --phase B --workers 6 --commit
   python3 scripts/enrich_pros_coords.py --phase A --workers 4 --commit
   python3 scripts/enrich_pros_coords.py --phase Bprime --workers 6 --commit
+  python3 scripts/enrich_pros_coords.py --phase P --limit 50 --workers 2 --commit  # escargot Google Places
 """
 from __future__ import annotations
 import argparse
@@ -21,6 +22,7 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.pros_enrich.contact_scraper import fetch_contacts_for_site
 from scripts.pros_enrich.api_gouv import fetch_annuaire_entreprise
+from scripts.pros_enrich.places import search_pro as places_search_pro
 from scripts.pros_enrich.db import (
     get_service_key,
     fetch_pros_batch,
@@ -84,12 +86,30 @@ def process_one(pro: dict, phase: str, commit: bool, key: str) -> str:
                 return "err_db"
         return "ok"
 
+    if phase == "P":
+        # Google Places API NEW Text Search Pro (escargot mode).
+        # Always marks pro as visited via coords_enriched_at so we never re-bill the same pro.
+        try:
+            res = places_search_pro(pro)
+        except Exception:
+            return "err"
+        body = build_update_body(res, source="google_places")
+        with _lock:
+            if res.get("phones"): _stats["ok_phone"] += 1
+            if res.get("site_web_final"): _stats["ok_site"] += 1
+        if commit:
+            try:
+                update_pro(key, pro["id"], body)
+            except Exception:
+                return "err_db"
+        return "ok" if res.get("matched") else "no_match"
+
     raise ValueError(f"unknown phase: {phase}")
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=["B", "A", "Bprime"], required=True)
+    parser.add_argument("--phase", choices=["B", "A", "Bprime", "P"], required=True)
     parser.add_argument("--limit", type=int, default=0, help="0 = no cap")
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--commit", action="store_true")

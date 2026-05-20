@@ -60,6 +60,20 @@ def build_pros_query(phase: str) -> str:
       B      - site_web NOT NULL (website known, scrape for contact)
       Bprime - site_web NOT NULL AND coords_source=annuaire (re-crawl after Phase A)
     """
+    if phase == "P":
+        # Phase P (Places API escargot): pros without site_web AND not yet enriched,
+        # ranked by relevance so most-pertinent pros get coords first.
+        # Need extra fields (nom_entreprise, ville, code_postal) for the API query.
+        base = (
+            "pros"
+            "?select=id,slug,siren,nom_entreprise,ville,code_postal,site_web,telephone,email,score_confiance,rge,nb_qualifications_actives"
+            "&active=eq.true"
+            "&coords_enriched_at=is.null"
+            "&site_web=is.null"
+        )
+        # Pertinence ranking : highest trust + RGE + qualif first.
+        order = "&order=score_confiance.desc.nullslast,rge.desc,nb_qualifications_actives.desc,id"
+        return base + order
     base = (
         "pros"
         "?select=id,slug,siren,site_web,telephone,email"
