@@ -1,5 +1,5 @@
 ---
-import { siteConfig, fontsUrl } from "../utils/config";
+import { siteConfig } from "../utils/config";
 import { jsonLdOrganization, jsonLdHomepage } from "../utils/seo";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -8,6 +8,20 @@ import Analytics from "../components/Analytics.astro";
 import GA4Tracker from "../components/GA4Tracker.astro";
 import FormTracker from "../components/FormTracker.astro";
 import EditorialTicker from "../components/EditorialTicker.astro";
+// Self-hosted fonts via @fontsource (eliminate fonts.googleapis CDN)
+import "@fontsource/fraunces/400.css";
+import "@fontsource/fraunces/500.css";
+import "@fontsource/fraunces/600.css";
+import "@fontsource/fraunces/700.css";
+import "@fontsource/fraunces/400-italic.css";
+import "@fontsource/geist/300.css";
+import "@fontsource/geist/400.css";
+import "@fontsource/geist/500.css";
+import "@fontsource/geist/600.css";
+import "@fontsource/geist/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
 import "../styles/global.css";
 
 interface Props {
@@ -50,12 +64,9 @@ const allJsonLd = [...jsonLdBase, ...jsonLdArray];
     <meta name="theme-color" content="#F7F3EC" />
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Preconnect tiers critiques + fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preconnect tiers critiques (fonts self-hosted via @fontsource) -->
     <link rel="dns-prefetch" href="https://unpkg.com" />
     <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
-    <link rel="stylesheet" href={fontsUrl()} />
 
     <!-- AI crawlers hints , signal explicite -->
     <meta name="ai-content-declaration" content="editorial-human-written" />

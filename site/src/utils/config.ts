@@ -9,13 +9,14 @@ export function fullUrl(path: string): string {
   return `${base}${clean}`;
 }
 
-/** Google Fonts URL , typo moderne editoriale :
- *   - Fraunces (display) : serif variable moderne, axe SOFT=100 pour un rendu fluide
- *   - Geist (body) : sans-serif Vercel, tres lisible, feel Apple/Linear
+/** Fonts self-hosted via @fontsource (imports BaseLayout) , typo moderne editoriale :
+ *   - Fraunces (display) : serif variable moderne
+ *   - Geist (body) : sans-serif Vercel, feel Apple/Linear
  *   - JetBrains Mono : metadata/folios
+ *  Conserve pour compat retro , renvoie URL vide.
  */
 export function fontsUrl(): string {
-  return "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,100;1,9..144,300..700,100&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;600&display=swap";
+  return "";
 }
 
 /** Numéro d'édition formatté */
