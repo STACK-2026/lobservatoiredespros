@@ -1349,7 +1349,7 @@ Then update `docs/SESSION_STATE.md` with new coverage stats.
 
 **1. Subagent-Driven (recommended)**. Je dispatche un subagent frais par task, review entre tasks, iteration rapide. Optimal pour ce plan (9 tasks, ~3h de code + plusieurs heures de runs background).
 
-**2. Inline Execution** — J'exécute task par task dans cette session, checkpoint manuel entre tasks. Plus lent mais 100 % visible.
+**2. Inline Execution**. J'exécute task par task dans cette session, checkpoint manuel entre tasks. Plus lent mais 100 % visible.
 
 **Which approach?**
 
