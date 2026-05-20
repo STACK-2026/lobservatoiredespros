@@ -106,10 +106,11 @@ const uid = `gt-${slug}-${Math.random().toString(36).slice(2, 7)}`;
   }
 
   .g-tooltip {
+    --tip-shift-x: 0px;
     position: absolute;
     bottom: calc(100% + 10px);
     left: 50%;
-    transform: translateX(-50%) translateY(4px);
+    transform: translateX(calc(-50% + var(--tip-shift-x))) translateY(4px);
     width: max-content;
     min-width: 260px;
     max-width: min(340px, calc(100vw - 1rem));
@@ -152,7 +153,7 @@ const uid = `gt-${slug}-${Math.random().toString(36).slice(2, 7)}`;
     .g-term:nth-last-child(-n+3) .g-tooltip {
       left: auto;
       right: 0;
-      transform: translateX(0) translateY(4px);
+      transform: translateX(var(--tip-shift-x)) translateY(4px);
     }
     .g-term:nth-last-child(-n+3) .g-tooltip::after {
       left: auto;
@@ -161,13 +162,13 @@ const uid = `gt-${slug}-${Math.random().toString(36).slice(2, 7)}`;
     }
     .g-term:hover:nth-last-child(-n+3) .g-tooltip,
     .g-term:focus-within:nth-last-child(-n+3) .g-tooltip {
-      transform: translateX(0) translateY(0);
+      transform: translateX(var(--tip-shift-x)) translateY(0);
     }
   }
   .g-term:hover .g-tooltip,
   .g-term:focus-within .g-tooltip {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(calc(-50% + var(--tip-shift-x))) translateY(0);
     pointer-events: auto;
   }
   .g-tooltip-terme {
@@ -229,5 +230,31 @@ const uid = `gt-${slug}-${Math.random().toString(36).slice(2, 7)}`;
     if (!target.closest(".g-term")) {
       document.querySelectorAll(".g-term").forEach((el) => (el as HTMLElement).blur());
     }
+  });
+
+  // Smart positioning: if the centered tooltip would clip the viewport,
+  // shift it horizontally via inline transform so it stays fully visible.
+  function adjustTooltipPos(term: HTMLElement) {
+    const tip = term.querySelector<HTMLElement>(".g-tooltip");
+    if (!tip) return;
+    // Reset any previous inline shift before measuring
+    tip.style.setProperty("--tip-shift-x", "0px");
+    requestAnimationFrame(() => {
+      const r = tip.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const margin = 12;
+      let shift = 0;
+      if (r.left < margin) shift = margin - r.left;
+      else if (r.right > vw - margin) shift = (vw - margin) - r.right;
+      if (shift !== 0) tip.style.setProperty("--tip-shift-x", `${shift}px`);
+    });
+  }
+  document.addEventListener("mouseenter", (e) => {
+    const term = (e.target as HTMLElement)?.closest?.(".g-term");
+    if (term) adjustTooltipPos(term as HTMLElement);
+  }, true);
+  document.addEventListener("focusin", (e) => {
+    const term = (e.target as HTMLElement)?.closest?.(".g-term");
+    if (term) adjustTooltipPos(term as HTMLElement);
   });
 </script>

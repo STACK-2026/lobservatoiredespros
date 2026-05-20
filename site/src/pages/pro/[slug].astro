@@ -1000,7 +1000,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
     padding: 2rem 2.2rem 2.2rem;
     box-shadow: 0 2px 0 rgba(26, 22, 20, 0.02), 0 20px 48px -28px rgba(26, 22, 20, 0.18);
     position: relative;
-    overflow: hidden;
+    /* No overflow:hidden so child tooltips (GlossaireTerm) can escape the card */
   }
   .id-card::before {
     content: "";
@@ -1009,6 +1009,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
     width: 100%;
     height: 3px;
     background: linear-gradient(90deg, var(--or), var(--observatoire) 70%);
+    border-radius: 14px 14px 0 0;
   }
   .id-head { margin-bottom: 1.4rem; }
   .id-title {
