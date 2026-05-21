@@ -2,7 +2,7 @@
 /**
  * Easter Eggs - Konami-style keyboard listener
  * Type secret words to trigger effects
- * adaptetoi -> confetti | matrix -> matrix rain | disco -> hue rotate | gravity -> elements fall | signal -> chromatic
+ * observe -> confetti | matrix -> matrix rain | disco -> hue rotate | gravity -> elements fall | signal -> chromatic
  */
 ---
 
@@ -25,12 +25,12 @@
   ║       ██║   ███████╗                  ║
   ║       ╚═╝   ╚══════╝                  ║
   ║                                       ║
-  ║   Le média qui te prépare au monde    ║
-  ║   du travail de demain.               ║
+  ║   Le média qui observe et classe      ║
+  ║   les artisans en France.             ║
   ║                                       ║
-  ║   https://adapte-toi.com              ║
+  ║   https://lobservatoiredespros.com    ║
   ║                                       ║
-  ║   Easter eggs ? Tape : adaptetoi,     ║
+  ║   Easter eggs ? Tape : observe,       ║
   ║   matrix, disco, gravity, signal 😉   ║
   ║                                       ║
   ╚═══════════════════════════════════════╝
@@ -57,21 +57,21 @@
 
   // Easter egg listener
   let buffer = "";
-  const maxLen = 9; // "adaptetoi" = 9 chars
+  const maxLen = 9; // "observe" = 7 chars (use 9 to keep buffer headroom)
 
   window.addEventListener("keydown", (e) => {
     const key = e.key.toLowerCase();
     if (key.length !== 1) return;
     buffer = (buffer + key).slice(-maxLen);
 
-    if (buffer.endsWith("adaptetoi")) triggerConfetti();
+    if (buffer.endsWith("observe")) triggerConfetti();
     if (buffer.endsWith("matrix")) triggerMatrix();
     if (buffer.endsWith("disco")) triggerDisco();
     if (buffer.endsWith("gravity")) triggerGravity();
     if (buffer.endsWith("signal")) triggerSignal();
   });
 
-  // === CONFETTI (adaptetoi) ===
+  // === CONFETTI (observe) ===
   function triggerConfetti() {
     const canvas = document.createElement("canvas");
     canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;";
