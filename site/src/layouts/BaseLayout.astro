@@ -9,12 +9,9 @@ import GA4Tracker from "../components/GA4Tracker.astro";
 import FormTracker from "../components/FormTracker.astro";
 import EditorialTicker from "../components/EditorialTicker.astro";
 // Self-hosted fonts via @fontsource (eliminate fonts.googleapis CDN)
-import "@fontsource/fraunces/400.css";
-import "@fontsource/fraunces/500.css";
-import "@fontsource/fraunces/600.css";
-import "@fontsource/fraunces/700.css";
+// Fraunces is ONLY used via .italic-fraunces class -> only italic variant is needed.
+// Geist 300 not used in styles. Trim weights to lower CSS critical path.
 import "@fontsource/fraunces/400-italic.css";
-import "@fontsource/geist/300.css";
 import "@fontsource/geist/400.css";
 import "@fontsource/geist/500.css";
 import "@fontsource/geist/600.css";
