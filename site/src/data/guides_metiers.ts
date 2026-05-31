@@ -3,7 +3,7 @@
  * 1 article par metier : criteres / drapeaux rouges / questions devis / FAQ.
  * Source : reglementation FR 2026, NF DTU, ADEME, France Renov', DGCCRF, Capeb.
  *
- * Aucune mention generique. Chaque entree est specifique au metier.
+ * Aucune mention generique. Chaque entree est spécifique au metier.
  *
  * 2026-05-13: ajout du metier "multiservices" (NAF 43.39Z) suite signalement
  * /contact/ d'un artisan mal classe plaquiste. Voir migration 012.
@@ -52,7 +52,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
     titre: "Comment choisir un bon plombier",
     meta_description: "Critères, drapeaux rouges et 5 questions a poser pour choisir un plombier fiable. RGE, décennale, devis honnete : la grille complète 2026.",
     intro: "Un plombier, on l'appelle quand l'eau coule au plafond ou que la chaudiere lache un dimanche soir. Mauvais moment pour comparer cinq devis. Le bon reflexe : faire ses devoirs avant l'urgence , vérifier les attestations, comprendre les fourchettes de prix, repérer les arnaques classiques. Voici la méthode editoriale de notre rédaction, celle que vous appliquerez a tous les artisans BTP.",
-    enjeu: "La plomberie touche a l'eau (degats des eaux), au gaz (securite vitale) et au chauffage (confort + facture). Une mauvaise pose se paie en degats des eaux, en regrets esthetiques ou en perte d'aides MaPrimeRenov'. Le marché français comprend 80 000 entreprises, dont moins de 15 000 sont certifiées RGE , la difference qui ouvre les aides publiques.",
+    enjeu: "La plomberie touche a l'eau (degats des eaux), au gaz (sécurité vitale) et au chauffage (confort + facture). Une mauvaise pose se paie en degats des eaux, en regrets esthetiques ou en perte d'aides MaPrimeRenov'. Le marché français comprend 80 000 entreprises, dont moins de 15 000 sont certifiées RGE , la difference qui ouvre les aides publiques.",
     criteres: [
       {
         titre: "Certification RGE QualiPAC ou QualiSol",
@@ -130,7 +130,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
       },
       {
         q: "Que faire si mon plombier laisse des malfaçons ?",
-        r: "1) Mise en demeure par lettre recommandee avec photos. 2) Conciliation via la Fédération Nationale BTP locale. 3) Saisie de la garantie décennale via votre assurance. La décennale couvre 10 ans toute fuite, fissure ou vice technique.",
+        r: "1) Mise en demeure par lettre recommandée avec photos. 2) Conciliation via la Fédération Nationale BTP locale. 3) Saisie de la garantie décennale via votre assurance. La décennale couvre 10 ans toute fuite, fissure ou vice technique.",
       },
       {
         q: "Plombier ou multitravaux : quelle difference ?",
@@ -173,7 +173,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
         niveau: "critique",
       },
       {
-        titre: "Certification IRVE (Categorie 1, 2 ou 3)",
+        titre: "Certification IRVE (Catégorie 1, 2 ou 3)",
         description: "Pour installer une borne de recharge vehicule électrique au-dela de 3,7 kW. Sans IRVE : pas de credit d'impot 75 pourcents (plafond 500 euros). Verifiable sur la liste advenir.mobi.",
         niveau: "elevee",
       },
@@ -256,7 +256,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
   {
     metier: "couvreur",
     titre: "Comment choisir un bon couvreur",
-    meta_description: "Décennale, Qualibat, securite chantier : critères pour choisir un couvreur fiable. Drapeaux rouges du demarchage post-tempete et 5 questions a poser.",
+    meta_description: "Décennale, Qualibat, sécurité chantier : critères pour choisir un couvreur fiable. Drapeaux rouges du demarchage post-tempete et 5 questions a poser.",
     intro: "Une toiture, ca dure 50 a 100 ans si c'est bien fait. Et 5 a 10 ans si c'est mal fait. La difference se fait au choix du couvreur. Plus que pour aucun autre métier, ce choix engage votre patrimoine sur 2 generations. Voici comment ne pas se tromper.",
     enjeu: "La toiture représente 30 pourcents des deperditions thermiques d'une maison non isolee. Une refection complète coute 8 000 a 25 000 euros. Avec ITE par dessus (sarking), on monte a 35 000+. C'est l'un des plus gros chantiers d'une vie de propriétaire. Et le terrain de jeu préféré des arnaqueurs après tempete.",
     criteres: [
@@ -446,7 +446,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
         r: "Utile en zone froide H1 (alpes, montagne, nord-est) ou pour reduire le bruit. En zone H3 (sud) ou en plat-pieds : double vitrage 4-16-4 argon suffit. Le triple est 30 pourcents plus cher pour 10 pourcents de gain thermique en climat tempere.",
       },
       {
-        q: "Mon ancien propriétaire avait pose des fenetres de mauvaise qualite : qui finance le remplacement ?",
+        q: "Mon ancien propriétaire avait pose des fenetres de mauvaise qualité : qui finance le remplacement ?",
         r: "C'est a la charge de l'acheteur (vente). Mais MaPrimeRenov' est cumulable avec eco-PTZ jusqu'a 30 000 euros. Soit pres de 50 pourcents du cout total finance par les aides pour les menages modestes.",
       },
     ],
@@ -468,7 +468,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
     criteres: [
       {
         titre: "Certification RGE QualiBat ou Qualifelec OBLIGATOIRE",
-        description: "Sans RGE, aucune aide MaPrimeRenov' ni CEE possible. Verifiable en direct sur france-renov.gouv.fr/registre. Si l'artisan refuse de communiquer son numero : c'est un faux.",
+        description: "Sans RGE, aucune aide MaPrimeRenov' ni CEE possible. Verifiable en direct sur france-renov.gouv.fr/registre. Si l'artisan refuse de communiquer son numéro : c'est un faux.",
         niveau: "critique",
       },
       {
@@ -571,7 +571,7 @@ GUIDES_METIERS.push({
   criteres: [
     { titre: "RGE QualiPAC pour pompes a chaleur", description: "Certification ADEME spécifique aux PAC. Sans elle : pas d'aides MaPrimeRenov' ni CEE. Verifiable france-renov.gouv.fr.", niveau: "critique" },
     { titre: "RGE QualiBois pour chaudiere bois ou granulés", description: "Equivalent QualiPAC pour le bois énergie. Pour beneficier de Coup de Pouce CEE 4 000 euros sur poele granules.", niveau: "critique" },
-    { titre: "Certification F-Gaz Categorie 1", description: "Obligatoire pour manipuler les fluides frigorigenes (R32, R410A) au-dela de 2,5 kg. Sans elle : pose PAC ou clim illégale.", niveau: "critique" },
+    { titre: "Certification F-Gaz Catégorie 1", description: "Obligatoire pour manipuler les fluides frigorigenes (R32, R410A) au-dela de 2,5 kg. Sans elle : pose PAC ou clim illégale.", niveau: "critique" },
     { titre: "Bilan thermique proposé avant devis", description: "Un chauffagiste serieux fait un bilan thermique (Méthode 3CL ou DPE) avant de dimensionner. Sans bilan : risque surdimensionnement et facture électrique gonflee.", niveau: "elevee" },
     { titre: "Contrat d'entretien clair et resiliable", description: "L'entretien annuel des chaudieres gaz/fioul est obligatoire (décret 2009-649). Contrat doit spécifier P1 (visite) ou P2 (P1 + réparations). Resiliation libre, pas tacite reconductible.", niveau: "elevee" },
   ],
@@ -654,7 +654,7 @@ GUIDES_METIERS.push({
   titre: "Comment choisir un bon carreleur",
   meta_description: "SPEC pièces humides, NF DTU 52.2, joint epoxy : critères pour choisir un carreleur fiable. Drapeaux rouges et questions a poser, guide 2026.",
   intro: "Le carrelage doit durer 30 a 50 ans. Mal pose, il se fissure, se decolle, devient piege a humidite. Plus que pour aucun autre métier, le diable est dans le detail : étanchéité, joint, planeite. Voici comment choisir.",
-  enjeu: "La pose carrelage est regie par la NF DTU 52.2. Un carreleur qui ne suit pas le DTU pose un carrelage qui peut casser sous garantie. Pour pièces humides, le SPEC (Systeme Etancheite sous Carrelage) est obligatoire et chacun a son ATEx (Avis Technique d'Experimentation).",
+  enjeu: "La pose carrelage est regie par la NF DTU 52.2. Un carreleur qui ne suit pas le DTU pose un carrelage qui peut casser sous garantie. Pour pièces humides, le SPEC (Système Etancheite sous Carrelage) est obligatoire et chacun a son ATEx (Avis Technique d'Experimentation).",
   criteres: [
     { titre: "Connaissance NF DTU 52.2 et SPEC pour pièces humides", description: "Le DTU règle la pose. SPEC (CSTBat, Mapei, Weber) etanche le sol et bas de murs. Sans SPEC en SDB : eaux infiltrees sous carrelage en 3 ans.", niveau: "critique" },
     { titre: "Décennale couvrant carrelage et chape", description: "Décennale standard. Vérifier mention 'revetements de sol' incluant chape eventuelle. Si carreleur pose chape : décennale chape requise.", niveau: "critique" },
@@ -681,7 +681,7 @@ GUIDES_METIERS.push({
   },
   faq: [
     { q: "Combien coute une pose carrelage au m2 ?", r: "Pose seule : 30 a 80 euros/m2 selon format et complexite. Fourniture : 20 a 100 euros/m2. Total tout compris : 50 a 180 euros/m2. Voir /tarifs/carreleur/." },
-    { q: "Carrelage sur ancien parquet, possible ?", r: "Oui avec primaire d'accrochage spécifique et fibres dans le ragreage. Mais souvent depose parquet préférable pour qualite long terme et hauteur conservee." },
+    { q: "Carrelage sur ancien parquet, possible ?", r: "Oui avec primaire d'accrochage spécifique et fibres dans le ragreage. Mais souvent depose parquet préférable pour qualité long terme et hauteur conservee." },
     { q: "Joint epoxy ou ciment ?", r: "Epoxy : etanche, durable 30+ ans, plus cher (40 euros/sac vs 5 euros/sac). Ciment : standard, a refaire 5-10 ans en zone humide. Recommande epoxy en SDB et cuisine." },
     { q: "Combien de temps de chantier pour 20 m2 ?", r: "1,5 a 2 jours pose + 1 jour sechage avant utilisation pieton. 21 jours pour réception complète avec joint epoxy seche." },
   ],
@@ -696,7 +696,7 @@ GUIDES_METIERS.push({
   metier: "peintre",
   titre: "Comment choisir un bon peintre",
   meta_description: "Décennale, NFT 36-005, peinture A+ : critères pour choisir un peintre fiable. Drapeaux rouges et questions a poser, guide editorial 2026.",
-  intro: "La peinture parait simple. Mais entre une mise en peinture qui dure 15 ans et une qui peluche en 2 ans, il y a un monde : preparation des supports, qualite des produits, technique de pose. Voici comment choisir.",
+  intro: "La peinture parait simple. Mais entre une mise en peinture qui dure 15 ans et une qui peluche en 2 ans, il y a un monde : preparation des supports, qualité des produits, technique de pose. Voici comment choisir.",
   enjeu: "Une mise en peinture intérieure complète coute 25 a 60 euros/m2. Une rénovation facade : 30 a 90 euros/m2. Mauvais peintre : decollement, jaunissement, traces visibles. Bon peintre : finition impeccable et durable.",
   criteres: [
     { titre: "Décennale intérieur ET extérieur si facade", description: "Décennale couvre 10 ans pour facades. Pour intérieur : décennale standard sur enduits, garantie biennale sur mise en peinture.", niveau: "critique" },
@@ -714,7 +714,7 @@ GUIDES_METIERS.push({
   ],
   questions_devis: [
     { q: "Combien de couches sont prevues, et a quelle dilution ?", r: "Standard : 1 sous-couche + 2 couches finition. En cas de changement clair vers fonce : 3 couches finition. Dilution 5-10 pourcents max sur sous-couche." },
-    { q: "Quelle marque de peinture, et son numero NF Environnement ?", r: "Tollens Plenitude, Seigneurie Phenix, Allios MotoMix, Astral Velours. Reference exacte au devis. NF Environnement = qualite sanitaire." },
+    { q: "Quelle marque de peinture, et son numero NF Environnement ?", r: "Tollens Plenitude, Seigneurie Phenix, Allios MotoMix, Astral Velours. Reference exacte au devis. NF Environnement = qualité sanitaire." },
     { q: "Comment sont protege les sols, mobiliers et fenetres ?", r: "Films plastique sols (etalable), bache mobilier ou enlevement, ruban de masquage Tesa basic ou Frog Tape. Au devis." },
     { q: "Quel est le temps de sechage avant remise en service ?", r: "Acrylique : 12-24h pour pieton, 7 jours pour mobilier lourd. Glycerophtalique : 48-72h, 7 jours mobilier. A spécifier au devis." },
   ],
@@ -739,8 +739,8 @@ GUIDES_METIERS.push({
   metier: "serrurier",
   titre: "Comment choisir un bon serrurier (et éviter les arnaques)",
   meta_description: "A2P, dépannage, devis légal : critères pour choisir un serrurier fiable et éviter les arnaques. Drapeaux rouges et 4 questions a poser.",
-  intro: "Le serrurier est le métier le plus arnaque en France. Le scenario classique : porte claquee, panique, premier numero google, surfacturation 1 500 euros pour un demi-tour de cle. Voici comment ne pas se faire avoir.",
-  enjeu: "La DGCCRF traité des centaines de plaintes serruriers par an. Tarifs nuit gonfles, fausse 'serrure haute securite' a 3 000 euros, refus d'attestation. Connaitre ses droits avant l'urgence est imperatif.",
+  intro: "Le serrurier est le métier le plus arnaque en France. Le scenario classique : porte claquee, panique, premier numéro google, surfacturation 1 500 euros pour un demi-tour de cle. Voici comment ne pas se faire avoir.",
+  enjeu: "La DGCCRF traité des centaines de plaintes serruriers par an. Tarifs nuit gonfles, fausse 'serrure haute sécurité' a 3 000 euros, refus d'attestation. Connaitre ses droits avant l'urgence est imperatif.",
   criteres: [
     { titre: "Certification A2P pour cylindres et serrures", description: "Norme CNPP qui mesure resistance effraction. A2P 1 etoile = 5 min, 2 etoiles = 10 min, 3 etoiles = 15 min. Decote assurance habitation jusqu'a 15 pourcents avec A2P 3 etoiles.", niveau: "critique" },
     { titre: "Tarifs nuit/dimanche/férié clairement affiches", description: "La majoration légale est limitee a 100 pourcents du tarif jour. Au-dela : abus. L'artisan doit afficher les tarifs avant intervention.", niveau: "critique" },
@@ -757,13 +757,13 @@ GUIDES_METIERS.push({
   ],
   questions_devis: [
     { q: "Pouvez-vous tenter d'abord une manipulation manuelle (slam-pulling) avant de casser ?", r: "Un serrurier serieux y arrive sur 70 pourcents des portes claquees sans clef. Sans tentative : il préféré casser pour facturer plus." },
-    { q: "Quelle est la marque exacte du cylindre proposé, et son niveau A2P ?", r: "Picard, Fichet, Bricard, Vachette. Niveau A2P 1, 2 ou 3 etoiles. Refusez 'cylindre haute securite' sans marque et certification." },
+    { q: "Quelle est la marque exacte du cylindre proposé, et son niveau A2P ?", r: "Picard, Fichet, Bricard, Vachette. Niveau A2P 1, 2 ou 3 etoiles. Refusez 'cylindre haute sécurité' sans marque et certification." },
     { q: "Quelle est la majoration nuit/dimanche/férié applicable ?", r: "Maximum 100 pourcents du tarif jour ouvre (loi). Affichage obligatoire. Au-dela : pratique abusive a denoncer DGCCRF." },
-    { q: "Avez-vous un numero SIRET et une carte professionnelle ?", r: "SIRET vérifiable sur sirene.gouv.fr. Carte CNPP A2P optionnelle mais bon signal qualite. Sans SIRET : faux artisan." },
+    { q: "Avez-vous un numéro SIRET et une carte professionnelle ?", r: "SIRET vérifiable sur sirene.gouv.fr. Carte CNPP A2P optionnelle mais bon signal qualite. Sans SIRET : faux artisan." },
   ],
   cas_concret: {
     titre: "Anatomie d'une intervention serrurier honnete",
-    texte: "Sur la fiche pro Auxerre 89000, le serrurier intervient sur porte claquee dimanche 14h : tentative slam-pulling 15 min reussie. Devis sur place : 180 euros TTC (90 euros forfait dimanche + 90 euros main d'oeuvre 1h max). Paiement CB. Aucune casse. Conseille au client de faire double cle de secours chez voisin. Au comparable, un escroc aurait casse la porte d'emblee et facture 1200 euros pour casse + cylindre 'haute securite' bidon.",
+    texte: "Sur la fiche pro Auxerre 89000, le serrurier intervient sur porte claquee dimanche 14h : tentative slam-pulling 15 min reussie. Devis sur place : 180 euros TTC (90 euros forfait dimanche + 90 euros main d'oeuvre 1h max). Paiement CB. Aucune casse. Conseille au client de faire double cle de secours chez voisin. Au comparable, un escroc aurait casse la porte d'emblee et facture 1200 euros pour casse + cylindre 'haute sécurité' bidon.",
   },
   faq: [
     { q: "Combien coute une intervention serrurier ?", r: "Ouverture porte sans degats : 90 a 350 euros (selon heure). Avec cylindre change : 200 a 500 euros. Porte blindee : 1 500 a 5 500 euros. Voir /tarifs/serrurier/." },
@@ -789,7 +789,7 @@ GUIDES_METIERS.push({
     { titre: "Qualibat 1111 a 1311 pour gros oeuvre", description: "1111 : maçonnerie courante. 1112 : technicite confirmee. 1311 : éléments porteurs maitrises. Verifiable sur qualibat.com.", niveau: "critique" },
     { titre: "Décennale spécifique 'gros oeuvre'", description: "Décennale standard ne suffit pas. Mention 'maçonnerie generale et fondations' au contrat. Pour piscine, citerne, ouvrage particulier : décennale spécifique.", niveau: "critique" },
     { titre: "Beton dose selon NF EN 206-1", description: "Le beton ne se 'fait au pif'. Dosage cimentier selon usage : 250 kg/m3 pour beton de proprete, 350 kg/m3 pour beton arme. Demandez le dosage au devis.", niveau: "critique" },
-    { titre: "Etude d'exécution pour ouvrage > 5 m linea", description: "Pour mur de soutenement, fondation profonde : étude beton arme par bureau d'études. Sans étude : ouvrage sous-dimensionne, fissures garanties.", niveau: "elevee" },
+    { titre: "Étude d'exécution pour ouvrage > 5 m linea", description: "Pour mur de soutenement, fondation profonde : étude beton arme par bureau d'études. Sans étude : ouvrage sous-dimensionne, fissures garanties.", niveau: "elevee" },
     { titre: "Photos d'ouvrages anciens (10+ ans)", description: "Mur monte 10 ans plus tot toujours droit, dalle sans fissures, beton imprime intact : signal qualite.", niveau: "utile" },
   ],
   drapeaux_rouges: [
@@ -843,7 +843,7 @@ GUIDES_METIERS.push({
     "Vente intempestive de produits 'phytosanitaires speciaux' , souvent simples désherbants gonflés.",
   ],
   questions_devis: [
-    { q: "Etes-vous déclarés au registre SAP, et éligibles credit d'impot 50 pourcents ?", r: "Oui : numero SAP fournit a la signature, attestation de credit d'impot envoyee fin de chaque trimestre. Sans : pas déclarées." },
+    { q: "Etes-vous déclarés au registre SAP, et éligibles credit d'impot 50 pourcents ?", r: "Oui : numéro SAP fournit a la signature, attestation de credit d'impot envoyee fin de chaque trimestre. Sans : pas déclarées." },
     { q: "Pour traitement chimique, avez-vous le Certiphyto ?", r: "Si oui : référence du certificat. Si non : refusez l'intervention chimique, demandez alternatives bio (paillage, eau bouillante, vinaigre)." },
     { q: "Combien de visites par mois, et duree par visite ?", r: "Forfait mensuel : 3-4 visites. Heures par visite : 2-4. Materiel apporte. Heures supplementaires facturees au tarif horaire (40-70 euros)." },
     { q: "Que faites-vous des dechets verts ?", r: "Compostage sur place (gratuit) ou evacuation dechetterie (payante). Au devis. Pas d'evacuation en bord de route (illégal)." },
@@ -872,7 +872,7 @@ GUIDES_METIERS.push({
   intro: "La climatisation reversible chauffe ET rafraichit, et coute moitie moins en électricité qu'un convecteur. Mais entre un installateur improvise et un climaticien qualifie, l'écart de durabilité est de 5 a 15 ans. Voici la grille editoriale.",
   enjeu: "Le marché climatisation explose en France (10 pourcents du parc, +40 pourcents en 5 ans). Les fluides frigorigenes sont reglementes (F-Gaz). Sans certification F-Gaz, l'artisan ne peut légalement manipuler les unites. Et la décennale ne couvre pas une installation illégale.",
   criteres: [
-    { titre: "Certification F-Gaz Categorie 1", description: "Obligatoire pour manipuler tous fluides (R32, R410A, R22 retiré). Categorie 1 = manipulation libre, 2 = sous contrôle, 3 = nettoyage uniquement. Sans Cat 1 : pose illégale.", niveau: "critique" },
+    { titre: "Certification F-Gaz Catégorie 1", description: "Obligatoire pour manipuler tous fluides (R32, R410A, R22 retiré). Catégorie 1 = manipulation libre, 2 = sous contrôle, 3 = nettoyage uniquement. Sans Cat 1 : pose illégale.", niveau: "critique" },
     { titre: "RGE QualiPAC pour aides MaPrimeRenov'", description: "Pas pour la clim seule (plus éligible MaPrimeRenov' depuis 2022) mais pour les climatiseurs reversibles a haute performance pour CEE Coup de Pouce 50-200 euros si remplacement chaudiere.", niveau: "elevee" },
     { titre: "Bilan thermique avant dimensionnement", description: "Une clim surdimensionnee gaspille 30 pourcents d'énergie. Le climaticien doit dimensionner au m3 a refroidir + isolation. Sans bilan : erreur garantie.", niveau: "elevee" },
     { titre: "Décennale spécifique climatisation", description: "Décennale standard plus mention 'fluides frigorigenes'. Sans : refus de garantie en cas de fuite fluide.", niveau: "critique" },
@@ -886,7 +886,7 @@ GUIDES_METIERS.push({
     "Tarifs TTC bas pour multi-split avec marque inconnue , installation low cost SAV inexistant.",
   ],
   questions_devis: [
-    { q: "Quelle est votre certification F-Gaz, et son numero ?", r: "Cat 1 obligatoire. Numero vérifiable sur ademe.fr/manipulation-fluides. Refusez sans certificat." },
+    { q: "Quelle est votre certification F-Gaz, et son numéro ?", r: "Cat 1 obligatoire. Numéro vérifiable sur ademe.fr/manipulation-fluides. Refusez sans certificat." },
     { q: "Quel fluide frigorigene est utilise dans le climatiseur proposé ?", r: "R32 (faible PRG, en cours) recommande. R410A : sortie progressive, plus cher a recharger. R22 : interdit depuis 2010, refusez absolument." },
     { q: "Avez-vous fait un bilan thermique avant ce devis ?", r: "Méthode 3CL ou estimation 30-50 W/m2 isole, 60-80 W/m2 mal isole. Pour 70 m2 isolation moyenne : 4-5 kW max. Refusez surdimensionnement." },
     { q: "Quel est le niveau sonore en dB(A) de l'unite extérieure proposée ?", r: "Daikin Comfora 35 dB(A) chuchote, Mitsubishi MSZ-AP 40 dB(A) discret, Atlantic 45-50 dB(A) audible. Règlement bruit voisin : moins de 40 dB(A) recommande." },
@@ -999,7 +999,7 @@ GUIDES_METIERS.push({
   titre: "Comment choisir un bon artisan multiservices",
   meta_description: "RC pro, SIRET 43.39Z, devis ecrit : critères pour choisir un artisan multiservices fiable (homme toutes mains) et eviter les arnaques. Guide editorial 2026.",
   intro: "L'artisan multiservices, ou homme toutes mains, intervient sur les petits travaux du quotidien : montage de meuble, fixation murale, retouche peinture, ajustement de porte, pose d'etagere. C'est le bon choix pour les chantiers que ne prendraient pas un specialiste, mais c'est aussi le métier le moins encadre par la reglementation BTP. La rigueur du tri est donc primordiale.",
-  enjeu: "Le code NAF 43.39Z 'Autres travaux de finition' couvre une palette large : plâtrerie, plaques de plâtre, enduits, nettoyage chantier, finitions diverses, et les artisans polyvalents handymen. Plus de 6 000 entreprises sont declarees sous ce code en France. Faute d'encadrement specifique, la qualite varie de l'excellent au catastrophique. Bien choisir son artisan multiservices, c'est verifier les fondamentaux : SIRET actif, RC pro, devis ecrit, et perimetre d'intervention coherent avec la realite du marché.",
+  enjeu: "Le code NAF 43.39Z 'Autres travaux de finition' couvre une palette large : plâtrerie, plaques de plâtre, enduits, nettoyage chantier, finitions diverses, et les artisans polyvalents handymen. Plus de 6 000 entreprises sont declarees sous ce code en France. Faute d'encadrement spécifique, la qualité varie de l'excellent au catastrophique. Bien choisir son artisan multiservices, c'est verifier les fondamentaux : SIRET actif, RC pro, devis ecrit, et perimetre d'intervention coherent avec la realite du marché.",
   criteres: [
     {
       titre: "SIRET actif et code NAF coherent",
@@ -1034,7 +1034,7 @@ GUIDES_METIERS.push({
   ],
   drapeaux_rouges: [
     "Refus de fournir l'attestation RC pro datée de moins de 12 mois , illegal et risque non couvert.",
-    "Annonce 'tous travaux' incluant electricite, plomberie ou gaz sans habilitations specifiques , concurrence deloyale et danger.",
+    "Annonce 'tous travaux' incluant electricite, plomberie ou gaz sans habilitations spécifiques , concurrence deloyale et danger.",
     "Tarif horaire sous 25 euros TTC , artisan probablement non declare ou en perte (qualite degradee garantie).",
     "Demande paiement integral en especes sans facture , travail dissimule, vous etes complice.",
     "Devis verbal pour intervention superieure a 100 euros TTC , illegal.",
@@ -1060,7 +1060,7 @@ GUIDES_METIERS.push({
     },
     {
       q: "Avez-vous 2 ou 3 clients récents que je peux contacter pour reference ?",
-      r: "Un pro avec plus de 1 an d'activité doit pouvoir fournir 2 a 3 references avec accord client. 'Mme Dupont 26100 Romans, son numero avec son accord.' Pas de reference apres 1 an d'activité : signal alerte.",
+      r: "Un pro avec plus de 1 an d'activité doit pouvoir fournir 2 a 3 references avec accord client. 'Mme Dupont 26100 Romans, son numéro avec son accord.' Pas de reference apres 1 an d'activité : signal alerte.",
     },
   ],
   cas_concret: {
@@ -1070,7 +1070,7 @@ GUIDES_METIERS.push({
   faq: [
     {
       q: "Quelle difference entre un artisan multiservices et une entreprise specialisée ?",
-      r: "Le multiservices est polyvalent sur les petits travaux. Un specialiste (plombier, electricien, peintre, menuisier) a une formation et des habilitations specifiques, et facture plus cher mais pour des gros chantiers. Regle simple : moins de 4 h par tache et sans habilitation specifique > multiservices. Plus de 4 h ou tache reglementee > specialiste.",
+      r: "Le multiservices est polyvalent sur les petits travaux. Un specialiste (plombier, electricien, peintre, menuisier) a une formation et des habilitations spécifiques, et facture plus cher mais pour des gros chantiers. Regle simple : moins de 4 h par tache et sans habilitation spécifique > multiservices. Plus de 4 h ou tache reglementee > specialiste.",
     },
     {
       q: "Pourquoi le code NAF 43.39Z peut etre trompeur ?",

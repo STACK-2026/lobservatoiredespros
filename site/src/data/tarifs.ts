@@ -470,7 +470,7 @@ export const TARIFS: Tarif[] = [
   {
     slug: "porte-entree-securite",
     metier: "menuisier",
-    nom: "Porte d'entrée de securite",
+    nom: "Porte d'entrée de sécurité",
     accroche: "Bois, alu ou acier : la difference se joue sur les points de fermeture (3, 5 ou 7 points).",
     prix_min: 1200,
     prix_max: 4500,
@@ -642,7 +642,7 @@ export const TARIFS: Tarif[] = [
     inclus: "tout-compris",
     facteurs: [
       "Surface a isoler",
-      "Epaisseur necessaire (R minimum 6 pour aides)",
+      "Epaisseur nécessaire (R minimum 6 pour aides)",
       "Pare-vapeur et finition placo",
       "Contre-cloison eventuelle si grande hauteur",
     ],
@@ -735,7 +735,7 @@ export const TARIFS: Tarif[] = [
     slug: "entretien-chaudiere-annuel",
     metier: "chauffagiste",
     nom: "Entretien annuel chaudiere",
-    accroche: "Obligatoire pour les gaz et fioul : contrôle securite + nettoyage + attestation.",
+    accroche: "Obligatoire pour les gaz et fioul : contrôle sécurité + nettoyage + attestation.",
     prix_min: 80,
     prix_max: 200,
     unite: "annee",
@@ -1255,7 +1255,7 @@ export const TARIFS: Tarif[] = [
     faq: [
       { q: "Faut-il forcement appeler ?", r: "Tester d'abord : un voisin avec passe peut souvent ouvrir. Sinon serrurier uniquement officielle." },
       { q: "Quels recours en cas de surfacturation ?", r: "Saisir DGCCRF (signalconso.fr) et Banque de France si paiement carte." },
-      { q: "Quel risque sans certificat A2P ?", r: "Beaucoup de serrures \"securite\" non certifiées A2P se font crocheter en moins de 3 minutes." },
+      { q: "Quel risque sans certificat A2P ?", r: "Beaucoup de serrures \"sécurité\" non certifiées A2P se font crocheter en moins de 3 minutes." },
     ],
     source: { label: "DGCCRF arnaques serruriers", url: "https://www.economie.gouv.fr/dgccrf/Publications" },
   },
@@ -1334,7 +1334,7 @@ export const TARIFS: Tarif[] = [
     inclus: "tout-compris",
     facteurs: [
       "Volume et poids du coffre (10 a 200 litres)",
-      "Niveau de securite (Niveau 0 a 6, NF EN 1143-1)",
+      "Niveau de sécurité (Niveau 0 a 6, NF EN 1143-1)",
       "Type d'installation (a sceller, encastre, mural)",
       "Ouverture : cle, code, biometrie",
     ],
@@ -1381,7 +1381,7 @@ export const TARIFS: Tarif[] = [
     ],
     economies: [
       "Acheter le parpaing en gros au depot (Point P, Bigmat) plutot qu'en grande surface",
-      "Reserver le chainage uniquement au necessaire (norme NF DTU 20.1)",
+      "Reserver le chainage uniquement au nécessaire (norme NF DTU 20.1)",
       "Eviter les arrondis et angles fantaisistes (sur-cout important)",
     ],
     faq: [
@@ -1550,7 +1550,7 @@ export const TARIFS: Tarif[] = [
     ],
     faq: [
       { q: "Faut-il une autorisation ?", r: "Arbre remarquable (PLU) ou en bordure de voie publique : oui. Sinon non." },
-      { q: "Periode pour elaguer ?", r: "Hors floraison, hors montee de seve. Octobre a fevrier ideal." },
+      { q: "Periode pour elaguer ?", r: "Hors floraison, hors montee de seve. Octobre a février ideal." },
       { q: "Risque pour les voisins ?", r: "Responsabilite civile artisan obligatoire. Vérifier attestation avant intervention." },
     ],
     source: { label: "ONF guide elagage", url: "https://www.onf.fr/" },
@@ -1599,7 +1599,7 @@ export const TARIFS: Tarif[] = [
     facteurs: [
       "Surface (rabais des plus de 100 m2)",
       "Travaux de preparation (decompactage, terre vegetale)",
-      "Qualite du gazon (ornement, sport, ombre)",
+      "Qualité du gazon (ornement, sport, ombre)",
       "Reseau d'arrosage automatique en option",
     ],
     variantes: [
@@ -1614,7 +1614,7 @@ export const TARIFS: Tarif[] = [
     ],
     faq: [
       { q: "Combien de temps avant utilisation ?", r: "2 a 3 semaines pour bien s'enraciner, éviter pietinement intense les 6 premieres semaines." },
-      { q: "Arrosage necessaire ?", r: "Quotidien les 15 premiers jours, puis 2 fois/semaine en été pendant la 1re année." },
+      { q: "Arrosage nécessaire ?", r: "Quotidien les 15 premiers jours, puis 2 fois/semaine en été pendant la 1re année." },
       { q: "Garantie sur la pelouse ?", r: "Reprise garantie 6 mois si arrosage suivi. Au-dela : entretien client uniquement." },
     ],
     source: { label: "INRAE pelouses gazons recherches", url: "https://www.inrae.fr/" },
@@ -1649,7 +1649,7 @@ export const TARIFS: Tarif[] = [
       "Reversibilite incluse : peu de surcout mais economique en chauffage occasionnel",
     ],
     faq: [
-      { q: "Faut-il un certificat fluides ?", r: "Oui pour l'artisan : Categorie 1 manipulation R32 (norme F-Gaz)." },
+      { q: "Faut-il un certificat fluides ?", r: "Oui pour l'artisan : Catégorie 1 manipulation R32 (norme F-Gaz)." },
       { q: "Bruit de l'unite extérieure ?", r: "35 a 50 dB(A). Règlement copropriete et arrete prefectoral bruit a vérifier." },
       { q: "Combien de temps de pose ?", r: "Une journee complète pour mono-split standard." },
     ],
@@ -2076,7 +2076,7 @@ export const TARIFS: Tarif[] = [
     ],
     economies: [
       "Lister precisement les taches a faire avant de commander (eviter le temps perdu en redefinition)",
-      "Acheter et avoir sur place le materiel necessaire (visserie, chevilles, joints, peinture)",
+      "Acheter et avoir sur place le materiel nécessaire (visserie, chevilles, joints, peinture)",
       "Eviter les chantiers le vendredi apres-midi (artisan presse de finir)",
     ],
     faq: [
@@ -2140,7 +2140,7 @@ export const TARIFS: Tarif[] = [
     ],
     economies: [
       "Préparer la surface (depoussierer, vider la pièce) avant arrivee artisan",
-      "Acheter materiel finition de qualite moyenne (les marques premium sont surcoteees pour ces usages)",
+      "Acheter materiel finition de qualité moyenne (les marques premium sont surcoteees pour ces usages)",
       "Demander un forfait plutot qu'un tarif horaire si plus de 3 heures previsibles",
     ],
     faq: [

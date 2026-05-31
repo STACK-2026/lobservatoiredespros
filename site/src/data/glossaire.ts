@@ -20,7 +20,7 @@ export const glossaire: TermeGlossaire[] = [
     acronyme: "Reconnu Garant de l'Environnement",
     definition: "Mention officielle attribuee par l'État aux professionnels du batiment qualifies en renovation energetique.",
     developpement:
-      "Obligatoire pour que les travaux soient eligibles aux aides publiques : MaPrimeRenov', TVA reduite a 5.5%, eco-pret a taux zero, Certificats d'Economie d'Energie (CEE). Delivree par des organismes certificateurs agrees (Qualibat, Qualifelec, Qualit'EnR, Cequami). Verifiable sur france-renov.gouv.fr.",
+      "Obligatoire pour que les travaux soient eligibles aux aides publiques : MaPrimeRenov', TVA réduite a 5.5%, eco-pret a taux zero, Certificats d'Economie d'Énergie (CEE). Delivree par des organismes certificateurs agrees (Qualibat, Qualifelec, Qualit'EnR, Cequami). Verifiable sur france-renov.gouv.fr.",
     source: { label: "France Renov", url: "https://france-renov.gouv.fr/annuaire-rge" },
     categorie: "certification",
     voirAussi: ["qualibat", "maprimerenov", "cee"],
@@ -38,7 +38,7 @@ export const glossaire: TermeGlossaire[] = [
   {
     terme: "Sirene",
     slug: "sirene",
-    acronyme: "Systeme Informatise du Repertoire National des Entreprises et des Etablissements",
+    acronyme: "Système Informatise du Repertoire National des Entreprises et des Etablissements",
     definition: "Repertoire officiel de l'INSEE qui recense toutes les entreprises françaises.",
     developpement:
       "Chaque entreprise recoit un SIREN (9 chiffres, identifiant juridique) et chaque etablissement un SIRET (14 chiffres = SIREN + 5 chiffres). Les données Sirene sont publiques et gratuites, consultables via recherche-entreprises.api.gouv.fr. L'Observatoire utilise Sirene comme source de verite pour l'anciennete et l'etat administratif des entreprises.",
@@ -49,7 +49,7 @@ export const glossaire: TermeGlossaire[] = [
   {
     terme: "SIRET",
     slug: "siret",
-    definition: "Numero a 14 chiffres qui identifie de maniere unique un etablissement d'entreprise en France.",
+    definition: "Numéro a 14 chiffres qui identifie de maniere unique un etablissement d'entreprise en France.",
     developpement:
       "Compose du SIREN (9 chiffres, entreprise juridique) + 5 chiffres identifiant l'etablissement (NIC). Un artisan installe peut avoir plusieurs SIRET si il opere depuis plusieurs lieux. L'etat administratif peut etre A (actif) ou C (cesse) , seules les entreprises actives figurent dans nos classements.",
     categorie: "juridique",
@@ -68,9 +68,9 @@ export const glossaire: TermeGlossaire[] = [
   {
     terme: "MaPrimeRenov'",
     slug: "maprimerenov",
-    definition: "Aide de l'État versee aux particuliers pour financer des travaux de renovation energetique de leur logement principal.",
+    definition: "Aide de l'État versee aux particuliers pour financer des travaux de renovation énergétique de leur logement principal.",
     developpement:
-      "Lancee en 2020, elle remplace le Credit d'Impot Transition Energetique (CITE) et le programme Habiter Mieux Agilite. Montant module selon les revenus du foyer et la nature des travaux (isolation, chauffage, ventilation, audit energetique). Accessible uniquement via un professionnel RGE. Paiement au prestataire sur presentation de la facture.",
+      "Lancee en 2020, elle remplace le Credit d'Impot Transition Énergétique (CITE) et le programme Habiter Mieux Agilite. Montant module selon les revenus du foyer et la nature des travaux (isolation, chauffage, ventilation, audit énergétique). Accessible uniquement via un professionnel RGE. Paiement au prestataire sur presentation de la facture.",
     source: { label: "ANAH , MaPrimeRenov", url: "https://www.maprimerenov.gouv.fr" },
     categorie: "financement",
     voirAussi: ["rge", "cee", "eco-ptz"],
@@ -79,9 +79,9 @@ export const glossaire: TermeGlossaire[] = [
     terme: "CEE",
     slug: "cee",
     acronyme: "Certificat d'Economie d'Energie",
-    definition: "Dispositif qui oblige les fournisseurs d'energie (EDF, Engie, Total Energies) a financer des travaux d'economie d'energie chez leurs clients.",
+    definition: "Dispositif qui oblige les fournisseurs d'énergie (EDF, Engie, Total Energies) a financer des travaux d'economie d'énergie chez leurs clients.",
     developpement:
-      "Les CEE sont cumulables avec MaPrimeRenov'. Pris en charge directement par le fournisseur d'energie, ils deduisent le montant du devis du particulier. Les artisans RGE peuvent y orienter leurs clients. Les montants varient selon la nature des travaux et la zone climatique.",
+      "Les CEE sont cumulables avec MaPrimeRenov'. Pris en charge directement par le fournisseur d'énergie, ils deduisent le montant du devis du particulier. Les artisans RGE peuvent y orienter leurs clients. Les montants varient selon la nature des travaux et la zone climatique.",
     categorie: "financement",
     voirAussi: ["maprimerenov", "rge"],
   },
@@ -89,7 +89,7 @@ export const glossaire: TermeGlossaire[] = [
     terme: "Eco-PTZ",
     slug: "eco-ptz",
     acronyme: "Eco-Pret a Taux Zero",
-    definition: "Pret bancaire finance par l'État pour financer les travaux de renovation energetique, sans interets ni frais.",
+    definition: "Pret bancaire finance par l'État pour financer les travaux de renovation énergétique, sans interets ni frais.",
     developpement:
       "Jusqu'a 50 000 euros remboursables sur 20 ans maximum. Cumulable avec MaPrimeRenov' et les CEE. Accessible sans conditions de ressources pour le logement principal. L'entreprise doit etre RGE sauf pour un logement copropriete déjà certifié.",
     categorie: "financement",
@@ -100,7 +100,7 @@ export const glossaire: TermeGlossaire[] = [
     acronyme: "Direction Generale de la Concurrence, de la Consommation et de la Repression des Fraudes",
     definition: "Service de l'État charge de veiller a la protection des consommateurs.",
     developpement:
-      "La DGCCRF enquete sur les pratiques commerciales trompeuses, les arnaques a la renovation energetique, les demarchages abusifs. Elle publié chaque annee un rapport avec les secteurs les plus signalés. L'Observatoire consulte les signalements publics DGCCRF lors de l'examen des dossiers Laureats.",
+      "La DGCCRF enquete sur les pratiques commerciales trompeuses, les arnaques a la renovation énergétique, les demarchages abusifs. Elle publié chaque année un rapport avec les secteurs les plus signalés. L'Observatoire consulte les signalements publics DGCCRF lors de l'examen des dossiers Laureats.",
     source: { label: "DGCCRF", url: "https://www.economie.gouv.fr/dgccrf" },
     categorie: "juridique",
   },
@@ -134,7 +134,7 @@ export const glossaire: TermeGlossaire[] = [
     terme: "Pompe a chaleur",
     slug: "pompe-a-chaleur",
     acronyme: "PAC",
-    definition: "Systeme de chauffage qui extrait les calories de l'air, de l'eau ou du sol pour les restituer dans un logement.",
+    definition: "Système de chauffage qui extrait les calories de l'air, de l'eau ou du sol pour les restituer dans un logement.",
     developpement:
       "Trois types : air-eau (la plus installee en renovation), air-air (sans eau chaude sanitaire), geothermique (sol-eau, performante mais couteuse). Rendement mesure par le COP (Coefficient de Performance). Eligible MaPrimeRenov' si installee par un professionnel RGE Qualibat ou Qualit'EnR.",
     categorie: "technique",
