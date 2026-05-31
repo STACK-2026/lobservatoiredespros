@@ -159,7 +159,7 @@ export const siteConfig = {
     {
       title: "Observer",
       description:
-        "Notre rédaction cartographie le marché des artisans français à partir des données officielles Sirene, RGE, Qualibat, Google. 47 382 professionnels sont actuellement sous observation.",
+        "Notre rédaction cartographie le marché des artisans français à partir des données officielles Sirene, RGE, Qualibat, Google.",
       icon: "eye",
     },
     {
