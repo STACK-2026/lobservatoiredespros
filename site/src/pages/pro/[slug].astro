@@ -79,19 +79,32 @@ export async function getStaticPaths() {
   // du IN clause ; on batche par 500 pro_ids).
   const proIds = pros.map((p) => p.id);
   const eventsByPro: Record<string, any[]> = {};
-  const chunkIn = 500;
+  // chunkIn must stay small : IN(500) distinct pro_ids builds an ~18KB URL that
+  // PostgREST rejects (HTTP 500 / "fetch failed"), which silently emptied every
+  // BODACC timeline at national scale. IN(100) (~3.8KB) is safe; retry below
+  // covers any residual transient drop.
+  const chunkIn = 100;
   for (let i = 0; i < proIds.length; i += chunkIn) {
     const batch = proIds.slice(i, i + chunkIn);
     if (batch.length === 0) continue;
     for (let start = 0; ; start += page) {
-      const { data: allEvents, error } = await supabase
-        .from("pro_evenements_legaux")
-        .select("pro_id, type_evenement, nature_precise, date_parution, tribunal, description")
-        .in("pro_id", batch)
-        .order("date_parution", { ascending: false })
-        .range(start, start + page - 1);
+      // Retry on transient "fetch failed" (Supabase connection drops / rate-limit
+      // bursts during the concurrent national build : ~32 chunks were silently
+      // emptying the BODACC timelines without this guard).
+      let allEvents: any[] | null = null;
+      let error: any = null;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        ({ data: allEvents, error } = await supabase
+          .from("pro_evenements_legaux")
+          .select("pro_id, type_evenement, nature_precise, date_parution, tribunal, description")
+          .in("pro_id", batch)
+          .order("date_parution", { ascending: false })
+          .range(start, start + page - 1));
+        if (!error) break;
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+      }
       if (error) {
-        console.error("pro/[slug] events fetch error", error);
+        console.error("pro/[slug] events fetch error (after retries)", error);
         break;
       }
       if (!allEvents || allEvents.length === 0) break;
