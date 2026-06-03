@@ -212,11 +212,16 @@ def main():
     print(f"  keep (vrai plaquiste)  : {len(buckets['keep'])}")
     print(f"\nEcrit dans {args.outdir}/triage_naf4339z_*.csv|.json")
 
-    if args.apply and apply_rows:
-        n = apply_reclassification(apply_rows, args.service_key)
-        print(f"\n[APPLY] {n} fiches reclassees en base (idempotent).")
-    elif args.apply:
-        print("\n[APPLY] rien a reclasser (0 cas confiant).")
+    if args.apply:
+        # Self-heal complet : metiers specifiques (confiant) + handyman (multiservices).
+        # Couvre tout ce qu'un ré-import 43.39Z pourrait re-tagger plaquiste a tort.
+        to_apply = apply_rows + buckets["multiservices"]
+        if to_apply:
+            n = apply_reclassification(to_apply, args.service_key)
+            print(f"\n[APPLY] {n} fiches reclassees en base (idempotent) "
+                  f"[{len(apply_rows)} metier dedie + {len(buckets['multiservices'])} multiservices].")
+        else:
+            print("\n[APPLY] rien a reclasser.")
 
 
 def apply_reclassification(apply_rows, key):
