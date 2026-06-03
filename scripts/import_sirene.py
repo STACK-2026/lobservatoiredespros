@@ -29,6 +29,7 @@ import csv
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import unicodedata
@@ -581,6 +582,25 @@ def resolve_metier_targets(args):
     return []
 
 
+def self_heal_naf4339z(service_key):
+    """Post-import : reclasse les fiches NAF 43.39Z (fourre-tout) dont la denomination
+    nomme un autre metier reglemente. Le mapping 1:1 43.39Z->plaquiste de l'import re-tag
+    ces pros plaquiste a chaque passage ; ce garde-fou auto-repare juste apres (idempotent).
+    Cf. scripts/triage_naf4339z.py + memoire feedback-naf-4339z-fourre-tout."""
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "triage_naf4339z.py")
+    log("Self-heal NAF 43.39Z (triage_naf4339z.py --apply)...")
+    env = dict(os.environ, SUPABASE_SERVICE_ROLE_KEY=service_key)
+    try:
+        out = subprocess.run([sys.executable, script, "--apply"], env=env,
+                             capture_output=True, text=True, timeout=600)
+        tail = (out.stdout or "").strip().splitlines()[-1:] or [""]
+        log(f"  {tail[0]}")
+        if out.returncode != 0:
+            log(f"  self-heal WARN rc={out.returncode}: {(out.stderr or '')[-300:]}", "WARN")
+    except Exception as e:
+        log(f"  self-heal ERREUR (non bloquant): {e}", "WARN")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.strip().split("\n\n")[0])
     # Selection metier
@@ -629,6 +649,11 @@ def main():
                 log(f"ERREUR combo {m_key}/{d_code} : {e}", "ERROR")
     log("=" * 72)
     log(f"TOTAL : {total:,} pros ({len(metiers)} metiers x {len(depts)} depts)")
+
+    # Garde-fou auto-reparant : un import du metier plaquiste (NAF 43.39Z fourre-tout)
+    # re-tag plaquiste des artisans d'un autre metier -> reclasser juste apres.
+    if args.insert and "plaquiste" in metiers:
+        self_heal_naf4339z(get_supabase_service_key())
 
 
 if __name__ == "__main__":

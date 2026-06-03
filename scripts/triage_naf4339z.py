@@ -89,6 +89,22 @@ def http_get(path: str, key: str):
         return json.load(r)
 
 
+def http_req(method: str, path: str, key: str, body=None, prefer=None):
+    """POST/PATCH/DELETE PostgREST. Retourne le corps (souvent vide)."""
+    headers = {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+    if prefer:
+        headers["Prefer"] = prefer
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(f"{SUPABASE_URL}/{path}", data=data, headers=headers, method=method)
+    with urllib.request.urlopen(req, timeout=60) as r:
+        raw = r.read()
+        return json.loads(raw) if raw else None
+
+
 def fetch_all_plaquiste(key: str):
     """Pagine tous les pros tagges plaquiste."""
     pros, offset, page, seen = [], 0, 1000, set()
@@ -133,8 +149,12 @@ def classify(nom: str):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--service-key", default=os.environ.get("SUPABASE_SERVICE_ROLE_KEY"))
+    ap.add_argument("--service-key", default=os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+                    or os.environ.get("SUPABASE_SERVICE_KEY"))
     ap.add_argument("--outdir", default="exports")
+    ap.add_argument("--apply", action="store_true",
+                    help="Reclasse REELLEMENT en base (idempotent) : insert metier cible, "
+                         "set pros.code_naf='43.39Z', delete lien plaquiste. Sinon rapport seul.")
     args = ap.parse_args()
     if not args.service_key:
         sys.exit("ERROR: set SUPABASE_SERVICE_ROLE_KEY or --service-key")
@@ -191,6 +211,36 @@ def main():
     print(f"  multiservices (hors-scope rapport) : {len(buckets['multiservices'])}")
     print(f"  keep (vrai plaquiste)  : {len(buckets['keep'])}")
     print(f"\nEcrit dans {args.outdir}/triage_naf4339z_*.csv|.json")
+
+    if args.apply and apply_rows:
+        n = apply_reclassification(apply_rows, args.service_key)
+        print(f"\n[APPLY] {n} fiches reclassees en base (idempotent).")
+    elif args.apply:
+        print("\n[APPLY] rien a reclasser (0 cas confiant).")
+
+
+def apply_reclassification(apply_rows, key):
+    """Reclasse REELLEMENT en base, idempotent. Pour chaque pro confiant :
+    1. INSERT lien metier cible (merge-duplicates), 2. SET pros.code_naf='43.39Z',
+    3. DELETE lien plaquiste. Ordre insert-avant-delete = jamais de fiche sans metier.
+    Reutilisable en post-import (import_sirene.py) pour auto-reparer les 43.39Z."""
+    done = 0
+    for r in apply_rows:
+        pid, target = r["pro_id"], r["proposed_metier_id"]
+        if not target:
+            continue
+        # 1. lien metier cible (idempotent)
+        http_req("POST", "pro_metiers", key,
+                 body={"pro_id": pid, "metier_id": target},
+                 prefer="resolution=merge-duplicates,return=minimal")
+        # 2. vrai NAF INSEE decouple du metier
+        http_req("PATCH", f"pros?id=eq.{pid}", key,
+                 body={"code_naf": "43.39Z"}, prefer="return=minimal")
+        # 3. retire l ancien lien plaquiste
+        http_req("DELETE", f"pro_metiers?pro_id=eq.{pid}&metier_id=eq.{PLAQUISTE_METIER_ID}",
+                 key, prefer="return=minimal")
+        done += 1
+    return done
 
 
 if __name__ == "__main__":
