@@ -57,7 +57,7 @@ export async function getStaticPaths() {
   for (let start = 0; ; start += page) {
     const { data, error } = await supabase
       .from("pros")
-      .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance, opening_hours, ca, resultat_net, marge_brute, annee_bilan, categorie_entreprise, tranche_effectif, dirigeants_count, dirigeants_json, est_qualiopi")
+      .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance, opening_hours, ca, resultat_net, marge_brute, annee_bilan, categorie_entreprise, tranche_effectif, dirigeants_count, dirigeants_json, est_qualiopi, code_naf")
       .eq("active", true)
       .not("slug", "is", null)
       .order("id")
@@ -185,6 +185,10 @@ const metierSlug = metierLink?.slug || null;
 const metierNom = metierLink?.nom || "Professionnel";
 const metierNomPluriel = metierLink?.nom_pluriel || "Professionnels";
 const metierNaf = metierLink?.code_naf || "";
+// NAF affiche = vrai NAF INSEE du pro en priorite (decouple du metier de navigation).
+// Une fiche reclassee (ex. serrurier sous NAF 43.39Z) affiche son vrai NAF, pas celui
+// du metier. metierNaf reste utilise pour le TYPE Schema.org (schemaTypeForNaf).
+const proNaf = p.code_naf || metierNaf;
 
 const deptSlug = zoneLink?.slug || "";
 const deptNom = zoneLink?.nom || p.ville || "";
@@ -268,7 +272,7 @@ function generateVerdictText(): string {
 const richDescription = generateVerdictText();
 
 const region = deptCode ? REGION_BY_DEPT_CODE[deptCode] : undefined;
-const fullDescription = richDescription + ` ${metierNom} à ${p.ville} (${deptCode}). Inscrit au registre Sirene de l'INSEE, code NAF ${metierNaf}.`;
+const fullDescription = richDescription + ` ${metierNom} à ${p.ville} (${deptCode}). Inscrit au registre Sirene de l'INSEE, code NAF ${proNaf}.`;
 
 const businessSchema = jsonLdLocalBusiness({
   name: p.nom_entreprise,
@@ -278,7 +282,7 @@ const businessSchema = jsonLdLocalBusiness({
   email: p.email || undefined,
   url_web: p.site_web || undefined,
   openingHours: sanitizeDashes(p.opening_hours) || undefined,
-  naf: metierNaf,
+  naf: proNaf,
   address: {
     streetAddress: p.adresse || undefined,
     addressLocality: p.ville || undefined,
@@ -402,7 +406,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
             <InfoPill
               variant="neutral"
               label="Code NAF"
-              value={metierNaf || "-"}
+              value={proNaf || "-"}
               glossaireSlug="naf"
             />
             {p.rge && (
@@ -518,7 +522,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
             )}
 
             <dt>Code <GlossaireTerm slug="naf">NAF</GlossaireTerm></dt>
-            <dd class="mono">{metierNaf}</dd>
+            <dd class="mono">{proNaf}</dd>
 
             <dt>Activité déclarée</dt>
             <dd>{metierNom}</dd>
@@ -705,7 +709,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
               <p class="ant-action-label">Immatriculation</p>
               <p class="ant-action">
                 Entrée au registre Sirene sous SIRET <span class="mono">{p.siret}</span>,
-                code NAF <span class="mono">{metierNaf}</span>. Adresse déclarée {p.ville || "dans le département"}.
+                code NAF <span class="mono">{proNaf}</span>. Adresse déclarée {p.ville || "dans le département"}.
               </p>
               <p class="ant-source folio">Source · INSEE</p>
             </div>
@@ -789,7 +793,7 @@ if (p.score_confiance && p.score_confiance >= 6) {
         siret={p.siret}
         siren={p.siren}
         ancienneteAnnees={anciennete}
-        nafCode={metierNaf}
+        nafCode={proNaf}
         adresse={p.adresse}
         ville={p.ville}
         rge={p.rge}

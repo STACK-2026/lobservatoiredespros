@@ -49,6 +49,7 @@ interface ProRow {
   etat_administratif: string | null;
   avis_nombre?: number;
   avis_moyen?: number | null;
+  code_naf?: string | null;  // vrai NAF INSEE du pro (source de verite affichage), decouple du metier
   pro_metiers?: { metier_id: string; metiers: { id: string; slug: string; nom: string; nom_pluriel: string; code_naf: string | null } | null }[];
   pro_zones?: { zone_id: string; zones: { id: string; slug: string; nom: string; code: string | null; type: string } | null }[];
 }
@@ -207,7 +208,10 @@ function buildContext(pro: ProRow, pageUrl: string): JsonLdContext {
   parts.push(pro.siret ? "SIRET actif INSEE confirmé" : "SIRET à confirmer");
   const richDescription = parts.join(", ") + ".";
   const metierNom = metierLink?.nom || "Professionnel";
-  const fullDescription = `${richDescription} ${metierNom} à ${pro.ville || "-"} (${deptCode}). Inscrit au registre Sirene de l'INSEE${metierLink?.code_naf ? `, code NAF ${metierLink.code_naf}` : ""}.`;
+  // NAF affiche = vrai NAF INSEE du pro en priorite (decouple du metier de navigation).
+  // Evite d'afficher un faux NAF metier sur une fiche reclassee (ex. serrurier sous 43.39Z).
+  const displayNaf = pro.code_naf || metierLink?.code_naf || null;
+  const fullDescription = `${richDescription} ${metierNom} à ${pro.ville || "-"} (${deptCode}). Inscrit au registre Sirene de l'INSEE${displayNaf ? `, code NAF ${displayNaf}` : ""}.`;
 
   // FAQ entries (3 questions clé pour FAQPage schema + accordion HTML)
   const faqEntries: { q: string; a: string }[] = [];
@@ -220,7 +224,7 @@ function buildContext(pro: ProRow, pageUrl: string): JsonLdContext {
   if (metierLink && pro.ville) {
     faqEntries.push({
       q: `${pro.nom_entreprise} est-elle qualifiée comme ${metierLink.nom.toLowerCase()} à ${pro.ville} ?`,
-      a: `${pro.nom_entreprise} est référencée comme ${metierLink.nom.toLowerCase()} à ${pro.ville}${deptCode ? ` (${deptCode})` : ""}${metierLink.code_naf ? `, sous le code NAF ${metierLink.code_naf}` : ""}. ${pro.rge ? "L'entreprise est certifiée RGE (Reconnu Garant de l'Environnement). " : ""}${pro.qualibat ? "Elle dispose également d'une qualification Qualibat. " : ""}Notre rédaction ne réalise pas d'audit terrain pour les Portraits Recommandés (gratuits) : la qualification listée provient des sources publiques INSEE, ADEME et Qualibat.`,
+      a: `${pro.nom_entreprise} est référencée comme ${metierLink.nom.toLowerCase()} à ${pro.ville}${deptCode ? ` (${deptCode})` : ""}${displayNaf ? `, sous le code NAF ${displayNaf}` : ""}. ${pro.rge ? "L'entreprise est certifiée RGE (Reconnu Garant de l'Environnement). " : ""}${pro.qualibat ? "Elle dispose également d'une qualification Qualibat. " : ""}Notre rédaction ne réalise pas d'audit terrain pour les Portraits Recommandés (gratuits) : la qualification listée provient des sources publiques INSEE, ADEME et Qualibat.`,
     });
   }
   faqEntries.push({
@@ -461,7 +465,9 @@ function renderHtml(ctx: JsonLdContext, avis: Array<any> = []): string {
 
   const verifiedBadges: string[] = [];
   if (pro.siret) verifiedBadges.push(`<span class="pill verified">SIRET ${escapeHtml(pro.siret)}</span>`);
-  if (metier?.code_naf) verifiedBadges.push(`<span class="pill neutral">NAF ${escapeHtml(metier.code_naf)}</span>`);
+  // Vrai NAF INSEE du pro en priorite (fallback metier) : pas de faux NAF sur fiche reclassee.
+  const badgeNaf = pro.code_naf || metier?.code_naf || null;
+  if (badgeNaf) verifiedBadges.push(`<span class="pill neutral">NAF ${escapeHtml(badgeNaf)}</span>`);
   if (pro.rge) verifiedBadges.push(`<span class="pill verified">RGE certifié</span>`);
   if (pro.qualibat) verifiedBadges.push(`<span class="pill or">Qualibat</span>`);
   if (anciennete && anciennete > 0) verifiedBadges.push(`<span class="pill info">${anciennete} ans d'activité</span>`);
