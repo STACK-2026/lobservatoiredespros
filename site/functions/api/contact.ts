@@ -67,9 +67,33 @@ const OBJET_LABELS: Record<string, string> = {
   autre: "Autre",
 };
 
+// Reponse type "inviter a deposer un avis" : ouvre un brouillon pre-rempli
+// vers l'expediteur. On ne connait pas la fiche visee (le form /contact/ ne
+// capture pas de pro), d'ou le placeholder a coller a la main.
+function buildAvisMailto(c: ContactFields): string {
+  const subject = "Re : votre message a L'Observatoire des Pros";
+  const body = [
+    "Bonjour,",
+    "",
+    "Merci de votre message. L'Observatoire des Pros publie des avis verifies portant sur l'experience directe de chacun.",
+    "",
+    "Si vous avez fait appel a cette entreprise, vous pouvez deposer votre temoignage directement sur sa fiche, en decrivant factuellement votre propre experience (devis, delais, travaux realises, malfacons constatees) :",
+    "[COLLEZ ICI LE LIEN DE LA FICHE, ex : https://lobservatoiredespros.com/pro/SLUG/donner-mon-avis/]",
+    "",
+    "Votre avis sera relu par notre moderation avant publication.",
+    "",
+    "Les aspects strictement penaux (titre, escroquerie) relevent des autorites competentes : Ordre des architectes, SignalConso / DGCCRF (signal.conso.gouv.fr), et la procedure en cours le cas echeant.",
+    "",
+    "Bien a vous,",
+    "L'Observatoire des Pros",
+  ].join("\n");
+  return `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 function buildEmail(c: ContactFields): { subject: string; html: string } {
   const objetLabel = OBJET_LABELS[c.objet] || c.objet;
   const subject = `[Contact] ${objetLabel} - ${c.nom}`;
+  const avisMailto = buildAvisMailto(c);
   const html = `
     <h2>Nouveau message via /contact/</h2>
     <table cellpadding="6" style="border-collapse:collapse;border:1px solid #ddd;">
@@ -79,7 +103,11 @@ function buildEmail(c: ContactFields): { subject: string; html: string } {
     </table>
     <h3>Message</h3>
     <p style="white-space:pre-wrap;">${htmlEscape(c.message)}</p>
-    <p style="color:#666;font-size:0.9em;">Repondre directement par reply (reply_to set sur ${maskEmail(c.email)}).</p>
+    <p style="margin:20px 0;">
+      <a href="${avisMailto}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:600;font-family:Arial,sans-serif;">Reponse type &mdash; inviter a deposer un avis</a>
+    </p>
+    <p style="color:#666;font-size:0.85em;">Ce bouton ouvre un brouillon pre-rempli vers l'expediteur. Pensez a remplacer <strong>[COLLEZ ICI LE LIEN DE LA FICHE]</strong> par la fiche concernee avant d'envoyer. A reserver a un retour d'experience client (pas presse / candidatures).</p>
+    <p style="color:#666;font-size:0.9em;">Vous pouvez aussi repondre directement par reply (reply_to set sur ${maskEmail(c.email)}).</p>
   `;
   return { subject, html };
 }
