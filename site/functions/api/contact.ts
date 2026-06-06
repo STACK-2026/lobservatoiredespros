@@ -26,9 +26,22 @@ interface ContactFields {
   email: string;
   objet: string;
   message: string;
+  pro_concerne: string;
   rgpd_consent: boolean;
   ip_hash: string;
   user_agent: string;
+}
+
+// Tente de deduire un slug de fiche depuis le champ "pro concerne".
+// Accepte une URL /pro/<slug>/ collee, ou un slug nu (a-z0-9-, pas d'espace).
+// Renvoie null si la valeur ressemble a un nom libre (ex : "Ayoub Renovation").
+function extractProSlug(raw: string): string | null {
+  if (!raw) return null;
+  const urlMatch = raw.match(/\/pro\/([a-z0-9][a-z0-9-]{1,})\/?/i);
+  if (urlMatch) return urlMatch[1].toLowerCase();
+  const bare = raw.trim().toLowerCase();
+  if (/^[a-z0-9][a-z0-9-]{2,}$/.test(bare) && bare.includes("-")) return bare;
+  return null;
 }
 
 async function sha256Hex(input: string): Promise<string> {
@@ -70,15 +83,19 @@ const OBJET_LABELS: Record<string, string> = {
 // Reponse type "inviter a deposer un avis" : ouvre un brouillon pre-rempli
 // vers l'expediteur. On ne connait pas la fiche visee (le form /contact/ ne
 // capture pas de pro), d'ou le placeholder a coller a la main.
-function buildAvisMailto(c: ContactFields): string {
+function buildAvisMailto(c: ContactFields, proSlug: string | null): string {
   const subject = "Re : votre message a L'Observatoire des Pros";
+  // Si on connait la fiche -> lien exact ; sinon placeholder a coller a la main.
+  const ficheLine = proSlug
+    ? `https://lobservatoiredespros.com/pro/${proSlug}/donner-mon-avis/`
+    : "[COLLEZ ICI LE LIEN DE LA FICHE, ex : https://lobservatoiredespros.com/pro/SLUG/donner-mon-avis/]";
   const body = [
     "Bonjour,",
     "",
     "Merci de votre message. L'Observatoire des Pros publie des avis verifies portant sur l'experience directe de chacun.",
     "",
     "Si vous avez fait appel a cette entreprise, vous pouvez deposer votre temoignage directement sur sa fiche, en decrivant factuellement votre propre experience (devis, delais, travaux realises, malfacons constatees) :",
-    "[COLLEZ ICI LE LIEN DE LA FICHE, ex : https://lobservatoiredespros.com/pro/SLUG/donner-mon-avis/]",
+    ficheLine,
     "",
     "Votre avis sera relu par notre moderation avant publication.",
     "",
@@ -93,20 +110,36 @@ function buildAvisMailto(c: ContactFields): string {
 function buildEmail(c: ContactFields): { subject: string; html: string } {
   const objetLabel = OBJET_LABELS[c.objet] || c.objet;
   const subject = `[Contact] ${objetLabel} - ${c.nom}`;
-  const avisMailto = buildAvisMailto(c);
+  const proSlug = extractProSlug(c.pro_concerne);
+  const avisMailto = buildAvisMailto(c, proSlug);
+
+  // Ligne "Pro concerne" : lien clicable vers la fiche si on a un slug.
+  const proRow = c.pro_concerne
+    ? `<tr><td><strong>Pro concerne</strong></td><td>${
+        proSlug
+          ? `<a href="https://lobservatoiredespros.com/pro/${proSlug}/">${htmlEscape(c.pro_concerne)}</a>`
+          : htmlEscape(c.pro_concerne)
+      }</td></tr>`
+    : "";
+
+  const hint = proSlug
+    ? `Ce bouton ouvre un brouillon pre-rempli vers l'expediteur, deja deep-linke vers la fiche <strong>${htmlEscape(proSlug)}</strong>. A reserver a un retour d'experience client (pas presse / candidatures).`
+    : `Ce bouton ouvre un brouillon pre-rempli vers l'expediteur. Pensez a remplacer <strong>[COLLEZ ICI LE LIEN DE LA FICHE]</strong> par la fiche concernee avant d'envoyer. A reserver a un retour d'experience client (pas presse / candidatures).`;
+
   const html = `
     <h2>Nouveau message via /contact/</h2>
     <table cellpadding="6" style="border-collapse:collapse;border:1px solid #ddd;">
       <tr><td><strong>Objet</strong></td><td>${htmlEscape(objetLabel)}</td></tr>
       <tr><td><strong>Nom</strong></td><td>${htmlEscape(c.nom)}</td></tr>
       <tr><td><strong>Email</strong></td><td><a href="mailto:${htmlEscape(c.email)}">${htmlEscape(c.email)}</a></td></tr>
+      ${proRow}
     </table>
     <h3>Message</h3>
     <p style="white-space:pre-wrap;">${htmlEscape(c.message)}</p>
     <p style="margin:20px 0;">
       <a href="${avisMailto}" style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:600;font-family:Arial,sans-serif;">Reponse type &mdash; inviter a deposer un avis</a>
     </p>
-    <p style="color:#666;font-size:0.85em;">Ce bouton ouvre un brouillon pre-rempli vers l'expediteur. Pensez a remplacer <strong>[COLLEZ ICI LE LIEN DE LA FICHE]</strong> par la fiche concernee avant d'envoyer. A reserver a un retour d'experience client (pas presse / candidatures).</p>
+    <p style="color:#666;font-size:0.85em;">${hint}</p>
     <p style="color:#666;font-size:0.9em;">Vous pouvez aussi repondre directement par reply (reply_to set sur ${maskEmail(c.email)}).</p>
   `;
   return { subject, html };
@@ -144,6 +177,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     email: cap(get("email").toLowerCase(), 254),
     objet: cap(get("objet"), 30),
     message: cap(get("message"), 5000),
+    pro_concerne: cap(get("pro_concerne"), 300),
     rgpd_consent: get("rgpd") === "on" || get("rgpd") === "true",
     ip_hash: ipHash,
     user_agent: cap(ua, 300),

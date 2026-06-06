@@ -70,6 +70,12 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
           </select>
         </div>
         <div class="form-row">
+          <label for="pro_concerne">Professionnel concerné <span style="font-weight:400;">(optionnel)</span></label>
+          <input id="pro_concerne" name="pro_concerne" type="text" autocomplete="off"
+            placeholder="Nom de l'entreprise ou lien de sa fiche" />
+          <span class="form-hint">Si votre message concerne un professionnel précis, indiquez son nom ou collez le lien de sa fiche. Cela nous aide à traiter votre demande plus vite.</span>
+        </div>
+        <div class="form-row">
           <label for="message">Message *</label>
           <textarea id="message" name="message" required rows="7"></textarea>
         </div>
@@ -97,11 +103,13 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
             }
           }
           if (pro) {
+            var proField = document.getElementById("pro_concerne");
+            if (proField && !proField.value) {
+              proField.value = "https://lobservatoiredespros.com/pro/" + pro + "/";
+            }
             var msg = document.getElementById("message");
             if (msg && !msg.value) {
-              msg.value =
-                "Concerne la fiche : https://lobservatoiredespros.com/pro/" + pro + "/\n\n" +
-                "Élément à signaler ou à corriger :\n";
+              msg.value = "Élément à signaler ou à corriger :\n";
               msg.focus();
               try { msg.setSelectionRange(msg.value.length, msg.value.length); } catch (e) {}
             }
@@ -133,6 +141,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
   .contact-form { margin-top: 1.6rem; display: grid; gap: 1.2rem; max-width: 38rem; }
   .form-row { display: grid; gap: 0.35rem; }
   .form-row label { font-size: 0.82rem; color: var(--ink-soft); font-weight: 500; }
+  .form-hint { font-size: 0.76rem; color: var(--ink-muted); line-height: 1.45; }
   .form-row input, .form-row select, .form-row textarea {
     padding: 0.7rem 0.9rem; font-family: var(--font-body); font-size: 0.96rem;
     border: 1px solid rgba(26, 22, 20, 0.2); background: var(--paper);
