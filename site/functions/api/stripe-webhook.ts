@@ -30,11 +30,10 @@ interface Env {
 // Hardcode comme contact.ts / candidature.ts (SUPABASE_URL n'est pas un secret CF).
 const SUPABASE_URL = "https://apuyeakgxjgdcfssrtek.supabase.co";
 const PLAN = "verifie"; // abonnements.plan (libelle, pas de contrainte)
-// pros.tier a une CHECK contrainte : 'gratuit' | 'argent' | 'or'. Le Profil/Portrait
-// Verifie 29 EUR/an correspond a la medaille Argent (cf. copy fiche). Le score editorial
-// (score_confiance 0-10) n'est JAMAIS touche : seule la medaille de presentation l'est.
-const TIER_PAID = "argent";
-const TIER_FREE = "gratuit";
+// PARE-FEU EDITORIAL (non negociable) : on ne touche JAMAIS pros.tier (medaille
+// bronze/argent/or = editoriale, meritee) ni score_confiance. Le Profil Verifie PAYANT
+// pilote un flag SEPARE : pros.verified + pros.profil_verifie_expire_at. Le badge dit
+// "ce pro tient sa fiche a jour", jamais "il est meilleur" (cadrage additif).
 const PRIX_MENSUEL = 2.42; // 29 EUR / an ramene au mois (colonne abonnements.prix_mensuel NOT NULL)
 
 function hex(buf: ArrayBuffer): string {
@@ -97,11 +96,12 @@ async function findProBySiret(env: Env, siret: string): Promise<{ id: string; sl
   return rows[0] || null;
 }
 
-async function setTier(env: Env, proId: string, tier: string, expireAt: string | null) {
+async function setVerified(env: Env, proId: string, verified: boolean, expireAt: string | null) {
+  // N'ECRIT JAMAIS pros.tier : le classement editorial reste hors de portee du paiement.
   await fetch(`${SUPABASE_URL}/rest/v1/pros?id=eq.${proId}`, {
     method: "PATCH",
     headers: { ...sbHeaders(env), Prefer: "return=minimal" },
-    body: JSON.stringify({ tier, tier_expire_at: expireAt, updated_at: new Date().toISOString() }),
+    body: JSON.stringify({ verified, profil_verifie_expire_at: expireAt, updated_at: new Date().toISOString() }),
   });
 }
 
@@ -154,7 +154,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
       const debut = new Date();
       const fin = plusOneYear(debut);
-      await setTier(env, pro.id, TIER_PAID, fin.toISOString());
+      await setVerified(env, pro.id, true, fin.toISOString());
       await fetch(`${SUPABASE_URL}/rest/v1/abonnements`, {
         method: "POST",
         headers: { ...sbHeaders(env), Prefer: "return=minimal" },
@@ -190,7 +190,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         headers: { ...sbHeaders(env), Prefer: "return=minimal" },
         body: JSON.stringify({ fin: newFin.toISOString(), actif: true }),
       });
-      await setTier(env, ab.pro_id, TIER_PAID, newFin.toISOString());
+      await setVerified(env, ab.pro_id, true, newFin.toISOString());
       console.log("stripe-webhook: renouvellement", subId, "->", newFin.toISOString());
       return new Response("ok", { status: 200 });
     }
@@ -209,7 +209,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           headers: { ...sbHeaders(env), Prefer: "return=minimal" },
           body: JSON.stringify({ actif: false }),
         });
-        await setTier(env, ab.pro_id, TIER_FREE, null);
+        await setVerified(env, ab.pro_id, false, null);
         console.log("stripe-webhook: abonnement revoque", subId);
       }
       return new Response("ok", { status: 200 });
