@@ -173,6 +173,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     if (event.type === "invoice.paid") {
+      // GARDE anti double-comptage : le 1er paiement (billing_reason=subscription_create)
+      // est deja traite par checkout.session.completed. On ne prolonge QUE sur un vrai
+      // cycle de renouvellement annuel, sinon un nouvel abonne aurait 2 ans au lieu d'1.
+      if (obj.billing_reason !== "subscription_cycle") {
+        return new Response("ok (not a renewal cycle)", { status: 200 });
+      }
       // Renouvellement : prolonge l'abonnement existant et la fiche.
       const subId: string | null = obj.subscription || null;
       if (!subId) return new Response("ok (no sub)", { status: 200 });

@@ -514,6 +514,11 @@ function renderHtml(ctx: JsonLdContext, avis: Array<any> = []): string {
     )
     .join("\n");
 
+  // Profil Verifie paye (flag separe du tier editorial) , pilote badge + masque le CTA.
+  const estVerifie =
+    Boolean((pro as any).verified) &&
+    (!(pro as any).profil_verifie_expire_at || new Date((pro as any).profil_verifie_expire_at) > new Date());
+
   return `<!doctype html>
 <html lang="fr">
 <head>
@@ -607,6 +612,11 @@ main{max-width:920px;margin:0 auto;padding:2.5rem clamp(1.5rem,5vw,2.5rem) 5rem}
 .byline p{margin:0;line-height:1.55}
 .byline .small{font-size:.8rem;color:var(--ink-muted);margin-top:.4rem}
 .byline a{color:var(--ink-soft)}
+.pro-verified-badge{display:inline-flex;align-items:center;gap:.4rem;width:fit-content;margin:.5rem 0 0;padding:.3rem .7rem;font-size:.78rem;font-weight:500;color:var(--observatoire);background:rgba(30,58,82,.07);border:1px solid rgba(30,58,82,.2);border-radius:2px 12px 2px 2px}
+.cta-verif{margin:3rem 0;padding:1.75rem;background:var(--paper-warm,#EFE7D6);border:1px solid rgba(30,58,82,.16);border-radius:6px 26px 6px 6px}
+.cta-verif .cv-lbl{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--observatoire);margin:0}
+.cta-verif .cv-title{margin:.4rem 0 .6rem;font-size:1.4rem;line-height:1.15}
+.cta-verif .cv-lead{font-size:.95rem;line-height:1.6;color:var(--ink-soft,#3D342E);margin:0 0 1rem}
 footer{margin-top:4rem;padding:2.5rem clamp(1.5rem,5vw,2.5rem);border-top:1px solid rgba(26,22,20,.1);font-size:.82rem;color:var(--ink-muted);text-align:center}
 footer .links{display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap;margin-top:.6rem}
 footer a{color:var(--ink-muted);text-decoration:none}
@@ -638,6 +648,7 @@ ${ldScripts}
   <header class="hero">
     <div>
       <h1 data-speakable>${escapeHtml(pro.nom_entreprise)}</h1>
+      ${estVerifie ? `<p class="pro-verified-badge"><span aria-hidden="true">&#10003;</span> Infos confirmées par le pro · à jour</p>` : ""}
       <p class="subtitle" data-speakable>${escapeHtml(metier?.nom || "Professionnel")}${pro.ville ? ` à ${escapeHtml(pro.ville)}` : ""}${deptCode ? ` (${escapeHtml(deptCode)})` : ""}${dateCreationFR ? ` · Depuis ${escapeHtml(pro.date_creation_entreprise?.slice(0, 4) || "")}` : ""}</p>
       <div class="cartouche">
         <span class="eyebrow">Notre observation</span>
@@ -682,6 +693,13 @@ ${ldScripts}
   ${buildAvisListHtml(avis, pro.avis_nombre || avis.length, pro.slug, pro.nom_entreprise)}
 
   ${faqHtml}
+
+  ${!estVerifie ? `<section class="cta-verif">
+    <p class="cv-lbl">Tu diriges ${escapeHtml(pro.nom_entreprise)} ?</p>
+    <h2 class="cv-title">Pilote ta fiche, récupère tes leads.</h2>
+    <p class="cv-lead">Tes vraies coordonnées et tes photos mises en avant, les demandes de clients en direct, et une veille sur tes certifications RGE et Qualibat pour ne jamais en laisser expirer une. Ton Score de Confiance, lui, reste éditorial : il ne s'achète pas.</p>
+    <p><a class="btn" href="/verifier-ma-fiche/">Vérifier ma fiche · 29 €/an</a></p>
+  </section>` : ""}
 
   <section class="byline">
     <div class="row">
