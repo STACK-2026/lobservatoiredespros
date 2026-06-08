@@ -1,0 +1,284 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Masthead from "../../components/Masthead.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs } from "../../utils/seo";
+
+const title = "Vérifier ma fiche , L'Observatoire des Pros";
+const description =
+  "Pilote ta fiche, récupère tes leads et ne laisse jamais expirer une certification RGE ou Qualibat. Profil Vérifié : 29 € par an. Ton Score de Confiance, lui, ne s'achète pas.";
+const url = `${siteConfig.url}/verifier-ma-fiche/`;
+
+// Lien de paiement Stripe (mode test pour l'instant , bascule en lien live au passage en prod).
+const paymentLink = "https://buy.stripe.com/test_5kQ5kv9pt2b40gravY5c400";
+
+const avantages = [
+  {
+    titre: "Tes leads, directement",
+    corps:
+      "Tes vraies coordonnées mises en avant et les demandes de clients qui arrivent sur ta fiche te parviennent sans intermédiaire. Un seul chantier signé rembourse l'année.",
+  },
+  {
+    titre: "Veille sur tes certifications",
+    corps:
+      "On surveille la date d'expiration de chacune de tes qualifications RGE et Qualibat, et on te prévient avant qu'elle ne tombe. Sans RGE valide, tes clients perdent MaPrimeRénov : ne laisse plus jamais ça arriver par oubli.",
+  },
+  {
+    titre: "Tes photos et tes infos",
+    corps:
+      "Tes réalisations, ton logo, ta présentation : ta fiche reflète enfin ton travail réel, à jour, tenue par toi. Le badge « Infos confirmées par le pro » signale aux visiteurs que tu suis ta page.",
+  },
+];
+
+const etapes = [
+  { n: 1, t: "Tu réclames ta fiche", d: "Tu confirmes ton SIRET au moment du paiement, on relie l'abonnement à ton établissement." },
+  { n: 2, t: "Ta fiche passe en Vérifié", d: "Le badge s'affiche, tes coordonnées et tes photos sont mises en avant, la veille démarre." },
+  { n: 3, t: "Tu restes prévenu", d: "À chaque certification qui approche de l'échéance, tu reçois nos rappels. Tu ne perds plus rien de vue." },
+];
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Vérifier ma fiche", url },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "Profil Vérifié",
+    serviceType: "Mise en avant et veille de qualifications pour professionnel du bâtiment",
+    provider: { "@type": "NewsMediaOrganization", name: siteConfig.name, url: siteConfig.url },
+    description:
+      "Coordonnées et photos mises en avant, capture des demandes de clients, et veille sur les certifications RGE et Qualibat. Abonnement annuel.",
+    offers: {
+      "@type": "Offer",
+      price: 29,
+      priceCurrency: "EUR",
+      url,
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: 29,
+        priceCurrency: "EUR",
+        billingDuration: "P1Y",
+        unitCode: "ANN",
+      },
+    },
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <section class="vmf-hero">
+    <div class="container-wide vmf-hero-inner">
+      <Masthead category="PROFIL VÉRIFIÉ" signature="Guide à l'attention des professionnels" />
+      <h1 class="heading-display vmf-title">
+        Pilote ta fiche. Récupère tes leads.<br />Ne perds jamais une certification.
+      </h1>
+      <p class="lead vmf-lead">
+        Ta fiche existe déjà sur L'Observatoire, bâtie sur les sources publiques. Le Profil Vérifié te
+        la rend : tes vraies coordonnées en avant, les demandes qui te reviennent, et une veille sur
+        tes qualifications pour ne jamais en laisser expirer une.
+      </p>
+      <div class="vmf-hero-cta">
+        <a class="btn btn-primary magnetic" href={paymentLink} rel="nofollow">Vérifier ma fiche · 29 €/an</a>
+        <a class="btn btn-ghost" href="/methode/">Comment on note <span class="arrow">&rarr;</span></a>
+      </div>
+      <p class="vmf-firewall">
+        À savoir : ton <strong>Score de Confiance</strong> et ta médaille restent déterminés par notre
+        grille éditoriale publique. <strong>Ils ne s'achètent pas.</strong> Le Profil Vérifié met ta
+        fiche en valeur, il ne change pas ta note.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-editorial vmf-avantages">
+    <p class="meta-label-or">Ce que tu obtiens</p>
+    <div class="vmf-grid">
+      {avantages.map((a) => (
+        <article class="vmf-card">
+          <h2 class="vmf-card-title">{a.titre}</h2>
+          <p class="vmf-card-body">{a.corps}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="container-editorial vmf-etapes">
+    <p class="meta-label-or">Comment ça marche</p>
+    <ol class="vmf-steps">
+      {etapes.map((e) => (
+        <li class="vmf-step">
+          <span class="vmf-step-n folio">{String(e.n).padStart(2, "0")}</span>
+          <div>
+            <h3 class="vmf-step-t">{e.t}</h3>
+            <p class="vmf-step-d">{e.d}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="container-editorial vmf-pricing">
+    <div class="vmf-price-card">
+      <p class="vmf-price-eyebrow meta-label">Profil Vérifié</p>
+      <p class="vmf-price"><span class="vmf-price-num">29 €</span><span class="vmf-price-per">/ an</span></p>
+      <p class="vmf-price-note">Sans engagement au-delà de l'année. Résiliable à tout moment.</p>
+      <a class="btn btn-primary magnetic vmf-price-btn" href={paymentLink} rel="nofollow">Vérifier ma fiche</a>
+      <p class="vmf-price-foot">Une question avant de te lancer ? Écris-nous à <a href="mailto:contact@lobservatoiredespros.com">contact@lobservatoiredespros.com</a>.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .vmf-hero {
+    padding: clamp(3rem, 7vw, 6rem) 0 clamp(2rem, 4vw, 3.5rem);
+  }
+  .vmf-hero-inner {
+    max-width: 52rem;
+  }
+  .vmf-title {
+    margin: 1.2rem 0 0;
+  }
+  .vmf-lead {
+    margin: 1.4rem 0 0;
+    max-width: 40rem;
+  }
+  .vmf-hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    align-items: center;
+    margin: 2rem 0 0;
+  }
+  .vmf-firewall {
+    margin: 1.8rem 0 0;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    background: var(--paper-warm);
+    border-left: 3px solid var(--observatoire);
+    border-radius: 2px 12px 2px 2px;
+    max-width: 40rem;
+  }
+
+  .vmf-avantages {
+    padding: clamp(2rem, 4vw, 3.5rem) 0;
+  }
+  .vmf-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.1rem;
+    margin: 1.2rem 0 0;
+  }
+  .vmf-card {
+    padding: 1.5rem 1.4rem;
+    background: var(--paper-warm);
+    border: 1px solid rgba(26, 22, 20, 0.07);
+    border-radius: 4px 22px 4px 4px;
+  }
+  .vmf-card-title {
+    font-family: var(--font-editorial, Fraunces, serif);
+    font-style: italic;
+    font-size: 1.3rem;
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+    color: var(--observatoire);
+  }
+  .vmf-card-body {
+    font-size: 0.96rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .vmf-etapes {
+    padding: clamp(1.5rem, 3vw, 2.5rem) 0;
+  }
+  .vmf-steps {
+    list-style: none;
+    margin: 1.2rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+  }
+  .vmf-step {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .vmf-step-n {
+    flex: none;
+    color: var(--or-deep);
+    font-size: 0.95rem;
+    padding-top: 0.15rem;
+  }
+  .vmf-step-t {
+    font-size: 1.05rem;
+    margin: 0 0 0.2rem;
+  }
+  .vmf-step-d {
+    font-size: 0.94rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .vmf-pricing {
+    padding: clamp(2rem, 4vw, 3.5rem) 0 clamp(3rem, 6vw, 5rem);
+  }
+  .vmf-price-card {
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: 2.2rem 2rem;
+    text-align: center;
+    background: var(--paper-warm);
+    border: 1px solid rgba(30, 58, 82, 0.16);
+    border-radius: 6px 30px 6px 6px;
+    box-shadow: var(--shadow-paper);
+  }
+  .vmf-price-eyebrow {
+    color: var(--observatoire);
+    margin: 0;
+  }
+  .vmf-price {
+    margin: 0.6rem 0 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.3rem;
+  }
+  .vmf-price-num {
+    font-family: var(--font-editorial, Fraunces, serif);
+    font-size: 3rem;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .vmf-price-per {
+    font-size: 1rem;
+    color: var(--ink-muted);
+  }
+  .vmf-price-note {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    margin: 0.5rem 0 1.3rem;
+  }
+  .vmf-price-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .vmf-price-foot {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin: 1.1rem 0 0;
+  }
+  .vmf-price-foot a {
+    color: var(--observatoire);
+  }
+
+  @media (max-width: 720px) {
+    .vmf-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

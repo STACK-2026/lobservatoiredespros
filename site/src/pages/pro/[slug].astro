@@ -57,7 +57,7 @@ export async function getStaticPaths() {
   for (let start = 0; ; start += page) {
     const { data, error } = await supabase
       .from("pros")
-      .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance, opening_hours, ca, resultat_net, marge_brute, annee_bilan, categorie_entreprise, tranche_effectif, dirigeants_count, dirigeants_json, est_qualiopi, code_naf")
+      .select("id, slug, nom_entreprise, siret, siren, code_postal, ville, adresse, date_creation_entreprise, score_confiance, tier, rge, qualibat, site_web, telephone, email, description, active, lat, lng, bodacc_synthese, score_detail, niveau_confiance, opening_hours, ca, resultat_net, marge_brute, annee_bilan, categorie_entreprise, tranche_effectif, dirigeants_count, dirigeants_json, est_qualiopi, code_naf, verified, profil_verifie_expire_at")
       .eq("active", true)
       .not("slug", "is", null)
       .order("id")
@@ -74,6 +74,13 @@ export async function getStaticPaths() {
     if (data.length < page) break;
   }
   console.log(`[pro/[slug]] DB filtered to wave1 : ${pros.length} pros`);
+
+  // Build-cap optionnel (preview rapide) : limite le nombre de fiches SSG sans toucher la prod.
+  const WAVE1_BUILD_CAP = Number((typeof process !== "undefined" && process.env?.WAVE1_BUILD_CAP) || 0);
+  if (WAVE1_BUILD_CAP > 0 && pros.length > WAVE1_BUILD_CAP) {
+    pros.length = WAVE1_BUILD_CAP;
+    console.log(`[pro/[slug]] WAVE1_BUILD_CAP actif : ${WAVE1_BUILD_CAP} fiches (preview)`);
+  }
 
   // Fetch events legaux par chunks d'IN (Postgres/PostgREST limite la taille
   // du IN clause ; on batche par 500 pro_ids).
@@ -226,6 +233,8 @@ const utiliserJauge = (p.score_confiance || 0) < 5 || critVerifies < 4;
 // tier argent/or (examen editorial fait) OU au moins 4 criteres publics coches.
 const afficherTampon = p.tier === "or" || p.tier === "argent" || critVerifies >= 4;
 const tamponTier = p.tier === "or" ? "or" : p.tier === "argent" ? "argent" : "neutral";
+// Profil Verifie PAYANT : flag separe du tier editorial. Actif si verified ET non expire.
+const estVerifie = Boolean(p.verified) && (!p.profil_verifie_expire_at || new Date(p.profil_verifie_expire_at) > new Date());
 
 // Coordonnees chefs-lieux des departements pilotes pour le TerritoireBadge
 const deptInfo: Record<string, { lat: number; lng: number; region: string }> = {
@@ -371,6 +380,13 @@ if (p.score_confiance && p.score_confiance >= 6) {
             {metierNom}{p.ville ? ` à ${p.ville}` : ""}{deptCode ? ` (${deptCode})` : ""}
             {anciennete && anciennete > 0 ? <> · <span class="ph-since">Depuis {p.date_creation_entreprise?.slice(0, 4)}</span></> : null}
           </p>
+
+          {estVerifie && (
+            <p class="pro-verified-badge" title="Ce professionnel tient sa fiche à jour">
+              <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M6.4 10.6 3.7 7.9 2.6 9l3.8 3.8L13.4 5.8l-1.1-1.1z" fill="currentColor" /></svg>
+              Infos confirmées par le pro <span class="pvb-sep">·</span> <span class="pvb-soft">à jour</span>
+            </p>
+          )}
 
           <EditorialCartouche
             author="La rédaction"
@@ -757,8 +773,8 @@ if (p.score_confiance && p.score_confiance >= 6) {
       </div>
     </section>
 
-    {p.tier === "gratuit" && (
-      <!-- CTA CANDIDATER , card doré premium, pas ton-sur-ton -->
+    {!estVerifie && (
+      <!-- CTA Profil Verifie , card doré premium, pas ton-sur-ton -->
       <section class="container-editorial portrait-cta-enrichir">
         <div class="cta-card blur-reveal">
           <div class="cta-card-decor" aria-hidden="true">
@@ -773,13 +789,13 @@ if (p.score_confiance && p.score_confiance >= 6) {
             </svg>
           </div>
           <div class="cta-card-body">
-            <p class="meta-label-or">Vous dirigez {p.nom_entreprise} ?</p>
-            <h2 class="cta-card-title">Enrichissez votre portrait éditorial.</h2>
+            <p class="meta-label-or">Tu diriges {p.nom_entreprise} ?</p>
+            <h2 class="cta-card-title">Pilote ta fiche, récupère tes leads.</h2>
             <p class="cta-card-lead">
-              Portrait Vérifié : médaille Argent, photos de réalisations, lien site web, téléphone direct. Portrait Lauréat : portrait long format rédigé par notre rédaction après entretien. <strong>Votre Score de Confiance reste déterminé par notre grille éditoriale publique.</strong>
+              Profil Vérifié : tes vraies coordonnées et tes photos mises en avant, les demandes de clients qui arrivent directement, et une veille sur toutes tes certifications RGE et Qualibat pour ne jamais en laisser expirer une. <strong>Ton Score de Confiance, lui, reste déterminé par notre grille éditoriale publique : il ne s'achète pas.</strong>
             </p>
             <div class="cta-card-actions">
-              <a class="btn btn-primary magnetic" href="/candidater/">Candidater à un Portrait enrichi</a>
+              <a class="btn btn-primary magnetic" href="/verifier-ma-fiche/">Vérifier ma fiche · 29 €/an</a>
               <a class="btn btn-ghost" href="/methode/">Consulter la méthode <span class="arrow">&rarr;</span></a>
             </div>
           </div>
@@ -1603,6 +1619,32 @@ if (p.score_confiance && p.score_confiance >= 6) {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(30, 58, 82, 0.08);
     border-color: var(--observatoire, #1e3a52);
+  }
+  /* Badge Profil Verifie PAYANT , bleu institutionnel, distinct du tampon/medaille dores */
+  .pro-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    margin: 0.6rem 0 0;
+    padding: 0.34rem 0.74rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--observatoire, #1e3a52);
+    background: rgba(30, 58, 82, 0.07);
+    border: 1px solid rgba(30, 58, 82, 0.2);
+    border-radius: 2px 12px 2px 2px;
+  }
+  .pro-verified-badge svg {
+    flex: none;
+  }
+  .pro-verified-badge .pvb-sep {
+    opacity: 0.4;
+  }
+  .pro-verified-badge .pvb-soft {
+    color: var(--ink-muted, #7a6e63);
   }
   .related-eyebrow {
     font-family: var(--font-mono, JetBrains Mono, monospace);

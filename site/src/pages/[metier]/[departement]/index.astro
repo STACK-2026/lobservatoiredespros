@@ -42,6 +42,12 @@ export async function getStaticPaths() {
       });
     }
   }
+  // Build-cap optionnel (preview rapide) : limite le nombre de combos SSG sans toucher la prod.
+  const DEPT_BUILD_CAP = Number((typeof process !== "undefined" && process.env?.DEPT_BUILD_CAP) || 0);
+  if (DEPT_BUILD_CAP > 0 && paths.length > DEPT_BUILD_CAP) {
+    paths.length = DEPT_BUILD_CAP;
+    console.log(`[metier/dept] DEPT_BUILD_CAP actif : ${DEPT_BUILD_CAP} combos (preview)`);
+  }
   return paths;
 }
 

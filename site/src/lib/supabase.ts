@@ -266,7 +266,9 @@ export async function getClassementCount(metierSlug: string, deptSlug: string): 
  * Cap pratique OG per-pro : top 1500 PNGs au build, sous le cap CF Pages
  * (20 000 files). Les pros hors top 1500 fallback sur og-default.png.
  */
-export const OG_PRO_CAP = 1500;
+export const OG_PRO_CAP = Number(
+  (typeof process !== "undefined" && process.env?.OG_PRO_CAP) || 1500,
+);
 
 /**
  * Top N slugs wave1 par score_confiance, pour limiter les OG SSG sous le cap
@@ -448,7 +450,9 @@ export async function getMetierDeptComboCounts(): Promise<Map<string, number>> {
  * = +460 trop). Top 600 combos par #pros = ~19 600 fichiers, marge 400.
  * Combos hors top utilisent l'OG default.
  */
-export const OG_CLASSEMENT_CAP = 600;
+export const OG_CLASSEMENT_CAP = Number(
+  (typeof process !== "undefined" && process.env?.OG_CLASSEMENT_CAP) || 600,
+);
 
 let _topOgClassementCache: Set<string> | null = null;
 export async function getTopOgClassementSet(): Promise<Set<string>> {
