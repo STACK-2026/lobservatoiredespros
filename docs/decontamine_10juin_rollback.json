@@ -1,0 +1,112 @@
+[
+  {
+    "id": "a3b65f51-1f56-4e84-836c-ba542857cef1",
+    "slug": "artisant-service-soufflage-isolation-aco-saint-etienne",
+    "nom_entreprise": "ARTISANT SERVICE SOUFFLAGE ISOLATION ACOUSTIQUE",
+    "ville": "Saint-Etienne",
+    "site_web": "https://al-isolation-facades.fr/",
+    "email": "contact@al-isolation-facades.fr",
+    "telephone": "+33688410784",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:04:06+00:00"
+  },
+  {
+    "id": "ad31b0c7-70d1-455d-9798-0ca0284903fa",
+    "slug": "baldi-plomberie-bas-en-basset",
+    "nom_entreprise": "BALDI PLOMBERIE",
+    "ville": "Bas-En-Basset",
+    "site_web": "http://www.technic-chauffage43.fr/",
+    "email": null,
+    "telephone": "+33471669197",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:13:10+00:00"
+  },
+  {
+    "id": "a9edbbf4-8c2e-4b29-892e-6c4e31f0fbd9",
+    "slug": "cf-thermie-pau",
+    "nom_entreprise": "CF THERMIE",
+    "ville": "Pau",
+    "site_web": "https://www.thermique-solutions.fr/",
+    "email": "contact@thermique-solutions.fr",
+    "telephone": "+33559808229",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-06-02T01:13:51+00:00"
+  },
+  {
+    "id": "fe8b5bbf-96ab-42fc-9a48-1b417050615d",
+    "slug": "ecoherence-habitat-maleville",
+    "nom_entreprise": "ECOHERENCE HABITAT",
+    "ville": "Maleville",
+    "site_web": "http://www.s-pass-eco-energies.com/",
+    "email": null,
+    "telephone": "+33565293980",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:05:45+00:00"
+  },
+  {
+    "id": "e1355286-5058-404b-8c44-570e25b32c33",
+    "slug": "iso-concept-althen-des-paluds",
+    "nom_entreprise": "ISO CONCEPT",
+    "ville": "Althen-Des-Paluds",
+    "site_web": "https://isoconseils.fr/",
+    "email": "contact@isoconseils.fr",
+    "telephone": "+33486044227",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:03:14+00:00"
+  },
+  {
+    "id": "ff0e6efe-822b-421a-b036-36d6bab81913",
+    "slug": "les-menuisiers-de-l-aubrac-nasbinals",
+    "nom_entreprise": "LES MENUISIERS DE L'AUBRAC",
+    "ville": "Nasbinals",
+    "site_web": "http://www.lesateliersdubes.fr/",
+    "email": null,
+    "telephone": "+33466459054",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:04:09+00:00"
+  },
+  {
+    "id": "944f11a2-9f35-4e4a-883c-0d9505ed5570",
+    "slug": "letreux-energie-fayl-billot",
+    "nom_entreprise": "LETREUX ENERGIE",
+    "ville": "Fayl-Billot",
+    "site_web": "http://www.piquee-energies.com/",
+    "email": null,
+    "telephone": "+33325886413",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:10:23+00:00"
+  },
+  {
+    "id": "b6bcb1ed-e14e-44aa-853f-cf86974f9641",
+    "slug": "md-protection-belleville-sur-meuse",
+    "nom_entreprise": "MD PROTECTION",
+    "ville": "Belleville-Sur-Meuse",
+    "site_web": "https://bminstal55.fr/",
+    "email": null,
+    "telephone": "+33632469837",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:04:29+00:00"
+  },
+  {
+    "id": "59299b5e-df9c-4a73-a9f8-412796716bfe",
+    "slug": "mobilium-creil",
+    "nom_entreprise": "MOBILIUM",
+    "ville": "Creil",
+    "site_web": "http://www.mobilyas.fr/",
+    "email": null,
+    "telephone": "+33344729328",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:15:12+00:00"
+  },
+  {
+    "id": "86aca45b-b317-40ad-a04b-9b6816a6055a",
+    "slug": "scherrer-paysages-denney",
+    "nom_entreprise": "SCHERRER PAYSAGES",
+    "ville": "Denney",
+    "site_web": "https://www.paysagiste-dominique-juif.fr/",
+    "email": null,
+    "telephone": "+33384578946",
+    "coords_source": "google_places",
+    "coords_enriched_at": "2026-05-20T18:08:20+00:00"
+  }
+]
