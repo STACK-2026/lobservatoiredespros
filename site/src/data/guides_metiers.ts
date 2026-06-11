@@ -142,7 +142,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
       },
     ],
     sources: [
-      { label: "France Renov' aides plomberie", url: "https://france-renov.gouv.fr/aides/eligibilite/chauffe-eau" },
+      { label: "France Renov' aides plomberie", url: "https://france-renov.gouv.fr/aides/mpr" },
       { label: "DGCCRF , obligations devis artisan", url: "https://www.economie.gouv.fr/dgccrf/Publications/Vie-pratique/Fiches-pratiques/Le-devis" },
       { label: "Capeb , réglementation plomberie", url: "https://www.capeb.fr/" },
     ],
@@ -350,7 +350,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
     sources: [
       { label: "FFB couvreurs federation", url: "https://www.ffbatiment.fr/" },
       { label: "Qualibat , couverture certifications", url: "https://www.qualibat.com/" },
-      { label: "ADEME guide isolation toiture", url: "https://librairie.ademe.fr/urbanisme-et-batiment/" },
+      { label: "ADEME guide isolation toiture", url: "https://librairie.ademe.fr/3153-batiment" },
     ],
   },
   // ============================================================
@@ -451,7 +451,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
       },
     ],
     sources: [
-      { label: "France Renov' fenetres", url: "https://france-renov.gouv.fr/aides/eligibilite/fenetre" },
+      { label: "France Renov' fenetres", url: "https://france-renov.gouv.fr/aides/mpr" },
       { label: "Qualibat menuiserie", url: "https://www.qualibat.com/" },
       { label: "FFB menuisiers", url: "https://www.ffbatiment.fr/" },
     ],
@@ -554,7 +554,7 @@ export const GUIDES_METIERS: GuideMetier[] = [
       },
     ],
     sources: [
-      { label: "France Renov' isolation", url: "https://france-renov.gouv.fr/aides/eligibilite/isolation-combles" },
+      { label: "France Renov' isolation", url: "https://france-renov.gouv.fr/aides/mpr" },
       { label: "ACERMI certifications materiaux", url: "https://www.acermi.com/" },
       { label: "ADEME guide isolation", url: "https://librairie.ademe.fr/" },
     ],
@@ -599,9 +599,9 @@ GUIDES_METIERS.push({
     { q: "Combien coute une PAC air-eau ?", r: "8 000 a 18 000 euros tout compris selon puissance et performances. Voir nos /tarifs/chauffagiste/. Aides MaPrimeRenov' + CEE peuvent ramener a 3 000-7 000 euros pour menages modestes." },
   ],
   sources: [
-    { label: "France Renov' PAC", url: "https://france-renov.gouv.fr/aides/eligibilite/pompe-chaleur" },
+    { label: "France Renov' PAC", url: "https://france-renov.gouv.fr/aides/mpr" },
     { label: "ADEME guide chauffage", url: "https://librairie.ademe.fr/" },
-    { label: "Service Public entretien chaudiere", url: "https://www.service-public.fr/particuliers/vosdroits/F31894" },
+    { label: "Service Public entretien chaudiere", url: "https://www.service-public.gouv.fr/particuliers/vosdroits/F20760" },
   ],
 });
 
@@ -644,7 +644,7 @@ GUIDES_METIERS.push({
   ],
   sources: [
     { label: "FFB plaquistes", url: "https://www.ffbatiment.fr/" },
-    { label: "France Renov' isolation intérieure", url: "https://france-renov.gouv.fr/aides/eligibilite/isolation-murs-interieur" },
+    { label: "France Renov' isolation intérieure", url: "https://france-renov.gouv.fr/aides/mpr" },
   ],
 });
 
@@ -859,7 +859,7 @@ GUIDES_METIERS.push({
     { q: "Tonte gazon : quelle frequence ?", r: "1x/semaine en saison (avril-octobre). 2x/mois hors saison. Hauteur de coupe 4-5 cm en pleine canicule, 3 cm en automne. Mulching évite ramassage." },
   ],
   sources: [
-    { label: "Service Public credit impot SAP", url: "https://www.service-public.fr/particuliers/vosdroits/F12330" },
+    { label: "Service Public credit impot SAP", url: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12" },
     { label: "Certiphyto verification", url: "https://e-phy.agriculture.gouv.fr/" },
   ],
 });

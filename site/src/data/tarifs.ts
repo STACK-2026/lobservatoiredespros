@@ -67,7 +67,7 @@ export const TARIFS: Tarif[] = [
       { q: "Faut-il un artisan certifié RGE ?", r: "Oui pour beneficier des aides MaPrimeRenov' et CEE sur le thermodynamique ou le solaire." },
       { q: "Quelle duree de vie attendre ?", r: "10 a 15 ans pour un cumulus électrique, 15 a 20 ans pour un thermodynamique bien entretenu." },
     ],
-    source: { label: "Guide France Renov' eau chaude sanitaire", url: "https://france-renov.gouv.fr/aides/eligibilite/chauffe-eau" },
+    source: { label: "Guide France Renov' eau chaude sanitaire", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
   {
     slug: "depannage-fuite",
@@ -164,7 +164,7 @@ export const TARIFS: Tarif[] = [
       { q: "Quelle consommation annuelle ?", r: "Environ 800 a 1200 kWh/an pour 4 personnes contre 3500 kWh pour un cumulus électrique." },
       { q: "Faut-il un installateur RGE ?", r: "Oui pour les aides. Vérifier la qualification QualiPAC ou QualiSol sur france-renov.gouv.fr." },
     ],
-    source: { label: "France Renov' chauffe-eau thermodynamique", url: "https://france-renov.gouv.fr/aides/eligibilite/chauffe-eau-thermodynamique" },
+    source: { label: "France Renov' chauffe-eau thermodynamique", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
 
   // ============================================================
@@ -333,7 +333,7 @@ export const TARIFS: Tarif[] = [
       { q: "Faut-il une autorisation d'urbanisme ?", r: "Declaration prealable obligatoire si changement d'aspect (couleur, materiau)." },
       { q: "Garantie décennale incluse ?", r: "Oui obligatoire. Demander une attestation nominative au demarrage du chantier." },
     ],
-    source: { label: "ADEME guide isolation toiture", url: "https://librairie.ademe.fr/urbanisme-et-batiment/" },
+    source: { label: "ADEME guide isolation toiture", url: "https://librairie.ademe.fr/3153-batiment" },
   },
   {
     slug: "demoussage-toiture",
@@ -429,7 +429,7 @@ export const TARIFS: Tarif[] = [
       { q: "Combien de temps de chantier ?", r: "1 a 2 jours pour 100 m2 de combles avec une équipe de 2 personnes." },
       { q: "Comment vérifier l'épaisseur posee ?", r: "Le couvreur place des piges graduees tous les 5 m2 pour contrôle visuel." },
     ],
-    source: { label: "France Renov' isolation combles", url: "https://france-renov.gouv.fr/aides/eligibilite/isolation-combles" },
+    source: { label: "France Renov' isolation combles", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
 
   // ============================================================
@@ -465,7 +465,7 @@ export const TARIFS: Tarif[] = [
       { q: "Garantie sur les vitrages ?", r: "10 ans décennale + 5 ans constructeur sur l'étanchéité des vitrages isolants." },
       { q: "Faut-il une déclaration prealable ?", r: "Oui si modification de l'aspect extérieur (couleur, dimensions, type)." },
     ],
-    source: { label: "France Renov' fenetres", url: "https://france-renov.gouv.fr/aides/eligibilite/fenetre" },
+    source: { label: "France Renov' fenetres", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
   {
     slug: "porte-entree-securite",
@@ -597,7 +597,7 @@ export const TARIFS: Tarif[] = [
       { q: "Comment vérifier la qualite ?", r: "Demander piges graduees + facture detaillee (volume, masse posee, certification ACERMI)." },
       { q: "L'humidite est-elle un risque ?", r: "Pas si pare-vapeur correctement pose et ventilation conforme NF DTU 24.1." },
     ],
-    source: { label: "France Renov' combles", url: "https://france-renov.gouv.fr/aides/eligibilite/isolation-combles" },
+    source: { label: "France Renov' combles", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
   {
     slug: "isolation-murs-extérieurs-ite",
@@ -629,7 +629,7 @@ export const TARIFS: Tarif[] = [
       { q: "Mes fenetres bougent-elles ?", r: "Oui, leur tableau s'allonge de l'épaisseur isolante. Prevoir tapees d'isolation." },
       { q: "Combien de temps de chantier ?", r: "3 a 6 semaines pour une maison 100 m2 facade, hors meteo defavorable." },
     ],
-    source: { label: "France Renov' isolation murs extérieurs", url: "https://france-renov.gouv.fr/aides/eligibilite/isolation-murs" },
+    source: { label: "France Renov' isolation murs extérieurs", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
   {
     slug: "isolation-rampants",
@@ -693,7 +693,7 @@ export const TARIFS: Tarif[] = [
       { q: "Effet sur les sols au-dessus ?", r: "Sols 2 a 4 degres plus chauds en hiver, gain notable dans les pièces de vie." },
       { q: "Polyurethane projete : risques ?", r: "Etancheite parfaite mais pas reversible. Vérifier que l'artisan est certifié ACERMI projection." },
     ],
-    source: { label: "France Renov' planchers bas", url: "https://france-renov.gouv.fr/aides/eligibilite/isolation-sols" },
+    source: { label: "France Renov' planchers bas", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
 
   // ============================================================
@@ -729,7 +729,7 @@ export const TARIFS: Tarif[] = [
       { q: "Pompe a chaleur plus interessante ?", r: "Oui en rénovation : moins chere a l'usage, MaPrimeRenov' jusqu'a 5000 euros." },
       { q: "Sortie ventouse autorisee partout ?", r: "Oui sauf reglements de copropriete restrictifs. DTU 24.1 a respecter." },
     ],
-    source: { label: "France Renov' systèmes de chauffage", url: "https://france-renov.gouv.fr/aides/eligibilite/chauffage" },
+    source: { label: "France Renov' systèmes de chauffage", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
   {
     slug: "entretien-chaudiere-annuel",
@@ -761,7 +761,7 @@ export const TARIFS: Tarif[] = [
       { q: "Que se passe-t-il sans attestation ?", r: "L'assurance habitation peut refuser sa garantie en cas de sinistre." },
       { q: "Combien de temps prend l'entretien ?", r: "1 a 2 heures, attestation remise sur place." },
     ],
-    source: { label: "Service Public entretien chaudiere", url: "https://www.service-public.fr/particuliers/vosdroits/F31894" },
+    source: { label: "Service Public entretien chaudiere", url: "https://www.service-public.gouv.fr/particuliers/vosdroits/F20760" },
   },
   {
     slug: "pompe-chaleur-air-eau",
@@ -793,7 +793,7 @@ export const TARIFS: Tarif[] = [
       { q: "Bruit de l'unite extérieure ?", r: "35 a 50 dB(A). Règlement copropriete et arrete bruit du voisinage a vérifier." },
       { q: "Faut-il une chaudiere d'appoint ?", r: "Pas obligatoire pour PAC haute temperature, recommande en zone H1 froide." },
     ],
-    source: { label: "France Renov' PAC air-eau", url: "https://france-renov.gouv.fr/aides/eligibilite/pompe-chaleur" },
+    source: { label: "France Renov' PAC air-eau", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
   {
     slug: "radiateurs-eau-chaude",
@@ -925,7 +925,7 @@ export const TARIFS: Tarif[] = [
       { q: "Pare-vapeur necessaire ?", r: "Oui systematiquement cote chaud, sinon condensation et moisissures dans isolant." },
       { q: "Quelle épaisseur pour atteindre BBC ?", r: "Minimum 120 mm de laine + 13 mm placo, ou 100 mm de PSE." },
     ],
-    source: { label: "France Renov' isolation intérieure", url: "https://france-renov.gouv.fr/aides/eligibilite/isolation-murs-interieur" },
+    source: { label: "France Renov' isolation intérieure", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
   {
     slug: "isolation-acoustique-pièce",
@@ -1521,7 +1521,7 @@ export const TARIFS: Tarif[] = [
       { q: "Materiel a fournir ?", r: "Selon contrat. Forfait \"tout compris\" : artisan apporte tondeuse, taille-haie, debroussailleuse." },
       { q: "Quelle frequence pour pelouse ?", r: "1 fois/semaine en saison (avril-octobre), 2 fois/mois en hiver pour bordures." },
     ],
-    source: { label: "Service public credit impot SAP", url: "https://www.service-public.fr/particuliers/vosdroits/F12330" },
+    source: { label: "Service public credit impot SAP", url: "https://www.service-public.gouv.fr/particuliers/vosdroits/F12" },
   },
   {
     slug: "elagage-arbre",
@@ -1749,7 +1749,7 @@ export const TARIFS: Tarif[] = [
       { q: "Couvre-t-il toute la maison ?", r: "Non, max 60 m2 par unite intérieure. Au-dela : multi-split ou gainable." },
       { q: "Eligible MaPrimeRenov' ?", r: "Plus depuis 2022 (climatiseurs reversibles seuls exclus). PAC air-eau seulement." },
     ],
-    source: { label: "France Renov' chauffage", url: "https://france-renov.gouv.fr/aides/eligibilite/chauffage" },
+    source: { label: "France Renov' chauffage", url: "https://france-renov.gouv.fr/aides/mpr" },
   },
 
   // ============================================================
