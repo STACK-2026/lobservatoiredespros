@@ -302,6 +302,15 @@ def query_sirene(naf_code, dept, limit=None):
     return [dict(zip(columns, r)) for r in rows]
 
 
+# RGPD , SIREN dont la personne a explicitement demande l'effacement et le
+# non-referencement (droit d'effacement / opposition, art. 17/21 RGPD). Ne JAMAIS
+# (re)importer ces etablissements, quelle que soit la source SIRENE. Documente
+# dans audits/rgpd_suppressions/.
+RGPD_SUPPRESSED_SIRENS = {
+    "443081054",  # GRESSET Raymond / LES COMPAGNONS ARTISANS, Le Mans , demande 2026-06-11
+}
+
+
 def pros_to_dict(records, metier_key, dept_code):
     """Transform raw Sirene records vers le format Supabase public.pros.
     Exclut les records sans nom exploitable (pas d'autoentrepreneur fantome)."""
@@ -318,6 +327,9 @@ def pros_to_dict(records, metier_key, dept_code):
         siret = str(r.get("siret", "")).strip()
         siren = str(r.get("siren", "")).strip()
         if not siren:
+            excluded += 1
+            continue
+        if siren in RGPD_SUPPRESSED_SIRENS:  # RGPD: effacement demande, jamais re-importer
             excluded += 1
             continue
         ville = str(r.get("libelleCommuneEtablissement", "") or "").title()
