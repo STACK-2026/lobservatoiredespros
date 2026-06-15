@@ -218,6 +218,35 @@ export const onRequestGet: PagesFunction<Env, "token"> = async (context) => {
           : "mitige";
 
     if (nextStatus === "publie") {
+      // Edition magic-link : let the visitor amend their review later.
+      const editExp = Math.floor(Date.now() / 1000) + 90 * 86400;
+      const editToken = await signToken(
+        {
+          avis_id: avis.id,
+          pro_id: avis.pro_id,
+          exp: editExp,
+          type: "edition",
+          nonce: crypto.randomUUID(),
+        },
+        context.env.AVIS_TOKEN_SECRET
+      );
+      await fetch(`${supabaseUrl}/rest/v1/pro_response_tokens`, {
+        method: "POST",
+        headers: {
+          ...sbHeaders,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          avis_id: avis.id,
+          pro_id: avis.pro_id,
+          token_hash: await hashToken(editToken),
+          type: "edition",
+          expires_at: new Date(editExp * 1000).toISOString(),
+        }),
+      });
+      const editUrl = `https://lobservatoiredespros.com/avis/modifier/${editToken}/`;
+
       // Visiteur : votre avis est publie
       await sendResend(context.env.RESEND_API_KEY, {
         to: avis.email,
@@ -225,6 +254,8 @@ export const onRequestGet: PagesFunction<Env, "token"> = async (context) => {
         html: `<p>Bonjour ${htmlEscape(avis.pseudo)},</p>
 <p>Votre avis sur <strong>${htmlEscape(proNom)}</strong> (${htmlEscape(proVille)}) est desormais publie sur L'Observatoire des Pros.</p>
 <p><a href="https://lobservatoiredespros.com/pro/${encodeURIComponent(proSlug)}/#avis-${avis.id}">Voir mon avis publie</a></p>
+<p>Besoin de corriger ou completer votre avis ? Vous pouvez le modifier a tout moment via ce lien (valable 90 jours) :</p>
+<p><a href="${editUrl}">Modifier mon avis</a></p>
 <p>Merci pour votre contribution.</p>
 <p>La redaction de L'Observatoire des Pros</p>`,
       });

@@ -12,7 +12,7 @@ export interface TokenPayload {
   avis_id: string;
   pro_id: string;
   exp: number;
-  type: "preavis" | "reponse";
+  type: "preavis" | "reponse" | "edition";
   nonce: string;
 }
 
@@ -68,7 +68,7 @@ export async function verifyToken(token: string, secret: string): Promise<TokenP
       !payload.pro_id ||
       !payload.type ||
       !payload.nonce ||
-      !["preavis", "reponse"].includes(payload.type)
+      !["preavis", "reponse", "edition"].includes(payload.type)
     ) {
       return null;
     }
