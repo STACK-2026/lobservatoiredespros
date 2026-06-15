@@ -231,7 +231,7 @@ const jsonLd = [
 
           {(or > 0 || argent > 0) && (
             <section class="market-section">
-              <h2>Distinctions editoriales</h2>
+              <h2>Distinctions éditoriales</h2>
               <p>
                 Sur les {total.toLocaleString("fr-FR")} pros observes, {or > 0 && (
                   <><strong>{or}</strong> ont obtenu le niveau Or (Score de Confiance superieur a 8/10) </>
@@ -269,7 +269,7 @@ const jsonLd = [
             <section class="market-section">
               <h2>Sante du marche</h2>
               <p>
-                {cesses} etablissements affichent un etat administratif cesse ou ferme dans la base Sirene.
+                {cesses} établissements affichent un etat administratif cesse ou ferme dans la base Sirene.
                 Ils ne figurent pas dans nos classements actifs. Ce taux ({Math.round(100 * cesses / (total + cesses))} %)
                 est un indicateur prudent de la dynamique du marche local.
               </p>
@@ -279,16 +279,16 @@ const jsonLd = [
       )}
 
       <section class="market-section sources">
-        <h2>Sources et methode</h2>
+        <h2>Sources et méthode</h2>
         <p>
-          Cette synthese est generee a partir des donnees publiques recoupees a la date du
+          Cette synthese est generee a partir des données publiques recoupees a la date du
           {" "}{dateUpdatedFR}. Sources :
         </p>
         <ul>
           <li><strong>Sirene INSEE</strong> , registre national des entreprises (etat civil, age, etat administratif).</li>
           <li><strong>ADEME RGE</strong> , annuaire France Renov' des certifications environnementales.</li>
           <li><strong>BODACC</strong> , Bulletin officiel des annonces civiles et commerciales (procedures).</li>
-          <li><strong>Recherche Entreprises</strong> , API officielle (categorie, effectif, dirigeants).</li>
+          <li><strong>Recherche Entreprises</strong> , API officielle (catégorie, effectif, dirigeants).</li>
         </ul>
         <p class="meta-note">
           Cette photographie du marché est mise à jour automatiquement chaque mois. La méthodologie
