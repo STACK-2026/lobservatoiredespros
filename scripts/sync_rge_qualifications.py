@@ -156,6 +156,18 @@ def supabase_fetch_pros(service_key, siret=None, dept=None, all_active=False, ca
 def supabase_upsert(table, rows, service_key, on_conflict):
     if not rows:
         return 0
+    # Dédupe par clé de conflit AVANT l'upsert : Postgres refuse deux lignes
+    # portant la même valeur de clé dans une seule commande ON CONFLICT
+    # ("cannot affect row a second time", HTTP 500/21000). On garde la dernière
+    # occurrence de chaque clé. (fix 18/06 : l'API ADEME renvoie parfois la même
+    # qualif en double pour un SIRET.)
+    conflict_cols = [c.strip() for c in on_conflict.split(",") if c.strip()]
+    if conflict_cols:
+        deduped = {}
+        for r in rows:
+            k = tuple(r.get(c) for c in conflict_cols)
+            deduped[k] = r
+        rows = list(deduped.values())
     url = f"{SUPABASE_URL}/rest/v1/{table}?on_conflict={on_conflict}"
     data = json.dumps(rows).encode()
     req = urllib.request.Request(
