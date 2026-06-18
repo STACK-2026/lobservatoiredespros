@@ -72,3 +72,28 @@ export SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_KEY"
 
 ## Journal d'avancement
 - 18/06 19h : Phase 0 quasi finie (garde-fou en build), Phase 1 lancée (RGE --all clean), bug dedup corrigé+validé.
+- 18/06 19h33 : **garde-fou DÉPLOYÉ** (wrangler) + vérifié live (Yonne+Belfort allumés, Paris/Gironde masqués proprement, 0 fausse donnée).
+
+---
+
+## ⏸️ POINT DE REPRISE AU MILLIMÈTRE , arrêt machine 19/06 ~00h25 (orage)
+
+**Ce qui est ACQUIS et survit (rien à refaire) :**
+- ✅ Code committé+poussé (`main` = `422e02c`) : garde-fou véracité + helper `jsonLdDataset` + fix dedup `sync_rge_qualifications.py` + ce plan + llms.txt national.
+- ✅ **LIVE déployé et véridique** (Cloudflare, indépendant du Mac) : pages enrichies allumées (Dataset+phrase citable), pages non enrichies masquées, AUCUNE fausse donnée. Dernier deploy = `6fca4e17`.
+- ✅ **Données déjà écrites en Supabase (persistées)** : au moment de l'arrêt, RGE traité **~92 600 / 103 650** (89%), 0 erreur ; `pros.rge=true` ≈ **6 673** et montait. Ces données RESTENT (Supabase, pas local).
+- ✅ Publisher local : lobservatoire EXCLU (deploy_recent_local + PHANTOM) , aucune interférence. (committé dans stack-2026)
+- ✅ Tracker AI-visibility hebdo en place (baseline 0/25).
+
+**Ce qui s'ARRÊTE avec la machine (à relancer) :**
+- 🔴 La sync RGE `--all` (process local) , était à 89%. Le `caffeinate` meurt aussi (normal).
+
+**REPRISE EXACTE au redémarrage (étape par étape) :**
+1. Récupérer la service key (recette section « Recette service key » ci-dessus → exporte `SUPABASE_SERVICE_KEY` + `SUPABASE_SERVICE_ROLE_KEY`).
+2. **Finir le RGE** : `cd ~/stack-2026/lobservatoiredespros && SUPABASE_SERVICE_KEY=… nohup python3 scripts/sync_rge_qualifications.py --all --workers 5 > reports/rge_sync_resume_$(date +%Y%m%d_%H%M).log 2>&1 &` (idempotent : re-traite tout mais sans casse ; ~6h. Optionnel : ne finir que la fin si on veut gagner du temps). Optionnel `caffeinate -i -w <PID> &`.
+3. Quand `rge=true` stabilisé (~attendu 8-12k) et log « Termine » : **Phase 1 deploy** → `cd site && npm run build` (~41 min, lit Supabase) puis `export $(grep -E "^CLOUDFLARE_API_TOKEN=|^CLOUDFLARE_ACCOUNT_ID=" ../../.env.master|xargs); npx wrangler@4 pages deploy dist --project-name=lobservatoiredespros --branch=main --commit-dirty=true`. Vérifier 4-5 depts variés (Dataset+phrase réels, 0 fausse donnée).
+4. Enchaîner **Phase 2 BODACC** → `Phase 3 enrich` → `Phase 4 geocode` → `Phase 5 re-score+rebuild` → `Phase 6 CI lockfile` → `Phase 7 mesure tracker` (cf. sections ci-dessus).
+
+**Vérif rapide « où on en est » au retour :**
+- `curl -s -I ".../pros?select=id&rge=eq.true" ...Prefer: count=exact` → combien de RGE en base.
+- `curl https://lobservatoiredespros.com/plombier/yonne-89/` → doit être 200 + Dataset (live intact).
