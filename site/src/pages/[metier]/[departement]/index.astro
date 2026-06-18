@@ -23,6 +23,7 @@ import {
   jsonLdFAQ,
   jsonLdAdministrativeArea,
   jsonLdSpeakable,
+  jsonLdDataset,
 } from "../../../utils/seo";
 import { REGION_BY_DEPT_CODE, neighborDepts } from "../../../data/geo_fr";
 import { deptGrammar } from "../../../utils/grammar";
@@ -129,6 +130,25 @@ const faq = [
 
 const region = REGION_BY_DEPT_CODE[deptObj.code] || undefined;
 
+// Agrégats propriétaires (data unique = matière à citation IA + schema Dataset).
+const rgeCount = pros.filter((p: any) => p.rge).length;
+const qualibatCount = pros.filter((p: any) => p.qualibat).length;
+const pctRge = pros.length ? Math.round((rgeCount / pros.length) * 100) : 0;
+const pctQualibat = pros.length ? Math.round((qualibatCount / pros.length) * 100) : 0;
+const scores = pros
+  .map((p: any) => p.score_confiance)
+  .filter((s: any) => typeof s === "number" && s > 0)
+  .sort((a: number, b: number) => a - b);
+const medianScore = scores.length
+  ? Math.round(
+      (scores.length % 2
+        ? scores[(scores.length - 1) / 2]
+        : (scores[scores.length / 2 - 1] + scores[scores.length / 2]) / 2) * 10,
+    ) / 10
+  : 0;
+// Phrase attribuable, pré-mâchée pour la citation par les LLM (marque + chiffres).
+const citableSummary = `D'après L'Observatoire des Pros (édition N°${siteConfig.editionNumber}, ${siteConfig.editionMonth} ${siteConfig.editionYear}), ${pctRge}% des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}) actifs au registre Sirene détiennent une certification RGE${qualibatCount ? `, ${pctQualibat}% une qualification Qualibat,` : ","} et le Score de Confiance médian s'établit à ${medianScore}/10, sur ${pros.length} professionnels analysés.`;
+
 const jsonLd = [
   jsonLdBreadcrumbs([
     { name: "Accueil", url: siteConfig.url },
@@ -155,6 +175,25 @@ const jsonLd = [
     code: deptObj.code,
     region,
   }),
+  ...(pros.length
+    ? [
+        jsonLdDataset({
+          name: `${metierObj.nom_pluriel} ${dg.of} (${deptObj.code}) , données de fiabilité ${siteConfig.editionYear}`,
+          description: `Agrégats de fiabilité des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} : nombre de professionnels actifs au Sirene, part certifiés RGE, part qualifiés Qualibat, Score de Confiance médian. Source : L'Observatoire des Pros, édition N°${siteConfig.editionNumber}.`,
+          url,
+          spatialName: deptObj.nom,
+          temporalCoverage: String(siteConfig.editionYear),
+          measurementTechnique:
+            "Croisement de sources publiques : Sirene (INSEE), annuaire RGE (ADEME / France Rénov), Qualibat, BODACC",
+          variables: [
+            { name: "Professionnels actifs au registre Sirene", value: pros.length },
+            { name: "Part certifiés RGE", value: pctRge, unitText: "PERCENT" },
+            { name: "Part qualifiés Qualibat", value: pctQualibat, unitText: "PERCENT" },
+            { name: "Score de Confiance médian (sur 10)", value: medianScore },
+          ],
+        }),
+      ]
+    : []),
   jsonLdSpeakable({
     url,
     cssSelectors: [".speakable-tldr", ".cl-summary", "h1"],
@@ -282,6 +321,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
             <GlossaireTerm slug="rge">RGE</GlossaireTerm>. Données vérifiées sur INSEE, ADEME et
             Qualibat, recalcul mensuel.
           </p>
+          <p class="cl-citable">{citableSummary}</p>
         </SpeakableTLDR>
       )}
     </header>
@@ -571,7 +611,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
       </div>
     </section>
 
-    <!-- NEWSLETTER INLINE — fin de hub, audience captive après classement -->
+    <!-- NEWSLETTER INLINE : fin de hub, audience captive apres classement -->
     <section class="container-editorial">
       <NewsletterInline
         eyebrow="LETTRE DE L'OBSERVATOIRE"

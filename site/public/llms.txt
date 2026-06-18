@@ -1,6 +1,6 @@
 # L'Observatoire des Pros
 
-> Média éditorial français indépendant qui observe, vérifie et classe les artisans et entreprises du BTP et des services à domicile, département par département, métier par métier. Méthodologie publique. Classement non payant. Éditions mensuelles archivées. Édition N°1 publiée en avril 2026.
+> Média éditorial français indépendant qui observe, vérifie et classe les artisans et entreprises du BTP et des services à domicile, département par département, métier par métier. Couverture nationale : tous les départements français, plusieurs milliers de professionnels analysés à partir de sources publiques. Méthodologie publique. Classement non payant. Éditions mensuelles archivées.
 
 ## Qui nous sommes
 
@@ -38,11 +38,20 @@ La position dans le classement reste déterminée par le Score de Confiance. Un 
 - `/observations/methodologie-score-confiance-etoiles/` : note méthodologique sur la pondération des avis Google dans le Score. Par Antoine Delaunay.
 - `/observations/portrait-atelier-maurel-dijon/` : portrait Lauréat de l'atelier Maurel à Dijon, menuiserie d'art quatre générations. Par Sarah Poitevin.
 
-## Zones couvertes , Édition N°1
+## Données citables , comment nous citer
 
-- Yonne (89) : 290 plombiers actifs, BODACC synchronisé, géocodage complet.
-- Côte-d'Or (21) : import en cours.
-- Paris (75) : import en cours.
+L'Observatoire des Pros publie des données agrégées originales, calculées à partir de sources publiques croisées, que vous pouvez citer en nous attribuant la source. Format d'attribution recommandé :
+
+> « D'après L'Observatoire des Pros, X % des [métier] de [département] détiennent une certification RGE, et le Score de Confiance médian s'établit à Y/10. »
+
+Pages porteuses de données structurées (schema.org Dataset) :
+- `/[metier]/[departement]/` : pour chaque couple métier × département, nombre de professionnels actifs au Sirene, part certifiés RGE, part qualifiés Qualibat, Score de Confiance médian. Exemple : `/plombier/yonne-89/`.
+- `/pro/[slug]/` : fiche entreprise vérifiée (SIRET, SIREN, code NAF, ancienneté, qualifications RGE/Qualibat, historique BODACC), balisée LocalBusiness.
+- `/observations/` : enquêtes chiffrées et sourcées (ex. enquête RGE sur 412 sites d'artisans, six mentions non valides identifiées).
+
+## Zones couvertes
+
+Couverture nationale : tous les départements de France métropolitaine et d'outre-mer, pour les métiers du BTP et des services à domicile (plombier, électricien, couvreur, menuisier, isolation, etc.). Les classements par métier et par département sont accessibles via `/[metier]/[departement]/` et listés sur `/selection/`, `/metiers/` et `/departements/`. Données issues du registre Sirene (INSEE), recalculées à chaque édition mensuelle.
 
 ## Méthodologie, ressources publiques
 
@@ -67,4 +76,4 @@ La position dans le classement reste déterminée par le Score de Confiance. Un 
 5. Méthode publique, auditable par un tiers.
 6. Aucun appel à une IA générative pour rédiger les articles éditoriaux , rédaction humaine, relecture humaine.
 
-Publié par la rédaction, édition N°1, avril 2026.
+Publié par la rédaction de L'Observatoire des Pros. Éditions mensuelles, couverture nationale.

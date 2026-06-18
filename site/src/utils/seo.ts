@@ -334,6 +334,47 @@ export function jsonLdAdministrativeArea(opts: {
   };
 }
 
+/** JSON-LD Dataset , déclare une page comme SOURCE DE DONNÉES citable par les
+ *  moteurs IA (AI Overviews, Perplexity, ChatGPT). variableMeasured porte les
+ *  agrégats propriétaires (nb pros, % RGE, score médian) que les LLM reprennent
+ *  et attribuent à L'Observatoire des Pros. C'est le signal "ceci est de la
+ *  donnée originale" que les autres annuaires n'émettent pas.
+ */
+export function jsonLdDataset(opts: {
+  name: string;
+  description: string;
+  url: string;
+  spatialName?: string;
+  temporalCoverage?: string;
+  dateModified?: string;
+  measurementTechnique?: string;
+  variables: { name: string; value: number; unitText?: string }[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: opts.name,
+    description: opts.description,
+    url: opts.url,
+    isAccessibleForFree: true,
+    creator: { "@id": ORG_ID },
+    publisher: { "@id": ORG_ID },
+    license: `${siteConfig.url}/mentions-legales/`,
+    ...(opts.temporalCoverage ? { temporalCoverage: opts.temporalCoverage } : {}),
+    ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),
+    ...(opts.measurementTechnique ? { measurementTechnique: opts.measurementTechnique } : {}),
+    ...(opts.spatialName
+      ? { spatialCoverage: { "@type": "AdministrativeArea", name: opts.spatialName } }
+      : {}),
+    variableMeasured: opts.variables.map((v) => ({
+      "@type": "PropertyValue",
+      name: v.name,
+      value: v.value,
+      ...(v.unitText ? { unitText: v.unitText } : {}),
+    })),
+  };
+}
+
 /** JSON-LD SpeakableSpecification à embarquer dans WebPage pour désigner les
  *  passages lisibles par assistants vocaux / AI Overviews.
  */
