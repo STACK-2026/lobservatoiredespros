@@ -146,8 +146,19 @@ const medianScore = scores.length
         : (scores[scores.length / 2 - 1] + scores[scores.length / 2]) / 2) * 10,
     ) / 10
   : 0;
-// Phrase attribuable, pré-mâchée pour la citation par les LLM (marque + chiffres).
-const citableSummary = `D'après L'Observatoire des Pros (édition N°${siteConfig.editionNumber}, ${siteConfig.editionMonth} ${siteConfig.editionYear}), ${pctRge}% des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}) actifs au registre Sirene détiennent une certification RGE${qualibatCount ? `, ${pctQualibat}% une qualification Qualibat,` : ","} et le Score de Confiance médian s'établit à ${medianScore}/10, sur ${pros.length} professionnels analysés.`;
+// GARDE-FOU VÉRACITÉ : hors édition synchronisée, le RGE/Qualibat ne sont pas
+// encore enrichis au national (→ 0%, score médian artificiellement bas). On
+// n'expose donc la phrase citable + le schema Dataset QUE là où la donnée de
+// certification est réelle (au moins une qualif présente). Ailleurs, on n'affirme
+// rien de faux. Proxy de fiabilité = au moins un pro RGE ou Qualibat sur la zone.
+const dataReliable = rgeCount > 0 || qualibatCount > 0;
+const certifClauses: string[] = [];
+if (rgeCount > 0) certifClauses.push(`${pctRge}% détiennent une certification RGE`);
+if (qualibatCount > 0) certifClauses.push(`${pctQualibat}% une qualification Qualibat`);
+const certifPart = certifClauses.length ? `${certifClauses.join(", ")}, ` : "";
+// Phrase attribuable, pré-mâchée pour la citation par les LLM (marque + chiffres réels).
+// "les mieux classés" : le classement affiche le top 100, on ne prétend pas à l'exhaustivité.
+const citableSummary = `D'après L'Observatoire des Pros (édition N°${siteConfig.editionNumber}, ${siteConfig.editionMonth} ${siteConfig.editionYear}), parmi les ${pros.length} ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}) les mieux classés au registre Sirene, ${certifPart}le Score de Confiance médian s'établit à ${medianScore}/10.`;
 
 const jsonLd = [
   jsonLdBreadcrumbs([
@@ -175,20 +186,24 @@ const jsonLd = [
     code: deptObj.code,
     region,
   }),
-  ...(pros.length
+  ...(dataReliable
     ? [
         jsonLdDataset({
           name: `${metierObj.nom_pluriel} ${dg.of} (${deptObj.code}) , données de fiabilité ${siteConfig.editionYear}`,
-          description: `Agrégats de fiabilité des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} : nombre de professionnels actifs au Sirene, part certifiés RGE, part qualifiés Qualibat, Score de Confiance médian. Source : L'Observatoire des Pros, édition N°${siteConfig.editionNumber}.`,
+          description: `Agrégats de fiabilité des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} les mieux classés : part certifiés RGE, part qualifiés Qualibat, Score de Confiance médian. Source : L'Observatoire des Pros, édition N°${siteConfig.editionNumber}.`,
           url,
           spatialName: deptObj.nom,
           temporalCoverage: String(siteConfig.editionYear),
           measurementTechnique:
             "Croisement de sources publiques : Sirene (INSEE), annuaire RGE (ADEME / France Rénov), Qualibat, BODACC",
           variables: [
-            { name: "Professionnels actifs au registre Sirene", value: pros.length },
-            { name: "Part certifiés RGE", value: pctRge, unitText: "PERCENT" },
-            { name: "Part qualifiés Qualibat", value: pctQualibat, unitText: "PERCENT" },
+            { name: "Professionnels classés sur la page", value: pros.length },
+            ...(rgeCount > 0
+              ? [{ name: "Part certifiés RGE", value: pctRge, unitText: "PERCENT" }]
+              : []),
+            ...(qualibatCount > 0
+              ? [{ name: "Part qualifiés Qualibat", value: pctQualibat, unitText: "PERCENT" }]
+              : []),
             { name: "Score de Confiance médian (sur 10)", value: medianScore },
           ],
         }),
@@ -317,11 +332,10 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
           <p>
             <strong>{pros.length} {metierObj.nom_pluriel.toLowerCase()}</strong> actifs au registre
             Sirene {dg.in} ({deptObj.code}), classés par Score de Confiance sur six
-            critères publics, dont {pros.filter((p: any) => p.rge).length} titulaires d'une certification
-            <GlossaireTerm slug="rge">RGE</GlossaireTerm>. Données vérifiées sur INSEE, ADEME et
+            critères publics{rgeCount > 0 ? (<>, dont {rgeCount} titulaires d'une certification <GlossaireTerm slug="rge">RGE</GlossaireTerm></>) : null}. Données vérifiées sur INSEE, ADEME et
             Qualibat, recalcul mensuel.
           </p>
-          <p class="cl-citable">{citableSummary}</p>
+          {dataReliable && <p class="cl-citable">{citableSummary}</p>}
         </SpeakableTLDR>
       )}
     </header>
