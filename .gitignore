@@ -144,3 +144,6 @@ site/.wrangler/
 
 # Sauvegardes RGPD / usurpation (donnees perso, NE JAMAIS publier sur repo public)
 audits/
+
+# Logs d'enrichissement / build (regenerables)
+reports/

@@ -18,6 +18,8 @@ echo "=================================================="
 PAT=$(grep '^SUPABASE_PAT=' ~/stack-2026/.env.master | cut -d= -f2)
 export SUPABASE_SERVICE_KEY=$(curl -sS "https://api.supabase.com/v1/projects/apuyeakgxjgdcfssrtek/api-keys?reveal=true" -H "Authorization: Bearer $PAT" | python3 -c "import json,sys;[print(k['api_key']) for k in json.load(sys.stdin) if k['name']=='service_role']")
 export SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_KEY"
+# geocode_pros.py exige aussi SUPABASE_URL (sinon [FATAL] et skip) , incident 19/06
+export SUPABASE_URL="https://apuyeakgxjgdcfssrtek.supabase.co"
 if [ -z "${SUPABASE_SERVICE_KEY:-}" ]; then echo "[chain] ERREUR: pas de service key"; exit 1; fi
 echo "[chain] service key OK"
 
