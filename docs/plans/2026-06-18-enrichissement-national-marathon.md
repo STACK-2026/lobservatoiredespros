@@ -73,6 +73,20 @@ export SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_KEY"
 ## Journal d'avancement
 - 18/06 19h : Phase 0 quasi finie (garde-fou en build), Phase 1 lancée (RGE --all clean), bug dedup corrigé+validé.
 - 18/06 19h33 : **garde-fou DÉPLOYÉ** (wrangler) + vérifié live (Yonne+Belfort allumés, Paris/Gironde masqués proprement, 0 fausse donnée).
+- **19/06 ~09h : REPRISE après orage. Décision user = enrichissement MAXIMAL, "tout au millimètre".**
+  - RGE relancé `--all --workers 5` (nohup+caffeinate), idempotent. Dry-run BODACC (0 err, 16/s) + enrich entreprise validés.
+  - Trust score (`lib_trust_score`) croise RGE + entreprise + BODACC → **ordre imposé : RGE → enrich entreprise → géocode → BODACC en dernier** (sinon le score final ne reflète pas les données fraîches).
+  - **Refresh COMPLET décidé** (pas `--only-missing`) sur BODACC + enrich entreprise : données dataient d'avril (`max enriched_at`/`last_trust_sync` = 2026-04-25) sur un dataset plus petit. Géocode = `--only-missing` (99,8% déjà fait, coords stables).
+  - Chaîne automatisée : `scripts/run_enrichment_chain.sh` (nohup+caffeinate) attend la fin du RGE puis enchaîne enrich → géocode → BODACC, 1 log par source dans `reports/`, marqueur `reports/CHAIN_DONE_*.marker` en fin. Après la chaîne : **rebuild + deploy wrangler AUTO** (décision user) + vérif live large.
+  - Couverture constatée au départ : actifs 103 650 ; rge=true 6 676 ; qualibat 3 760 ; géocodés 103 398 ; enriched_at 102 935 ; last_trust_sync 103 657 ; score>1 68 956.
+
+**REPRISE si re-coupure :** relancer RGE (section reprise ci-dessus), puis `nohup caffeinate -is bash scripts/run_enrichment_chain.sh &`. La chaîne attend le RGE puis fait le reste. Vérifier les logs `reports/{enrich_entreprise,geocode,bodacc}_*.log` (rc=0, 0 err) avant deploy.
+
+- **19/06 ~15h : RGE TERMINÉ** (103 650 traités, **6 729 RGE actifs, 34 295 qualifs / 19 402 actives**). Chaîne enchaînée.
+- **19/06 ~15h11 : API enrich RETOMBÉE (intermittente).** Up à 14h57 (health-check 200 → enrich lancé), down de nouveau à 15h10 (HTTP 000), 0 ligne écrite en 13min (`enriched_at` toujours au 25/04). → **enrich tué** (ne pas churner 14h sur API morte). **Enrich entreprise = DIFFÉRÉ** : données d'avril conservées (déjà en ligne, champs entreprise stables). **À refaire quand l'API data.gouv est STABLE**, puis **2ᵉ run BODACC** (re-fold entreprise dans le Trust Score) **+ redeploy**. Commande : `python3 scripts/enrich_entreprise.py --commit --workers 10` (vérifier d'abord `curl recherche-entreprises.api.gouv.fr` = 200 plusieurs fois de suite).
+- **19/06 ~15h12 : géocode** échoue dans la chaîne (manque `SUPABASE_URL`, la chaîne n'exportait que la clé) → relancé à la main avec `SUPABASE_URL`+`SUPABASE_SERVICE_ROLE_KEY` exportés (only-missing, ~252). **BODACC en cours** (recalcule Trust Score avec RGE frais, ~1,8h). Fin chaîne → deploy auto.
+- **TODO chain fix** : ajouter `export SUPABASE_URL=https://apuyeakgxjgdcfssrtek.supabase.co` dans `run_enrichment_chain.sh` (géocode en a besoin).
+- **19/06 ~09h22 : INCIDENT API enrich entreprise.** `recherche-entreprises.api.gouv.fr` (IP 37.59.183.76/77) **refuse les connexions port 443** (Connection refused sur les 2 IP, DNS OK). Côté data.gouv.fr (down/maintenance), pas nous (Supabase/ADEME/BODACC répondent). Le dry-run avait fait `miss` sur 1000/1000 pour ça. **Aucune perte** : un `miss` ne réécrit pas, données d'avril conservées. → Chaîne rendue **robuste** : health-check API avant enrich, retry 12×10min (l'API a le temps du RGE pour revenir), **skip propre** sinon (`reports/ENRICH_SKIPPED_*.marker`). **Action si skippé :** relancer `python3 scripts/enrich_entreprise.py --commit --workers 10` quand l'API revient, puis re-run BODACC (trust score) + rebuild/deploy. BODACC tourne quand même (recalcule le score avec RGE frais + entreprise d'avril).
 
 ---
 

@@ -141,3 +141,6 @@ vite.config.ts.timestamp-*
 # Wrangler local cache
 site/.wrangler/
 .logs/
+
+# Sauvegardes RGPD / usurpation (donnees perso, NE JAMAIS publier sur repo public)
+audits/
