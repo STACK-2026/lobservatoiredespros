@@ -85,7 +85,12 @@ jobs:
 
       - name: Ping IndexNow
         if: success()
+        timeout-minutes: 3
         env:
           SITE_URL: https://lobservatoiredespros.com
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
-        run: python3 scripts/indexnow_ping.py || true
+        # Hard-bound the ping: the script can hang on a slow IndexNow endpoint
+        # with no per-request timeout, which froze the whole deploy run (and the
+        # shared self-hosted runner) for hours on 20/06 even though the CF Pages
+        # deploy had already succeeded. `timeout` kills it; `|| true` keeps green.
+        run: timeout 120 python3 scripts/indexnow_ping.py || true
