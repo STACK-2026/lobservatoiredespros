@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: site
-        run: npm ci
+        run: npm install --prefer-offline --no-audit --no-fund || (echo "lockfile drift, retry clean" && rm -rf node_modules && npm install --no-audit --no-fund)
 
       - name: Build
         working-directory: site
