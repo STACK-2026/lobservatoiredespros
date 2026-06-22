@@ -308,6 +308,7 @@ def query_sirene(naf_code, dept, limit=None):
 # dans audits/rgpd_suppressions/.
 RGPD_SUPPRESSED_SIRENS = {
     "443081054",  # GRESSET Raymond / LES COMPAGNONS ARTISANS, Le Mans , demande 2026-06-11
+    "940973977",  # Loic DEGAUQUE, Souleuvre-en-Bocage (14) , demande 2026-06-22 (effacement total + non-diffusion INSEE/RNE)
 }
 
 
