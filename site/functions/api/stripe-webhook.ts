@@ -25,6 +25,41 @@ interface Env {
   STRIPE_WEBHOOK_SECRET?: string;
   SUPABASE_URL?: string;
   SUPABASE_SERVICE_KEY?: string;
+  RESEND_API_KEY?: string;
+}
+
+const SITE = "https://lobservatoiredespros.com";
+const NOTIFY_FROM = "L'Observatoire <noreply@send.lobservatoiredespros.com>";
+const NOTIFY_TO = "contact@lobservatoiredespros.com";
+
+function htmlEscape(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Notification email interne (fail-soft : ne casse JAMAIS le webhook). Meme
+// pattern que candidature.ts -> Resend -> contact@lobservatoiredespros.com.
+async function notifyResend(env: Env, subject: string, html: string): Promise<void> {
+  if (!env.RESEND_API_KEY) {
+    console.error("stripe-webhook: RESEND_API_KEY absent, notif non envoyee");
+    return;
+  }
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: NOTIFY_FROM, to: NOTIFY_TO, subject, html }),
+    });
+  } catch (e) {
+    console.error("stripe-webhook: Resend notify failed", e instanceof Error ? e.message : String(e));
+  }
 }
 
 // Hardcode comme contact.ts / candidature.ts (SUPABASE_URL n'est pas un secret CF).
@@ -86,13 +121,21 @@ function sbHeaders(env: Env) {
   };
 }
 
-async function findProBySiret(env: Env, siret: string): Promise<{ id: string; slug: string } | null> {
+async function findProBySiret(env: Env, siret: string): Promise<{ id: string; slug: string; nom_entreprise: string } | null> {
   const clean = siret.replace(/\D/g, "");
   if (clean.length !== 14) return null;
-  const url = `${SUPABASE_URL}/rest/v1/pros?siret=eq.${clean}&select=id,slug&limit=1`;
+  const url = `${SUPABASE_URL}/rest/v1/pros?siret=eq.${clean}&select=id,slug,nom_entreprise&limit=1`;
   const r = await fetch(url, { headers: sbHeaders(env) });
   if (!r.ok) return null;
-  const rows = (await r.json()) as Array<{ id: string; slug: string }>;
+  const rows = (await r.json()) as Array<{ id: string; slug: string; nom_entreprise: string }>;
+  return rows[0] || null;
+}
+
+async function getProById(env: Env, id: string): Promise<{ slug: string; nom_entreprise: string } | null> {
+  const url = `${SUPABASE_URL}/rest/v1/pros?id=eq.${id}&select=slug,nom_entreprise&limit=1`;
+  const r = await fetch(url, { headers: sbHeaders(env) });
+  if (!r.ok) return null;
+  const rows = (await r.json()) as Array<{ slug: string; nom_entreprise: string }>;
   return rows[0] || null;
 }
 
@@ -169,6 +212,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         }),
       });
       console.log("stripe-webhook: Profil Verifie active pour", pro.slug, "sub", subId);
+
+      await notifyResend(
+        env,
+        `💰 Nouvel abonné Vérifié : ${pro.nom_entreprise} (29 €/an)`,
+        `<h2>Nouvel abonné Vérifié</h2>
+        <p><strong>${htmlEscape(pro.nom_entreprise)}</strong> vient de souscrire au Portrait Vérifié (29 € / an).</p>
+        <table cellpadding="6" style="border-collapse:collapse;border:1px solid #ddd;">
+          <tr><td><strong>Entreprise</strong></td><td>${htmlEscape(pro.nom_entreprise)}</td></tr>
+          <tr><td><strong>SIRET</strong></td><td>${htmlEscape(String(siret))}</td></tr>
+          <tr><td><strong>Fiche</strong></td><td><a href="${SITE}/pro/${htmlEscape(pro.slug)}/">${SITE}/pro/${htmlEscape(pro.slug)}/</a></td></tr>
+          <tr><td><strong>Abonnement Stripe</strong></td><td>${htmlEscape(subId || "-")}</td></tr>
+          <tr><td><strong>Échéance</strong></td><td>${htmlEscape(fin.toLocaleDateString("fr-FR"))}</td></tr>
+        </table>
+        <p style="color:#666;font-size:0.9em;">Le badge Vérifié est actif sur la fiche. Prochaine étape : ajouter ses photos et ses vraies coordonnées.</p>`,
+      );
       return new Response("ok", { status: 200 });
     }
 
@@ -217,6 +275,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         });
         await setVerified(env, ab.pro_id, false, null);
         console.log("stripe-webhook: abonnement revoque", subId);
+
+        const pro = await getProById(env, ab.pro_id);
+        const nom = pro?.nom_entreprise || "Pro inconnu";
+        await notifyResend(
+          env,
+          `⚠️ Abonnement Vérifié résilié : ${nom}`,
+          `<h2>Abonnement résilié</h2>
+          <p>L'abonnement Portrait Vérifié de <strong>${htmlEscape(nom)}</strong> a été résilié. Le badge Vérifié est désormais retiré de la fiche.</p>
+          ${pro ? `<p><strong>Fiche :</strong> <a href="${SITE}/pro/${htmlEscape(pro.slug)}/">${SITE}/pro/${htmlEscape(pro.slug)}/</a></p>` : ""}
+          <p><strong>Abonnement Stripe :</strong> ${htmlEscape(subId)}</p>`,
+        );
       }
       return new Response("ok", { status: 200 });
     }
