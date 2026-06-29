@@ -764,8 +764,11 @@ export async function onRequest(context: any): Promise<Response> {
   const pro = await fetchPro(slug);
   if (!pro || !pro.active) return notFoundHtml();
 
-  // Fetch avis publies pour ce pro
-  const avisUrl = `${SUPABASE_URL}/rest/v1/pro_avis?pro_id=eq.${encodeURIComponent(pro.id)}&status=eq.publie&select=id,pseudo,verdict,texte,published_at,pro_avis_responses(texte,created_at)&order=published_at.desc`;
+  // Fetch avis publies pour ce pro. Lecture via la vue publique restreinte
+  // (colonnes non-PII uniquement) : l'anon n'a plus acces brut a pro_avis
+  // (fermeture fuite email/ip_hash/tokens). La vue ne contient que les avis
+  // status=publie ; pro_avis_responses y est un champ jsonb [{texte,created_at}].
+  const avisUrl = `${SUPABASE_URL}/rest/v1/v_pro_avis_public?pro_id=eq.${encodeURIComponent(pro.id)}&select=id,pseudo,verdict,texte,published_at,pro_avis_responses&order=published_at.desc`;
   const avisRes = await fetch(avisUrl, { headers: SB_HEADERS });
   const avis = avisRes.ok ? (await avisRes.json() as Array<any>) : [];
 

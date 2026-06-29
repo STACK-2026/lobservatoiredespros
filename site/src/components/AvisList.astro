@@ -18,9 +18,10 @@ interface Props {
   avis: AvisItem[];
   proSlug: string;
   nomEntreprise: string;
+  proId?: string;
 }
 
-const { avis_nombre, avis_moyen, avis, proSlug, nomEntreprise } = Astro.props;
+const { avis_nombre, avis_moyen, avis, proSlug, nomEntreprise, proId = "" } = Astro.props;
 
 // Stats par verdict
 const ouiCount = avis.filter((a) => a.verdict === "oui").length;
@@ -39,7 +40,7 @@ const formatDate = (iso: string) => {
 };
 ---
 
-<section class="avis-list-section" id="avis" aria-labelledby="avis-h">
+<section class="avis-list-section" id="avis" aria-labelledby="avis-h" data-pro-id={proId} data-pro-slug={proSlug} data-nom={nomEntreprise}>
   <h2 id="avis-h" class="heading-display avis-heading">Avis des visiteurs</h2>
 
   {avis_nombre === 0 ? (
@@ -259,16 +260,120 @@ const formatDate = (iso: string) => {
 </style>
 
 <script>
-  document.querySelectorAll(".avis-filter").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const filter = btn.getAttribute("data-filter") || "all";
-      document.querySelectorAll(".avis-filter").forEach((b) => b.classList.remove("is-active"));
-      btn.classList.add("is-active");
-      document.querySelectorAll(".avis-item").forEach((item) => {
-        const v = item.getAttribute("data-verdict") || "";
-        if (filter === "all" || filter === v) item.classList.remove("is-hidden");
-        else item.classList.add("is-hidden");
+  // Lecture live des avis via la vue publique restreinte (colonnes non-PII).
+  // Les fiches "wave1" (top pros) sont pre-generees au build : leurs avis sont
+  // figes. Cette hydratation injecte les avis publies depuis le dernier build
+  // (un avis verifie apparait donc en quelques secondes, sans rebuild).
+  const SUPABASE_URL = "https://apuyeakgxjgdcfssrtek.supabase.co";
+  const ANON =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwdXllYWtneGpnZGNmc3NydGVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDEwNTcsImV4cCI6MjA5MjUxNzA1N30.C7cw3T5Yj8W3LaYlLgWULlJlsP6iijxRKQvueA6WKOY";
+
+  function bindFilters() {
+    const buttons = document.querySelectorAll(".avis-filter");
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const filter = btn.getAttribute("data-filter") || "all";
+        buttons.forEach((b) => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        document.querySelectorAll(".avis-item").forEach((item) => {
+          const v = item.getAttribute("data-verdict") || "";
+          if (filter === "all" || filter === v) item.classList.remove("is-hidden");
+          else item.classList.add("is-hidden");
+        });
       });
     });
-  });
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function vLabel(v) { return v === "oui" ? "Recommande" : v === "non" ? "Deconseille" : "Mitige"; }
+  function fmtDate(iso) {
+    try { return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }); }
+    catch { return String(iso).slice(0, 10); }
+  }
+
+  function renderLive(section, avis) {
+    const slug = section.getAttribute("data-pro-slug") || "";
+    const nom = section.getAttribute("data-nom") || "";
+    const h2 = section.querySelector(".avis-heading");
+    // On remplace tout le contenu apres le <h2> par le rendu live.
+    while (h2 && h2.nextSibling) section.removeChild(h2.nextSibling);
+
+    if (!avis.length) {
+      const div = document.createElement("div");
+      div.className = "avis-empty";
+      div.innerHTML =
+        `<p>Aucun avis publié pour ${esc(nom)} pour l'instant. Soyez le premier à partager votre expérience.</p>` +
+        `<a class="btn-cta" href="/pro/${esc(slug)}/donner-mon-avis/">Laisser mon avis</a>`;
+      section.appendChild(div);
+      return;
+    }
+
+    const n = avis.length;
+    const oui = avis.filter((a) => a.verdict === "oui").length;
+    const mitige = avis.filter((a) => a.verdict === "mitige").length;
+    const non = avis.filter((a) => a.verdict === "non").length;
+    const pct = Math.round((oui / n) * 100);
+
+    const items = avis.map((a) => {
+      const resp = Array.isArray(a.pro_avis_responses) ? a.pro_avis_responses[0] : null;
+      const respHtml = resp
+        ? `<details class="avis-response" open><summary>Reponse de ${esc(nom)}</summary>` +
+          `<p>${esc(resp.texte)}</p><p class="avis-response-date">${esc(fmtDate(resp.created_at))}</p></details>`
+        : "";
+      return `<li class="avis-item" data-verdict="${esc(a.verdict)}" id="avis-${esc(a.id)}">` +
+        `<div class="avis-item-head"><span class="avis-author"><strong>${esc(a.pseudo)}</strong></span>` +
+        `<span class="avis-date">${esc(fmtDate(a.published_at))}</span>` +
+        `<span class="pill-verdict ${esc(a.verdict)}">${vLabel(a.verdict)}</span></div>` +
+        `<p class="avis-body">${esc(a.texte)}</p>${respHtml}</li>`;
+    }).join("");
+
+    const html =
+      `<div class="avis-stats"><div class="avis-stats-headline"><strong>${n} avis</strong>` +
+      (n >= 3 ? `<span class="avis-stats-recommand">· ${pct} % recommandent</span>` : "") +
+      `</div><div class="avis-stats-bars" aria-hidden="true">` +
+      `<div class="avis-bar oui" style="flex: ${oui || 0.01}" title="${oui} oui"></div>` +
+      `<div class="avis-bar mitige" style="flex: ${mitige || 0.01}" title="${mitige} mitige"></div>` +
+      `<div class="avis-bar non" style="flex: ${non || 0.01}" title="${non} non"></div></div>` +
+      `<div class="avis-stats-legend"><span class="legend oui">${oui} oui</span>` +
+      `<span class="legend mitige">${mitige} mitige</span><span class="legend non">${non} non</span></div></div>` +
+      `<div class="avis-filters" role="tablist">` +
+      `<button class="avis-filter is-active" data-filter="all">Tous</button>` +
+      `<button class="avis-filter" data-filter="oui">Recommandent</button>` +
+      `<button class="avis-filter" data-filter="mitige">Mitiges</button>` +
+      `<button class="avis-filter" data-filter="non">Deconseillent</button></div>` +
+      `<ol class="avis-items">${items}</ol>` +
+      `<p class="avis-cta-bottom"><a class="btn-cta" href="/pro/${esc(slug)}/donner-mon-avis/">Partager mon expérience</a></p>`;
+
+    const frag = document.createElement("template");
+    frag.innerHTML = html;
+    section.appendChild(frag.content);
+  }
+
+  async function hydrate() {
+    const section = document.getElementById("avis");
+    if (!section) { bindFilters(); return; }
+    const proId = section.getAttribute("data-pro-id");
+    if (!proId) { bindFilters(); return; }
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/v_pro_avis_public?pro_id=eq.${encodeURIComponent(proId)}` +
+        `&select=id,pseudo,verdict,texte,published_at,pro_avis_responses&order=published_at.desc`;
+      const res = await fetch(url, { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } });
+      if (!res.ok) { bindFilters(); return; }
+      const live = await res.json();
+      if (!Array.isArray(live)) { bindFilters(); return; }
+      // Re-render seulement si la liste differe du HTML pre-genere (evite le flicker).
+      const domIds = Array.from(section.querySelectorAll(".avis-item"))
+        .map((el) => el.id.replace(/^avis-/, ""));
+      const liveIds = live.map((a) => a.id);
+      const same = domIds.length === liveIds.length && domIds.every((id, i) => id === liveIds[i]);
+      if (!same) renderLive(section, live);
+    } catch { /* garde le contenu pre-genere */ }
+    bindFilters();
+  }
+
+  hydrate();
 </script>
