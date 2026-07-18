@@ -440,6 +440,89 @@ function buildAvisListHtml(avis: Array<any>, avisNombre: number, proSlug: string
   </section>`;
 }
 
+// Formulaire "Demander un devis" , affiche uniquement sur les fiches pros
+// PAYANTS (verified=true, Option B). L'endpoint /api/devis refait le gate
+// cote serveur (defense en profondeur) avant tout insert + email.
+function buildDevisFormHtml(pro: ProRow): string {
+  const slugJs = JSON.stringify(pro.slug);
+  const inputStyle = "padding:.65rem .8rem;border:1px solid rgba(26,22,20,.15);border-radius:.5rem;font:inherit;font-size:.92rem;color:var(--ink);background:#fff";
+  const labelStyle = "display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;color:var(--ink-soft)";
+
+  return `<section class="devis-form" id="devis" style="margin:3rem 0">
+    <h2 class="display">Demander un devis à ${escapeHtml(pro.nom_entreprise)}</h2>
+    <p style="color:var(--ink-muted);font-size:.92rem;margin:.5rem 0 1.5rem">Décris ton projet, ${escapeHtml(pro.nom_entreprise)} te recontacte directement.</p>
+    <form id="devis-form" style="background:#fff;border:1px solid rgba(26,22,20,.08);border-radius:1rem;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;max-width:32rem">
+      <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+        <label for="devis-hp">Ne pas remplir ce champ</label>
+        <input type="text" id="devis-hp" name="hp" tabindex="-1" autocomplete="off">
+      </div>
+      <label style="${labelStyle}">Nom <span aria-hidden="true">*</span>
+        <input required type="text" name="nom" maxlength="200" style="${inputStyle}">
+      </label>
+      <label style="${labelStyle}">Email
+        <input type="email" name="email" maxlength="254" style="${inputStyle}">
+      </label>
+      <label style="${labelStyle}">Téléphone
+        <input type="tel" name="telephone" maxlength="40" style="${inputStyle}">
+      </label>
+      <label style="${labelStyle}">Message
+        <textarea name="message" rows="4" maxlength="3000" style="${inputStyle};resize:vertical"></textarea>
+      </label>
+      <label style="display:flex;gap:.5rem;align-items:flex-start;font-size:.82rem;color:var(--ink-muted)">
+        <input required type="checkbox" name="consent" style="margin-top:.2rem">
+        <span>J'accepte que mes informations soient transmises à ${escapeHtml(pro.nom_entreprise)} pour traiter ma demande.</span>
+      </label>
+      <button type="submit" class="btn">Envoyer ma demande</button>
+      <p class="devis-status" role="status" aria-live="polite" style="margin:0;font-size:.88rem"></p>
+    </form>
+  </section>
+  <script>
+  (function(){
+    var form = document.getElementById("devis-form");
+    if (!form) return;
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var statusEl = form.querySelector(".devis-status");
+      var btn = form.querySelector("button[type=submit]");
+      var fd = new FormData(form);
+      var payload = {
+        slug: ${slugJs},
+        nom: fd.get("nom") || "",
+        email: fd.get("email") || "",
+        telephone: fd.get("telephone") || "",
+        message: fd.get("message") || "",
+        consent: !!form.querySelector("[name=consent]").checked,
+        hp: fd.get("hp") || ""
+      };
+      btn.disabled = true;
+      statusEl.style.color = "";
+      statusEl.textContent = "Envoi en cours...";
+      fetch("/api/devis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(function(r){
+        return r.json().catch(function(){ return {}; }).then(function(j){ return { ok: r.ok, json: j }; });
+      }).then(function(res){
+        btn.disabled = false;
+        if (res.ok && res.json && res.json.ok) {
+          statusEl.style.color = "#1A7A3C";
+          statusEl.textContent = "Votre demande a bien été envoyée.";
+          form.reset();
+        } else {
+          statusEl.style.color = "#A82A2A";
+          statusEl.textContent = "Une erreur est survenue. Merci de réessayer ou de nous contacter directement.";
+        }
+      }).catch(function(){
+        btn.disabled = false;
+        statusEl.style.color = "#A82A2A";
+        statusEl.textContent = "Une erreur est survenue. Merci de réessayer ou de nous contacter directement.";
+      });
+    });
+  })();
+  </script>`;
+}
+
 function renderHtml(ctx: JsonLdContext, avis: Array<any> = []): string {
   const { pro, pageUrl, metier, zone, region, anciennete, dateCreationFR, fullDescription, faqEntries } = ctx;
   const deptCode = zone?.code || (pro.code_postal ? pro.code_postal.slice(0, 2) : "");
@@ -689,6 +772,8 @@ ${ldScripts}
         : ""}
     </div>
   </section>
+
+  ${estVerifie ? buildDevisFormHtml(pro) : ""}
 
   ${buildAvisListHtml(avis, pro.avis_nombre || avis.length, pro.slug, pro.nom_entreprise)}
 

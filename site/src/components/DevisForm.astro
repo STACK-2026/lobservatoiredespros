@@ -1,0 +1,251 @@
+---
+/**
+ * DevisForm , formulaire "Demander un devis" sur la fiche pro.
+ *
+ * Affiche UNIQUEMENT par l'appelant quand le pro est verified=true (Option B :
+ * seuls les pros PAYANTS recoivent ce formulaire). Le composant lui-meme ne
+ * refait pas ce gate (defense en profondeur deja assuree par l'endpoint
+ * /api/devis), il se contente de rendre le formulaire quand on lui demande.
+ *
+ * Soumission en JSON via fetch vers POST /api/devis (voir
+ * site/functions/api/devis.ts). Pas de dependance externe, JS inline minimal.
+ */
+interface Props {
+  slug: string;
+  nomEntreprise: string;
+}
+
+const { slug, nomEntreprise } = Astro.props;
+---
+
+<section class="dv" aria-labelledby="dv-title" id="devis">
+  <header class="dv-head">
+    <p class="dv-kicker">
+      <span class="dv-dot" aria-hidden="true"></span>
+      Devis
+    </p>
+    <h2 id="dv-title" class="dv-title">Demander un devis à {nomEntreprise}</h2>
+    <p class="dv-lead">Décris ton projet, {nomEntreprise} te recontacte directement.</p>
+  </header>
+
+  <form id="devis-form" class="dv-form">
+    <div class="dv-hp" aria-hidden="true">
+      <label for="devis-hp">Ne pas remplir ce champ</label>
+      <input type="text" id="devis-hp" name="hp" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <label class="dv-field">
+      <span class="dv-label">Nom <span aria-hidden="true">*</span></span>
+      <input required type="text" name="nom" maxlength="200" autocomplete="name" />
+    </label>
+
+    <label class="dv-field">
+      <span class="dv-label">Email</span>
+      <input type="email" name="email" maxlength="254" autocomplete="email" />
+    </label>
+
+    <label class="dv-field">
+      <span class="dv-label">Téléphone</span>
+      <input type="tel" name="telephone" maxlength="40" autocomplete="tel" />
+    </label>
+
+    <label class="dv-field">
+      <span class="dv-label">Message</span>
+      <textarea name="message" rows="4" maxlength="3000" placeholder="Décris ton projet, ta zone, tes contraintes..."></textarea>
+    </label>
+
+    <label class="dv-consent">
+      <input required type="checkbox" name="consent" />
+      <span>J'accepte que mes informations soient transmises à {nomEntreprise} pour traiter ma demande.</span>
+    </label>
+
+    <button type="submit" class="btn btn-primary dv-submit">Envoyer ma demande</button>
+    <p class="dv-status" role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<style>
+  .dv {
+    max-width: 32rem;
+    margin: 2rem 0;
+  }
+  .dv-head {
+    margin-bottom: 1.1rem;
+  }
+  .dv-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.4rem;
+    padding: 0.3rem 0.7rem 0.3rem 0.55rem;
+    background: rgba(247, 243, 236, 0.75);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--or-deep);
+  }
+  .dv-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--observatoire);
+    box-shadow: 0 0 0 0 rgba(30, 58, 82, 0.45);
+    animation: dv-pulse 2.4s ease-out infinite;
+  }
+  @keyframes dv-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(30, 58, 82, 0.45); }
+    70%  { box-shadow: 0 0 0 6px rgba(30, 58, 82, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(30, 58, 82, 0); }
+  }
+  .dv-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.15;
+  }
+  .dv-lead {
+    margin: 0.6rem 0 0;
+    font-size: 0.92rem;
+    color: var(--ink-muted);
+    line-height: 1.55;
+  }
+
+  .dv-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: var(--paper);
+    border: 1px solid rgba(26, 22, 20, 0.08);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem 1.5rem;
+  }
+  .dv-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .dv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .dv-label {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .dv-field input,
+  .dv-field textarea {
+    font: inherit;
+    font-size: 0.92rem;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid rgba(26, 22, 20, 0.15);
+    border-radius: 0.6rem;
+    padding: 0.65rem 0.8rem;
+  }
+  .dv-field textarea {
+    resize: vertical;
+  }
+  .dv-field input:focus,
+  .dv-field textarea:focus {
+    outline: 2px solid var(--observatoire);
+    outline-offset: 1px;
+  }
+
+  .dv-consent {
+    display: flex;
+    gap: 0.55rem;
+    align-items: flex-start;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    line-height: 1.45;
+  }
+  .dv-consent input {
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .dv-submit {
+    align-self: flex-start;
+  }
+
+  .dv-status {
+    margin: 0;
+    font-size: 0.86rem;
+    min-height: 1.2em;
+  }
+  .dv-status.is-ok {
+    color: #1a7a3c;
+  }
+  .dv-status.is-error {
+    color: #a82a2a;
+  }
+</style>
+
+<script define:vars={{ slug }}>
+  (function () {
+    const form = document.getElementById("devis-form");
+    if (!form) return;
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const statusEl = form.querySelector(".dv-status");
+      const btn = form.querySelector(".dv-submit");
+      const fd = new FormData(form);
+      const payload = {
+        slug: slug,
+        nom: fd.get("nom") || "",
+        email: fd.get("email") || "",
+        telephone: fd.get("telephone") || "",
+        message: fd.get("message") || "",
+        consent: !!form.querySelector("[name=consent]").checked,
+        hp: fd.get("hp") || "",
+      };
+      btn.disabled = true;
+      statusEl.classList.remove("is-ok", "is-error");
+      statusEl.textContent = "Envoi en cours...";
+      fetch("/api/devis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (r) {
+          return r
+            .json()
+            .catch(function () {
+              return {};
+            })
+            .then(function (j) {
+              return { ok: r.ok, json: j };
+            });
+        })
+        .then(function (res) {
+          btn.disabled = false;
+          if (res.ok && res.json && res.json.ok) {
+            statusEl.classList.add("is-ok");
+            statusEl.textContent = "Votre demande a bien été envoyée.";
+            form.reset();
+          } else {
+            statusEl.classList.add("is-error");
+            statusEl.textContent = "Une erreur est survenue. Merci de réessayer ou de nous contacter directement.";
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          statusEl.classList.add("is-error");
+          statusEl.textContent = "Une erreur est survenue. Merci de réessayer ou de nous contacter directement.";
+        });
+    });
+  })();
+</script>

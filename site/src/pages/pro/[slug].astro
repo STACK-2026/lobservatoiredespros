@@ -35,6 +35,7 @@ import { REGION_BY_DEPT_CODE } from "../../data/geo_fr";
 import wave1Pros from "../../data/wave1_pros.json";
 import { sanitizeDashes } from "../../utils/sanitize";
 import AvisList from "../../components/AvisList.astro";
+import DevisForm from "../../components/DevisForm.astro";
 
 export async function getStaticPaths() {
   // Hybride SSG + SSR pattern (clone ratingcafe wave1 + Pages Function).
@@ -514,6 +515,13 @@ if (p.score_confiance && p.score_confiance >= 6) {
         openingHours={sanitizeDashes(p.opening_hours)}
       />
     </section>
+
+    <!-- DEMANDER UN DEVIS , Option B, uniquement fiches pros PAYANTS (verified=true) -->
+    {estVerifie && (
+      <section class="container-wide portrait-devis">
+        <DevisForm slug={p.slug} nomEntreprise={p.nom_entreprise} />
+      </section>
+    )}
 
     <!-- FICHE IDENTITÉ , mockup visuel 2 cols -->
     <section class="container-wide portrait-identite">
