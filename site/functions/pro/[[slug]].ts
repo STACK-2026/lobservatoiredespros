@@ -47,6 +47,10 @@ interface ProRow {
   tranche_effectif: string | null;
   niveau_confiance: string | null;
   etat_administratif: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  enriched_at: string | null;
+  last_trust_sync: string | null;
   avis_nombre?: number;
   avis_moyen?: number | null;
   code_naf?: string | null;  // vrai NAF INSEE du pro (source de verite affichage), decouple du metier
@@ -135,6 +139,26 @@ function fmtDateFR(iso: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+function sourceDate(value: string | null | undefined): { timestamp: number; iso: string } | null {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return null;
+  return { timestamp, iso: new Date(timestamp).toISOString().slice(0, 10) };
+}
+
+function latestSourceDate(pro: ProRow): string | null {
+  const candidates = [
+    pro.created_at,
+    pro.updated_at,
+    pro.enriched_at,
+    pro.last_trust_sync,
+  ]
+    .map(sourceDate)
+    .filter((value): value is { timestamp: number; iso: string } => Boolean(value));
+  candidates.sort((a, b) => b.timestamp - a.timestamp);
+  return candidates[0]?.iso || null;
 }
 
 async function fetchPro(slug: string): Promise<ProRow | null> {
@@ -344,6 +368,7 @@ function buildJsonLd(ctx: JsonLdContext, avis: Array<any> = []): unknown[] {
 
   // Editorial Review (only if score >= 6, mirrors astro page logic)
   if (pro.score_confiance !== null && pro.score_confiance >= 6) {
+    const publishedDate = sourceDate(pro.created_at)?.iso;
     ldArray.push({
       "@context": "https://schema.org",
       "@type": "Review",
@@ -359,7 +384,7 @@ function buildJsonLd(ctx: JsonLdContext, avis: Array<any> = []): unknown[] {
         worstRating: 0,
       },
       reviewBody: fullDescription,
-      datePublished: new Date().toISOString().slice(0, 10),
+      ...(publishedDate ? { datePublished: publishedDate } : {}),
     });
   }
 
@@ -495,6 +520,8 @@ function renderHtml(ctx: JsonLdContext, avis: Array<any> = []): string {
   const deptCode = zone?.code || (pro.code_postal ? pro.code_postal.slice(0, 2) : "");
   const tier = pro.tier || "gratuit";
   const tLabel = tierLabel(tier);
+  const dossierDateIso = latestSourceDate(pro);
+  const dossierDateFR = fmtDateFR(dossierDateIso);
 
   const title = `${pro.nom_entreprise}, ${metier?.nom || "Professionnel"} ${pro.ville || ""} (${deptCode}) | L'Observatoire des Pros`;
   const description = `${tLabel} de ${pro.nom_entreprise}, ${(metier?.nom || "professionnel").toLowerCase()} à ${pro.ville || "-"}. Score de Confiance ${pro.score_confiance}/10. Sources publiques Sirene INSEE.`.slice(0, 250);
@@ -702,7 +729,7 @@ ${ldScripts}
       <p class="subtitle" data-speakable>${escapeHtml(metier?.nom || "Professionnel")}${pro.ville ? ` à ${escapeHtml(pro.ville)}` : ""}${deptCode ? ` (${escapeHtml(deptCode)})` : ""}${dateCreationFR ? ` · Depuis ${escapeHtml(pro.date_creation_entreprise?.slice(0, 4) || "")}` : ""}</p>
       <div class="cartouche">
         <span class="eyebrow">Notre observation</span>
-        <p>Cette fiche a été constituée à partir des sources publiques disponibles. Examen rédactionnel daté du ${escapeHtml(new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}.</p>
+        <p>Cette fiche a été constituée à partir des sources publiques disponibles.${dossierDateFR ? ` Données publiques mises à jour le ${escapeHtml(dossierDateFR)}.` : ""}</p>
       </div>
       <div class="pills">
         ${verifiedBadges.join("\n        ")}

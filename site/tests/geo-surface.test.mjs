@@ -190,6 +190,58 @@ test("les anciennes URL auteurs conservent leur équité via des 301", async () 
   }
 });
 
+test("les fiches pros utilisent uniquement des dates de source réelles", async () => {
+  const profile = await read("src/pages/pro/[slug].astro");
+  const edgeProfile = await read("functions/pro/[[slug]].ts");
+
+  for (const field of [
+    "created_at",
+    "updated_at",
+    "enriched_at",
+    "last_trust_sync",
+  ]) {
+    assert.match(
+      profile,
+      new RegExp(`select\\([^)]*${field}`),
+      `${field} doit être chargé pour dater le dossier`,
+    );
+  }
+
+  assert.match(profile, /latestSourceDate/);
+  assert.match(edgeProfile, /latestSourceDate/);
+  assert.doesNotMatch(
+    profile,
+    /Dernier contrôle Sirene\s*:\s*\{new Date\(/,
+  );
+  assert.doesNotMatch(profile, /Prochain audit programmé/);
+  assert.doesNotMatch(edgeProfile, /datePublished:\s*new Date\(/);
+  assert.doesNotMatch(
+    edgeProfile,
+    /Examen rédactionnel daté du \$\{escapeHtml\(new Date\(/,
+  );
+
+  const { latestSourceDate } = await import("../src/lib/source-freshness.mjs");
+  assert.equal(
+    latestSourceDate({
+      created_at: "2026-04-28T08:00:00Z",
+      updated_at: "2026-07-19T09:00:00Z",
+      enriched_at: "2026-05-02T09:00:00Z",
+      last_trust_sync: "2026-07-20T10:00:00Z",
+    }),
+    "2026-07-20",
+  );
+  assert.equal(
+    latestSourceDate({
+      created_at: "2026-04-28T08:00:00Z",
+      updated_at: null,
+      enriched_at: null,
+      last_trust_sync: null,
+    }),
+    "2026-04-28",
+  );
+  assert.equal(latestSourceDate({}), null);
+});
+
 test("l'agrégateur déduplique et exclut les établissements inactifs", async () => {
   const { aggregateDatasetRows } = await import("../src/lib/dataset-aggregate.mjs");
   const result = aggregateDatasetRows({
