@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 import { siteConfig } from "../utils/config";
 import { supabase, getMetiers, getZones, getMetierDeptCombos } from "../lib/supabase";
+import { getAggregateDatasetCatalog } from "../lib/dataset-catalog";
 import { observations } from "../data/observations";
-import { redaction } from "../data/redaction";
 import { TARIFS } from "../data/tarifs";
 import wave1Pros from "../data/wave1_pros.json";
 
@@ -23,7 +23,7 @@ const STATIC_URLS: SitemapEntry[] = [
   { loc: "/tarifs/", priority: 0.8, changefreq: "monthly" },
   { loc: "/methode/", priority: 0.9, changefreq: "monthly" },
   { loc: "/a-propos/", priority: 0.7, changefreq: "monthly" },
-  { loc: "/redaction/", priority: 0.6, changefreq: "monthly" },
+  { loc: "/redaction/", priority: 0.6, changefreq: "monthly", lastmod: "2026-07-27" },
   { loc: "/candidater/", priority: 0.9, changefreq: "monthly" },
   { loc: "/observations/", priority: 0.8, changefreq: "weekly" },
   { loc: "/archives/", priority: 0.6, changefreq: "monthly" },
@@ -39,6 +39,35 @@ export const GET: APIRoute = async () => {
   const base = siteConfig.url.replace(/\/$/, "");
 
   const urls: SitemapEntry[] = [...STATIC_URLS];
+  const aggregateLastmodByPath = new Map<string, string>();
+  const metierLastmod = new Map<string, string>();
+  const deptLastmod = new Map<string, string>();
+
+  try {
+    const catalog = await getAggregateDatasetCatalog();
+    const lastmod = catalog.dataModified || "2026-07-27";
+    for (const row of catalog.rows) {
+      if (!row.dataModified) continue;
+      const path = new URL(row.url).pathname;
+      aggregateLastmodByPath.set(path, row.dataModified);
+      const currentMetierDate = metierLastmod.get(row.metierSlug);
+      if (!currentMetierDate || row.dataModified > currentMetierDate) {
+        metierLastmod.set(row.metierSlug, row.dataModified);
+      }
+      const currentDeptDate = deptLastmod.get(row.departementSlug);
+      if (!currentDeptDate || row.dataModified > currentDeptDate) {
+        deptLastmod.set(row.departementSlug, row.dataModified);
+      }
+    }
+    urls.push(
+      { loc: "/donnees/", priority: 0.9, changefreq: "weekly", lastmod },
+      { loc: "/donnees/classements.json", priority: 0.8, changefreq: "weekly", lastmod },
+      { loc: "/donnees/classements.csv", priority: 0.8, changefreq: "weekly", lastmod },
+      { loc: "/donnees/catalogue.json", priority: 0.8, changefreq: "weekly", lastmod },
+    );
+  } catch (e) {
+    console.warn("Sitemap: catalogue de données indisponible", e);
+  }
 
   // URLs pSEO , DB-backed : seuls les combos avec au moins un pro actif
   // sont listés (évite thin content + index bloat après seed 15×96=1440).
@@ -57,7 +86,12 @@ export const GET: APIRoute = async () => {
     // /[metier]/ , seulement les métiers ayant au moins un pro
     for (const m of metiers) {
       if (!metiersWithPros.has(m.slug)) continue;
-      urls.push({ loc: `/${m.slug}/`, priority: 0.8, changefreq: "weekly", lastmod: now });
+      urls.push({
+        loc: `/${m.slug}/`,
+        priority: 0.8,
+        changefreq: "weekly",
+        lastmod: metierLastmod.get(m.slug) || now,
+      });
     }
 
     // /[metier]/[departement]/ , seulement les combos réels
@@ -69,7 +103,7 @@ export const GET: APIRoute = async () => {
         loc: `/${metierSlug}/${deptSlug}/`,
         priority: 0.85,
         changefreq: "weekly",
-        lastmod: now,
+        lastmod: aggregateLastmodByPath.get(`/${metierSlug}/${deptSlug}/`) || now,
       });
     }
   } catch (e) {
@@ -94,16 +128,6 @@ export const GET: APIRoute = async () => {
       lastmod: (o.dateRevision || o.datePublication || now).split("T")[0],
     });
   }
-  // URLs auteurs , pages redaction individuelles (E-E-A-T)
-  for (const a of redaction) {
-    urls.push({
-      loc: `/redaction/${a.slug}/`,
-      priority: 0.7,
-      changefreq: "monthly",
-      lastmod: now,
-    });
-  }
-
   // URLs guides tarifaires Phase 2.4 (61 prestations × 1 page chacune
   // + 1 index par metier auto-genere)
   const tarifsByMetier = new Map<string, number>();
@@ -136,7 +160,7 @@ export const GET: APIRoute = async () => {
         loc: `/observations/etat-du-marche/${z.slug}/`,
         priority: 0.75,
         changefreq: "monthly",
-        lastmod: now,
+        lastmod: deptLastmod.get(z.slug) || now,
       });
     }
   } catch (e) {

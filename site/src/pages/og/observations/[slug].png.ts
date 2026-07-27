@@ -5,7 +5,6 @@
 import type { APIRoute } from "astro";
 import { renderOgPng } from "../../../lib/og";
 import { observations } from "../../../data/observations";
-import { auteurBySlug } from "../../../data/redaction";
 import { siteConfig } from "../../../utils/config";
 
 export async function getStaticPaths() {
@@ -26,7 +25,6 @@ const CATEGORIE_LABEL: Record<string, string> = {
 
 export const GET: APIRoute = async ({ props }) => {
   const { obs } = props as { obs: any };
-  const auteur = auteurBySlug(obs.authorSlug);
   const cat = CATEGORIE_LABEL[obs.categorie] || obs.categorie;
 
   const dateFR = new Date(obs.datePublication).toLocaleDateString("fr-FR", {
@@ -37,7 +35,7 @@ export const GET: APIRoute = async ({ props }) => {
 
   const pills = [
     { label: cat, variant: "cachet" as const },
-    ...(auteur ? [{ label: auteur.nom, variant: "ghost" as const }] : []),
+    { label: "La rédaction de L'Observatoire", variant: "ghost" as const },
     { label: dateFR, variant: "ghost" as const },
     { label: `${obs.readingTime} min`, variant: "ghost" as const },
   ];

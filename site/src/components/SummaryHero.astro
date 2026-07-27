@@ -14,9 +14,17 @@ interface Props {
   zone: string; // "Yonne (89)"
   naf?: string;
   source?: string;
+  narrative?: string;
 }
 
-const { count, unit, zone, naf, source = "Sirene INSEE" } = Astro.props;
+const {
+  count,
+  unit,
+  zone,
+  naf,
+  source = "Sirene INSEE",
+  narrative = "observés et classés dans",
+} = Astro.props;
 ---
 
 <aside class="summary-hero fade-up" aria-label={`Resume du classement ${unit} ${zone}`}>
@@ -64,7 +72,7 @@ const { count, unit, zone, naf, source = "Sirene INSEE" } = Astro.props;
         <span class="sh-unit italic-fraunces">{unit}</span>
       </p>
       <p class="sh-narrative">
-        observés et classés dans <strong>{zone}</strong>
+        {narrative} <strong>{zone}</strong>
         {naf && <> <span class="sh-naf">· NAF {naf}</span></>}
       </p>
     </div>

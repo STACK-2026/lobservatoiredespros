@@ -1,0 +1,60 @@
+# L'Observatoire des Pros, dictionnaire de données
+
+Version du format : 1.0
+Catalogue : https://lobservatoiredespros.com/donnees/
+JSON : https://lobservatoiredespros.com/donnees/classements.json
+CSV : https://lobservatoiredespros.com/donnees/classements.csv
+JSON-LD : https://lobservatoiredespros.com/donnees/catalogue.json
+
+## Unité statistique
+
+L'unité de base est un établissement actif identifié dans le corpus Sirene de
+L'Observatoire des Pros. Une ligne publiée est un agrégat pour un couple métier
+et département. Aucun SIRET ni autre identifiant individuel n'est inclus dans
+les distributions agrégées.
+
+## Champs d'identification
+
+- metierId : identifiant interne stable du métier.
+- metierSlug : segment canonique du métier dans les URL.
+- metierNom : libellé singulier.
+- metierNomPluriel : libellé pluriel.
+- codeNaf : code NAF de référence du métier, quand disponible.
+- departementId : identifiant interne du département.
+- departementSlug : segment canonique du département dans les URL.
+- departementNom : libellé officiel utilisé par le site.
+- departementCode : code du département.
+- url : URL canonique du classement correspondant.
+
+## Mesures
+
+- etablissementsActifs : nombre d'établissements actifs après déduplication.
+- rgeCount : nombre de lignes portant l'indicateur RGE.
+- rgePercent : rgeCount divisé par etablissementsActifs, en pourcentage.
+- qualibatCount : nombre de lignes portant l'indicateur Qualibat.
+- qualibatPercent : qualibatCount divisé par etablissementsActifs, en pourcentage.
+- scoreConfianceMedian : médiane des Scores de Confiance disponibles.
+- trustSyncCount : nombre de lignes avec une synchronisation d'enrichissement
+  de confiance enregistrée.
+- trustSyncCoveragePercent : trustSyncCount divisé par
+  etablissementsActifs, en pourcentage.
+- recordDataModified : date la plus récente du champ updated_at.
+- trustDataModified : dernière synchronisation d'enrichissement de confiance.
+- dataModified : date la plus récente entre recordDataModified et
+  trustDataModified. Ce n'est pas la date du build.
+
+## Sources
+
+- Sirene : https://sirene.fr/
+- Annuaire RGE : https://france-renov.gouv.fr/annuaire-rge
+- BODACC : https://www.bodacc.fr/
+- Qualibat : https://www.qualibat.com/
+
+## Interprétation
+
+Les indicateurs reflètent l'état du corpus et de ses enrichissements à la date
+indiquée. Une valeur nulle ou égale à zéro ne prouve pas une absence dans le
+monde réel. Vérifier la couverture, la date, la méthode et la page canonique.
+
+Méthode : https://lobservatoiredespros.com/methode/
+Corrections : contact@lobservatoiredespros.com

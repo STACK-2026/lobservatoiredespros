@@ -5,7 +5,7 @@ import EditorialHeader from "../../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import GlossaireTerm from "../../../components/GlossaireTerm.astro";
 import { siteConfig } from "../../../utils/config";
-import { jsonLdBreadcrumbs, ORG_ID, jsonLdSpeakable } from "../../../utils/seo";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../../utils/seo";
 
 const title = "Vérifier une certification RGE , Outil ADEME , L'Observatoire";
 const description = "Vérifier en direct si une entreprise BTP est certifiée RGE. Source officielle ADEME France Rénov'. Réponse en 3 secondes via le SIRET.";
@@ -60,10 +60,6 @@ const jsonLd = [
       },
     ],
   },
-  jsonLdSpeakable({
-    url,
-    cssSelectors: [".lead", ".outil-intro", ".verif-result-summary"],
-  }),
 ];
 ---
 

@@ -6,7 +6,7 @@ import DropCap from "../../components/DropCap.astro";
 import PullQuote from "../../components/PullQuote.astro";
 import TelescopeWatermark from "../../components/TelescopeWatermark.astro";
 import { siteConfig } from "../../utils/config";
-import { jsonLdBreadcrumbs, jsonLdSpeakable, ORG_ID } from "../../utils/seo";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../utils/seo";
 
 const title = "Méthodologie , L'Observatoire des Pros";
 const description = "La méthodologie complete de L'Observatoire : six critères de notation, sources officielles, pondération et processus d'examen des candidatures.";
@@ -28,10 +28,6 @@ const jsonLd = [
     publisher: { "@id": ORG_ID },
     mainEntity: { "@id": ORG_ID },
   },
-  jsonLdSpeakable({
-    url,
-    cssSelectors: ["[data-speakable]", ".lead", ".methode-criteres h3", ".methode-criteres p"],
-  }),
 ];
 ---
 
@@ -48,10 +44,7 @@ const jsonLd = [
       </p>
 
       <ByLine
-        authors={[
-          { name: "Antoine Delaunay", role: "Analyste méthodologie", slug: "antoine-delaunay" },
-          { name: "Camille Fabre", role: "Rédactrice en chef", slug: "camille-fabre" },
-        ]}
+        authors={[{ name: "La rédaction de L'Observatoire", role: "Équipe éditoriale" }]}
         date="15 avril 2026"
         updated="19 avril 2026"
         readingTime={9}
@@ -87,7 +80,7 @@ const jsonLd = [
           <li><strong>Sites web professionnels</strong> , consultation manuelle des portfolios et pages entreprise pour verification de contenu.</li>
         </ul>
 
-        <PullQuote cite="Antoine Delaunay, analyste méthodologie">
+        <PullQuote cite="La rédaction de L'Observatoire">
           La moyenne d'etoiles Google, prise seule, est un indicateur fragile. Nous croisons systematiquement quatre sources avant de retenir un pourcentage.
         </PullQuote>
 

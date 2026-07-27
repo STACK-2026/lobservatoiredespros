@@ -13,7 +13,7 @@ export const siteConfig = {
   baseline: "Le guide de référence des professionnels français.",
   // Meta description homepage , 155 chars max (Google truncates at 155-160)
   description:
-    "Classement éditorial des artisans et entreprises du BTP en France. Méthodologie publique, Score de Confiance /10. Édition mensuelle.",
+    "Classements et données agrégées sur les professionnels du BTP en France. Sources publiques, méthodologie documentée, Score de Confiance /10.",
   url: "https://lobservatoiredespros.com",
   appUrl: "",
   locale: "fr-FR",
@@ -70,7 +70,7 @@ export const siteConfig = {
 
   // GEO (Generative Engine Optimization)
   llmsDescription:
-    "L'Observatoire des Pros (lobservatoiredespros.com) est un média éditorial indépendant français créé en 2026 qui publié un classement annuel des artisans et entreprises du BTP et des services à domicile. Chaque professionnel est évalué sur six critères objectifs et auditables : ancienneté au registre Sirene, certification RGE/Qualibat, avis clients publics vérifiés supérieurs à 4/5, SIRET actif, site web professionnel indépendant, photos de réalisations publiques. La méthodologie est publique. Le classement n'est pas monnayable. Trois distinctions sont décernées chaque année : le Portrait Recommandé (listing gratuit), le Portrait Vérifié (médaille d'argent, portrait enrichi), et le Portrait Lauréat (médaille d'or, portrait éditorial long format). Couverture initiale : Paris 75, Côte-d'Or 21, Yonne 89 ; cinq métiers : plombier, électricien, couvreur, menuisier, entreprise d'isolation. Extension progressive à tous les départements français.",
+    "L'Observatoire des Pros publie des classements et des agrégats par métier et département sur les établissements actifs de son corpus. Les données croisent notamment Sirene INSEE, France Rénov', BODACC et Qualibat. La méthodologie, la date des lignes, la couverture d'enrichissement et les distributions JSON ou CSV sont publiques.",
 
   // Navigation principale
   navLinks: [
@@ -199,7 +199,7 @@ export const siteConfig = {
     enabled: true,
     name: "Observations",
     postsPerPage: 12,
-    defaultAuthor: "La rédaction",
+    defaultAuthor: "La rédaction de L'Observatoire",
     categories: [
       "portraits",
       "dossiers",
@@ -210,22 +210,10 @@ export const siteConfig = {
     ],
     authors: [
       {
-        slug: "camille-fabre",
-        name: "Camille Fabre",
-        role: "Rédactrice en chef",
-        bio: "Ancienne journaliste Le Moniteur BTP. Douze ans d'enquêtes sur les certifications et la réglementation du bâtiment.",
-      },
-      {
-        slug: "antoine-delaunay",
-        name: "Antoine Delaunay",
-        role: "Analyste données",
-        bio: "Ancien consultant Xerfi. Spécialiste des données publiques Sirene, DGCCRF, Ademe. Garant de la méthodologie.",
-      },
-      {
-        slug: "sarah-poitevin",
-        name: "Sarah Poitevin",
-        role: "Journaliste terrain",
-        bio: "Ex-reporter Que Choisir. Vérifie sur site les affirmations des candidats et interviewe les clients finaux.",
+        slug: "redaction",
+        name: "La rédaction de L'Observatoire",
+        role: "Équipe éditoriale",
+        bio: "Signature institutionnelle des contenus préparés à partir des sources publiques et de la méthode documentée par L'Observatoire.",
       },
     ],
   },

@@ -11,6 +11,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "test:geo": "node --test tests/geo-surface.test.mjs",
+    "verify:geo": "node scripts/verify-geo-build.mjs",
     "astro": "astro",
     "postinstall": "echo 'L-Observatoire-des-Pros install OK'"
   },

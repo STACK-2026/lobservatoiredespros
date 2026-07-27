@@ -79,14 +79,18 @@ const top5 = [...prosActifs]
 // Region
 const region = REGION_BY_DEPT_CODE[dept.code] || "France";
 
-const dateUpdated = new Date().toISOString().split("T")[0];
-const dateUpdatedFR = new Date().toLocaleDateString("fr-FR", {
-  day: "numeric", month: "long", year: "numeric",
+const sourceDates = prosActifs
+  .flatMap((p) => [p.updated_at?.slice(0, 10), p.last_trust_sync?.slice(0, 10)])
+  .filter((date): date is string => Boolean(date))
+  .sort();
+const dateUpdated = sourceDates[sourceDates.length - 1] || "2026-04-01";
+const dateUpdatedFR = new Date(`${dateUpdated}T12:00:00Z`).toLocaleDateString("fr-FR", {
+  day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
 });
 
 const title = `Etat du marche BTP ${dept.nom} (${dept.code}) , ${siteConfig.editionMonth} ${siteConfig.editionYear}`;
 const description = total > 0
-  ? `${total} pros BTP actifs en ${dept.nom} : ${metiersTrie.length} métiers, ${totalRGE} certifiés RGE, âge moyen ${ageMoyen} ans. Mise à jour mensuelle.`
+  ? `${total} pros BTP actifs en ${dept.nom} : ${metiersTrie.length} métiers, ${totalRGE} avec indicateur RGE, âge moyen ${ageMoyen} ans. Données au ${dateUpdatedFR}.`
   : `Marché BTP en ${dept.nom} : panorama éditorial des artisans observés par L'Observatoire des Pros.`;
 const url = `${siteConfig.url}/observations/etat-du-marche/${dept.slug}/`;
 
@@ -104,7 +108,7 @@ const jsonLd = [
     headline: title,
     description,
     inLanguage: "fr-FR",
-    datePublished: dateUpdated,
+    datePublished: "2026-04-01",
     dateModified: dateUpdated,
     author: { "@id": ORG_ID },
     publisher: { "@id": ORG_ID },
@@ -120,10 +124,6 @@ const jsonLd = [
       "@type": "Service",
       serviceType: "BTP et services a domicile",
       areaServed: { "@type": "AdministrativeArea", name: dept.nom },
-    },
-    speakable: {
-      "@type": "SpeakableSpecification",
-      cssSelector: ["[data-speakable]"],
     },
   },
 ];
@@ -143,9 +143,10 @@ const jsonLd = [
       <header class="market-header">
         <h1 class="heading-display">État du marché BTP en {dept.nom} ({dept.code}).</h1>
         <p class="lead">
-          Photographie mensuelle du marché des artisans et entreprises du bâtiment
+          Photographie du marché des artisans et entreprises du bâtiment
           en {dept.nom}, {region}. Synthèse établie à partir des sources publiques
-          Sirene INSEE, ADEME RGE, BODACC et France Rénov', mise à jour le {dateUpdatedFR}.
+          Sirene INSEE, ADEME RGE, BODACC et France Rénov'. Dernière modification
+          des lignes utilisées le {dateUpdatedFR}.
         </p>
       </header>
 

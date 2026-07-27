@@ -18,11 +18,19 @@ import NewsletterInline from "../../../components/NewsletterInline.astro";
 import { siteConfig } from "../../../utils/config";
 import { getMetiers, getZones, getProsByMetierDept, getMetierDeptCombos, getTopOgClassementSet } from "../../../lib/supabase";
 import {
+  DATASET_IDENTIFIER,
+  DATA_CATALOG_URL,
+  DATA_CSV_URL,
+  DATA_JSON_URL,
+  catalogVersion,
+  findAggregateRow,
+  getAggregateDatasetCatalog,
+} from "../../../lib/dataset-catalog";
+import {
   jsonLdBreadcrumbs,
   jsonLdRanking,
   jsonLdFAQ,
   jsonLdAdministrativeArea,
-  jsonLdSpeakable,
   jsonLdDataset,
 } from "../../../utils/seo";
 import { REGION_BY_DEPT_CODE, neighborDepts } from "../../../data/geo_fr";
@@ -56,6 +64,9 @@ const { metier: metierObj, zone: deptObj } = Astro.props;
 const { metier, departement } = Astro.params as { metier: string; departement: string };
 
 const pros = await getProsByMetierDept(metier, departement);
+const aggregateCatalog = await getAggregateDatasetCatalog();
+const aggregate = findAggregateRow(aggregateCatalog, metier, departement);
+const aggregateTotal = aggregate?.etablissementsActifs || pros.length;
 const topOgSet = await getTopOgClassementSet();
 const ogImage = topOgSet.has(`${metier}:${departement}`)
   ? `/og/classement/${metier}/${departement}.png`
@@ -68,8 +79,17 @@ const restPros = pros.slice(15, 60);
 const dg = deptGrammar(deptObj.nom);
 
 const titre = `Les meilleurs ${metierObj.nom_pluriel.toLowerCase()} ${dg.in} (${deptObj.code}) , Classement ${siteConfig.editionYear}`;
-const description = `Classement editorial des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}). ${pros.length} pros notes selon 6 criteres publics. Edition N°${siteConfig.editionNumber}.`;
+const description = `Classement editorial des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}). ${aggregateTotal} établissements actifs recensés, classement selon 6 critères publics.`;
 const url = `${siteConfig.url}/${metier}/${departement}/`;
+const dataModified = aggregate?.dataModified || aggregateCatalog.dataModified;
+const dataModifiedFr = dataModified
+  ? new Date(`${dataModified}T12:00:00Z`).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    })
+  : "date indisponible";
 
 const tarifsMetier: Record<string, { prestation: string; fourchette: string; unit?: string }[]> = {
   plombier: [
@@ -108,7 +128,7 @@ const tarifs = tarifsMetier[metier] || [];
 const faq = [
   {
     question: `Comment trouver un bon ${metierObj.nom.toLowerCase()} ${dg.in} ?`,
-    answer: `Le plus simple est de consulter notre classement sur cette page. Les ${pros.length} professionnels listés sont actifs au registre Sirene de l'INSEE dans le département ${deptObj.nom}. Leur position dans le classement est calculée selon notre grille de six critères publics : ancienneté, certifications RGE/Qualibat, avis clients, SIRET actif, site web, photos de réalisations. Vous pouvez consulter la méthode complète en lien direct depuis le menu.`,
+    answer: `Le plus simple est de consulter notre classement sur cette page. Le corpus agrégé recense ${aggregateTotal} établissements actifs reliés à ce métier et au département ${deptObj.nom}. La page présente les dossiers les mieux classés selon notre grille de six critères publics. Vous pouvez consulter la méthode complète en lien direct depuis le menu.`,
   },
   {
     question: `Combien coûte un ${metierObj.nom.toLowerCase()} ${dg.in} ?`,
@@ -124,41 +144,21 @@ const faq = [
   },
   {
     question: "La liste est-elle exhaustive ?",
-    answer: `Cette sélection regroupe tous les professionnels actifs au Sirene de l'INSEE dans le code NAF ${metierObj.code_naf || ""} du département ${deptObj.nom === "Paris" ? "de Paris" : deptObj.nom} à la date du dernier recalcul. Les Scores de Confiance sont recalculés à chaque synchronisation mensuelle.`,
+    answer: `Le jeu de données agrégé recense ${aggregateTotal} établissements actifs reliés au métier ${metierObj.nom.toLowerCase()} et au département ${deptObj.nom} dans notre corpus. Le classement visible présente jusqu'à 60 dossiers parmi les mieux classés, pas la liste individuelle exhaustive. Les agrégats complets et leur date sont téléchargeables depuis le catalogue de données.`,
   },
 ];
 
 const region = REGION_BY_DEPT_CODE[deptObj.code] || undefined;
 
-// Agrégats propriétaires (data unique = matière à citation IA + schema Dataset).
-const rgeCount = pros.filter((p: any) => p.rge).length;
-const qualibatCount = pros.filter((p: any) => p.qualibat).length;
-const pctRge = pros.length ? Math.round((rgeCount / pros.length) * 100) : 0;
-const pctQualibat = pros.length ? Math.round((qualibatCount / pros.length) * 100) : 0;
-const scores = pros
-  .map((p: any) => p.score_confiance)
-  .filter((s: any) => typeof s === "number" && s > 0)
-  .sort((a: number, b: number) => a - b);
-const medianScore = scores.length
-  ? Math.round(
-      (scores.length % 2
-        ? scores[(scores.length - 1) / 2]
-        : (scores[scores.length / 2 - 1] + scores[scores.length / 2]) / 2) * 10,
-    ) / 10
-  : 0;
-// GARDE-FOU VÉRACITÉ : hors édition synchronisée, le RGE/Qualibat ne sont pas
-// encore enrichis au national (→ 0%, score médian artificiellement bas). On
-// n'expose donc la phrase citable + le schema Dataset QUE là où la donnée de
-// certification est réelle (au moins une qualif présente). Ailleurs, on n'affirme
-// rien de faux. Proxy de fiabilité = au moins un pro RGE ou Qualibat sur la zone.
-const dataReliable = rgeCount > 0 || qualibatCount > 0;
-const certifClauses: string[] = [];
-if (rgeCount > 0) certifClauses.push(`${pctRge}% détiennent une certification RGE`);
-if (qualibatCount > 0) certifClauses.push(`${pctQualibat}% une qualification Qualibat`);
-const certifPart = certifClauses.length ? `${certifClauses.join(", ")}, ` : "";
-// Phrase attribuable, pré-mâchée pour la citation par les LLM (marque + chiffres réels).
-// "les mieux classés" : le classement affiche le top 100, on ne prétend pas à l'exhaustivité.
-const citableSummary = `D'après L'Observatoire des Pros (édition N°${siteConfig.editionNumber}, ${siteConfig.editionMonth} ${siteConfig.editionYear}), parmi les ${pros.length} ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} (${deptObj.code}) les mieux classés au registre Sirene, ${certifPart}le Score de Confiance médian s'établit à ${medianScore}/10.`;
+// Agrégats calculés sur le corpus complet. Le classement visible reste limité
+// aux meilleurs dossiers et son ordre n'est pas modifié.
+const rgeCount = aggregate?.rgeCount || 0;
+const qualibatCount = aggregate?.qualibatCount || 0;
+const pctRge = aggregate?.rgePercent || 0;
+const pctQualibat = aggregate?.qualibatPercent || 0;
+const medianScore = aggregate?.scoreConfianceMedian || 0;
+const hasAggregateData = Boolean(aggregate);
+const citableSummary = `D'après L'Observatoire des Pros, au ${dataModifiedFr}, le corpus recense ${aggregateTotal} établissements actifs pour le métier ${metierObj.nom.toLowerCase()} ${dg.in} (${deptObj.code}) : ${pctRge}% portent l'indicateur RGE, ${pctQualibat}% l'indicateur Qualibat, et le Score de Confiance médian est de ${medianScore}/10.`;
 
 const jsonLd = [
   jsonLdBreadcrumbs([
@@ -186,33 +186,40 @@ const jsonLd = [
     code: deptObj.code,
     region,
   }),
-  ...(dataReliable
+  ...(hasAggregateData
     ? [
         jsonLdDataset({
-          name: `${metierObj.nom_pluriel} ${dg.of} (${deptObj.code}) , données de fiabilité ${siteConfig.editionYear}`,
-          description: `Agrégats de fiabilité des ${metierObj.nom_pluriel.toLowerCase()} ${dg.of} les mieux classés : part certifiés RGE, part qualifiés Qualibat, Score de Confiance médian. Source : L'Observatoire des Pros, édition N°${siteConfig.editionNumber}.`,
+          name: `${metierObj.nom_pluriel} ${dg.of} (${deptObj.code}) , agrégats du corpus`,
+          description: `Agrégats complets des établissements actifs reliés au métier ${metierObj.nom.toLowerCase()} et au département ${deptObj.nom} dans le corpus de L'Observatoire des Pros.`,
           url,
+          identifier: `${DATASET_IDENTIFIER}:${metier}:${departement}`,
+          version: catalogVersion(dataModified || null),
           spatialName: deptObj.nom,
-          temporalCoverage: String(siteConfig.editionYear),
+          temporalCoverage: dataModified?.slice(0, 4),
+          dateModified: dataModified || undefined,
           measurementTechnique:
-            "Croisement de sources publiques : Sirene (INSEE), annuaire RGE (ADEME / France Rénov), Qualibat, BODACC",
+            "Agrégation de tous les établissements actifs reliés au métier et au département, avec déduplication par identifiant interne.",
+          includedInDataCatalog: `${DATA_CATALOG_URL}#catalog`,
+          distributions: [
+            { name: "Agrégats nationaux JSON", contentUrl: DATA_JSON_URL, encodingFormat: "application/json" },
+            { name: "Agrégats nationaux CSV", contentUrl: DATA_CSV_URL, encodingFormat: "text/csv" },
+          ],
+          isBasedOn: [
+            "https://sirene.fr/",
+            "https://france-renov.gouv.fr/annuaire-rge",
+            "https://www.bodacc.fr/",
+            "https://www.qualibat.com/",
+          ],
           variables: [
-            { name: "Professionnels classés sur la page", value: pros.length },
-            ...(rgeCount > 0
-              ? [{ name: "Part certifiés RGE", value: pctRge, unitText: "PERCENT" }]
-              : []),
-            ...(qualibatCount > 0
-              ? [{ name: "Part qualifiés Qualibat", value: pctQualibat, unitText: "PERCENT" }]
-              : []),
+            { name: "Établissements actifs dans le corpus", value: aggregateTotal },
+            { name: "Part portant l'indicateur RGE", value: pctRge, unitText: "PERCENT" },
+            { name: "Part portant l'indicateur Qualibat", value: pctQualibat, unitText: "PERCENT" },
             { name: "Score de Confiance médian (sur 10)", value: medianScore },
+            { name: "Couverture de l'enrichissement de confiance", value: aggregate?.trustSyncCoveragePercent || 0, unitText: "PERCENT" },
           ],
         }),
       ]
     : []),
-  jsonLdSpeakable({
-    url,
-    cssSelectors: [".speakable-tldr", ".cl-summary", "h1"],
-  }),
 ];
 
 // Départements voisins (même région) pour maillage inter-dpts.
@@ -322,20 +329,26 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
 
       <ByLine
         authors={[{ name: "La rédaction" }]}
-        date={`${siteConfig.editionMonth} ${siteConfig.editionYear}`}
-        updated="mensuelle"
+        date={dataModifiedFr}
+        updated="selon les sources"
         readingTime={Math.max(3, Math.ceil(pros.length / 20))}
       />
 
       {hasPros && (
         <SpeakableTLDR label="En résumé">
           <p>
-            <strong>{pros.length} {metierObj.nom_pluriel.toLowerCase()}</strong> actifs au registre
-            Sirene {dg.in} ({deptObj.code}), classés par Score de Confiance sur six
-            critères publics{rgeCount > 0 ? (<>, dont {rgeCount} titulaires d'une certification <GlossaireTerm slug="rge">RGE</GlossaireTerm></>) : null}. Données vérifiées sur INSEE, ADEME et
-            Qualibat, recalcul mensuel.
+            <strong>{aggregateTotal} établissements actifs</strong> recensés dans le
+            corpus pour le métier {metierObj.nom.toLowerCase()} {dg.in} ({deptObj.code}).
+            Cette page présente les {Math.min(60, pros.length)} dossiers les mieux
+            classés sur six critères publics{rgeCount > 0 ? (<>, avec {rgeCount} lignes portant l'indicateur <GlossaireTerm slug="rge">RGE</GlossaireTerm> dans l'agrégat complet</>) : null}.
+            Données arrêtées au {dataModifiedFr}.
           </p>
-          {dataReliable && <p class="cl-citable">{citableSummary}</p>}
+          {hasAggregateData && <p class="cl-citable">{citableSummary}</p>}
+          {hasAggregateData && (
+            <p>
+              <a href="/donnees/">Consulter le catalogue et télécharger les agrégats JSON ou CSV</a>.
+            </p>
+          )}
         </SpeakableTLDR>
       )}
     </header>
@@ -344,11 +357,12 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
     {hasPros && (
       <section class="container-wide">
         <SummaryHero
-          count={pros.length}
-          unit={metierObj.nom_pluriel.toLowerCase()}
+          count={aggregateTotal}
+          unit="établissements actifs"
           zone={`${deptObj.nom} (${deptObj.code})`}
           naf={metierObj.code_naf}
           source="Sirene INSEE · France Rénov · Qualibat"
+          narrative="recensés dans le corpus pour"
         />
       </section>
     )}
@@ -357,11 +371,11 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
     {hasPros && (
       <section class="container-wide cl-metrics">
         <div class="cm-pills stagger-children">
-          <InfoPill variant="verified" label="Actifs INSEE" value={`${pros.length}`} glossaireSlug="sirene" />
+          <InfoPill variant="verified" label="Actifs dans le corpus" value={`${aggregateTotal}`} glossaireSlug="sirene" />
           <InfoPill variant="neutral" label="Code NAF" value={metierObj.code_naf || ""} glossaireSlug="naf" />
-          <InfoPill variant="or" label="Avec RGE" value={`${pros.filter((p: any) => p.rge).length}`} glossaireSlug="rge" />
-          <InfoPill variant="or" label="Qualibat" value={`${pros.filter((p: any) => p.qualibat).length}`} glossaireSlug="qualibat" />
-          <InfoPill variant="info" label="Édition" value={`N°${siteConfig.editionNumber}`} />
+          <InfoPill variant="or" label="Indicateur RGE" value={`${rgeCount}`} glossaireSlug="rge" />
+          <InfoPill variant="or" label="Indicateur Qualibat" value={`${qualibatCount}`} glossaireSlug="qualibat" />
+          <InfoPill variant="info" label="Données" value={dataModified || "N/D"} />
         </div>
       </section>
     )}
@@ -374,7 +388,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
             <EditorialHeader
               category="LE PODIUM ÉDITORIAL"
               title={`Les trois entreprises que nous retenons en tête`}
-              subtitle={`Parmi ${pros.length} ${metierObj.nom_pluriel.toLowerCase()} actifs au Sirene ${dg.in}, trois dossiers dominent l'édition ${siteConfig.editionMonth} ${siteConfig.editionYear}.`}
+              subtitle={`Parmi ${aggregateTotal} établissements actifs recensés dans le corpus ${dg.in}, trois dossiers dominent le classement visible.`}
               align="center"
             />
 
@@ -508,9 +522,10 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
           </section>
         )}
 
-        {pros.length > 60 && (
+        {aggregateTotal > 60 && (
           <p class="cl-more folio container-wide">
-            + {pros.length - 60} autres professionnels actifs {dg.in}, en cours d'examen éditorial pour les prochaines éditions.
+            + {aggregateTotal - 60} autres établissements actifs figurent dans
+            l'agrégat complet. Le classement visible reste limité aux 60 premiers dossiers.
           </p>
         )}
 
@@ -519,7 +534,7 @@ function generateTopVerdict(p: any, rank: number, all: any[], metierLower: strin
         <!-- MÉTHODE -->
         <section class="container-wide">
           <MethodologyBlock
-            appliedTo={`Pour ce classement, ${pros.length} candidats actifs Sirene ont été examinés ${dg.in}.`}
+            appliedTo={`Le corpus agrégé recense ${aggregateTotal} établissements actifs pour ce métier ${dg.in}. Le classement visible présente les meilleurs dossiers selon le Score de Confiance.`}
           />
         </section>
       </>

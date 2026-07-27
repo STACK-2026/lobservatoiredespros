@@ -5,7 +5,7 @@ import EditorialHeader from "../../../components/EditorialHeader.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import GlossaireTerm from "../../../components/GlossaireTerm.astro";
 import { siteConfig } from "../../../utils/config";
-import { jsonLdBreadcrumbs, ORG_ID, jsonLdSpeakable } from "../../../utils/seo";
+import { jsonLdBreadcrumbs, ORG_ID } from "../../../utils/seo";
 
 const title = "Vérifier un SIRET , Fiche Sirene INSEE en direct , L'Observatoire";
 const description = "Fiche officielle d'une entreprise française : creation, etat, NAF, dirigeants, effectif, adresse. Source recherche-entreprises.api.gouv.fr. Gratuit.";
@@ -60,10 +60,6 @@ const jsonLd = [
       },
     ],
   },
-  jsonLdSpeakable({
-    url,
-    cssSelectors: [".lead", ".outil-intro", ".verif-result-summary"],
-  }),
 ];
 ---
 
