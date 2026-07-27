@@ -2,6 +2,9 @@
 
 Date : 27 juillet 2026
 
+Statut : livré en production le 27 juillet 2026, PR 1, merge `e8b56e2`,
+déploiement Cloudflare vérifié `a28900b3-ce39-4749-9d5b-65afe532c6c0`.
+
 ## Gate 1 : contrôles RED
 
 Créer un contrôle Node sans dépendance externe qui échoue tant que :
@@ -61,5 +64,7 @@ npm run test:geo
 
 ## Gate 7 : livraison
 
-Le lot reste sur `codex/odp-geo-citations` jusqu'à validation. Une
-prévisualisation Cloudflare puis la production nécessitent un GO distinct.
+Le GO utilisateur a été reçu. La preview
+`cf6c01c6-9a88-434b-8b50-5f3fd539a7c1` a été validée avant la production.
+Le rollback précédent reste
+`da3648e0-6715-4b5f-91fc-e100a4e005b0`.

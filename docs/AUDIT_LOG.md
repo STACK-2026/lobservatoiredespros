@@ -4,6 +4,73 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 
 ---
 
+## 2026-07-27, 19:50, diagnostic de rupture GSC et fraîcheur réelle
+
+**Diagnostic** :
+
+- 93,7 k pages indexées, aucune action manuelle, aucun problème de sécurité ;
+- rupture le 22 juillet : 4 893 pages avec impressions le 21, 474 le 22 ;
+- les 10 URL témoins restent indexées, crawlables et canonicalisées ;
+- 40 impressions IA sur 39 pages en 7 jours, dont 24 en France ;
+- le stock indexé existe, mais Google a cessé d'exposer une grande partie de
+  la longue traîne des fiches pros.
+
+**Anomalie corrigée** :
+
+- retrait des dates de contrôle recalculées à chaque build ;
+- retrait du `datePublished` recalculé à chaque requête edge ;
+- dates issues uniquement des timestamps Supabase réels ;
+- suppression du faux « prochain audit programmé » ;
+- TDD rouge puis vert, 9 tests GEO réussis ;
+- build Supabase plafonné réussi, 244 pages.
+
+Preuves détaillées : `docs/gsc-baseline-2026-07-27.md`.
+
+---
+
+## 2026-07-27, 19:30, socle GEO et données citables en production
+
+**Contexte** : le site disposait d'environ 105 000 URL soumises dans GSC mais
+ne rendait pas son corpus agrégé assez simple à citer par les moteurs de
+réponse. Trois biographies de rédaction contenaient en outre des expériences
+professionnelles non corroborées.
+
+**Livraison** :
+
+- catalogue public `/donnees/` ;
+- distributions JSON et CSV de 1 536 agrégats métier et département ;
+- 103 650 établissements actifs comptabilisés après correction de la
+  pagination Supabase déterministe ;
+- catalogue machine-readable et `llms-full.txt` ;
+- signature institutionnelle « La rédaction de L'Observatoire » ;
+- suppression des trois personas et redirection 301 de leurs URL ;
+- auteur JSON-LD relié à `NewsMediaOrganization` ;
+- robots explicite pour les agents de recherche et de réponse IA ;
+- suppression des faux signaux `SpeakableSpecification`.
+
+**Preuves** :
+
+- tests GEO : 8 sur 8 ;
+- build intégral : 17 577 pages, 19 748 fichiers, 2 353,85 secondes ;
+- preview Cloudflare :
+  `cf6c01c6-9a88-434b-8b50-5f3fd539a7c1` ;
+- production :
+  `a28900b3-ce39-4749-9d5b-65afe532c6c0` ;
+- rollback :
+  `da3648e0-6715-4b5f-91fc-e100a4e005b0` ;
+- PR 1 fusionnée sur `main`, merge `e8b56e2` ;
+- GSC : index principal et sitemap IA sans erreur ni avertissement, index
+  principal à 105 403 URL soumises ;
+- tous les sitemaps déclarés en 200 ;
+- empreintes production identiques à l'artefact local sur les fichiers GEO
+  critiques.
+
+**Suivi** : mesurer crawl, requêtes GSC et citations à J+7, J+14 et J+28. Le
+tracker historique de citations doit être corrigé avant d'être utilisé comme
+preuve, car il reçoit des 429 et pose des requêtes trop génériques.
+
+---
+
 ## 2026-04-28 , 18:00 , Phase 2.D / 2.1 close + homepage stats dynamiques
 
 **Contexte** : audit post-import national. L'orchestrateur Phase 2.D lancé le 25/04 09:01 a tourné jusqu'à 23:16 (kill OOM intermédiaire 14:59 mais reprise auto), couvrant 15 métiers × 96 dpts métropole. Résultat : la DB est passée de 290 (Yonne plombier) à 103 662 pros nationaux.

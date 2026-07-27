@@ -1,7 +1,39 @@
 # État actuel , L'Observatoire des Pros
 
-**Dernière mise à jour** : 2026-04-25 05:00 (post-Phase 2.1 IDF + SEO/GEO overhaul)
-**Statut** : Site LIVE · Extension IDF déployée · pré-Phase 2.D (national)
+**Dernière mise à jour** : 2026-07-27 19:30 (socle GEO et données citables)
+**Statut** : Site LIVE, couverture nationale, catalogue de données public
+
+> Les sections historiques d'avril sont conservées comme journal de contexte.
+> En cas d'écart, le présent encadré et
+> `docs/geo-delivery-evidence-2026-07-27.md` font foi.
+
+## État de référence au 27 juillet 2026
+
+- Production source : merge `e8b56e2909cc49f95821c980ad7513f323008962`.
+- Déploiement Cloudflare vérifié :
+  `a28900b3-ce39-4749-9d5b-65afe532c6c0`.
+- Rollback immédiatement antérieur :
+  `da3648e0-6715-4b5f-91fc-e100a4e005b0`.
+- Corpus : 103 650 établissements actifs.
+- Catalogue : 1 536 agrégats métier et département en HTML, JSON et CSV.
+- Artefact : 17 577 pages HTML, 19 748 fichiers.
+- Signature : « La rédaction de L'Observatoire », entité
+  `NewsMediaOrganization`.
+- Anciennes biographies individuelles retirées, leurs trois URL redirigent en
+  301 vers `/redaction/`.
+- Routes GEO : `/donnees/`, `/donnees/classements.json`,
+  `/donnees/classements.csv`, `/donnees/catalogue.json`, `/llms-full.txt`.
+- GSC : `sitemap-index.xml` et `ai-sitemap.xml` lus le 27 juillet, sans erreur
+  ni avertissement, 105 403 URL soumises dans l'index principal.
+- Couverture GSC au 24 juillet : 93,7 k pages indexées, aucune action manuelle
+  et aucun problème de sécurité.
+- Rupture d'exposition le 22 juillet : 4 893 pages avec impressions le 21,
+  474 le 22, alors que les URL témoins restent indexées.
+- IA générative GSC : 40 impressions sur 39 pages en 7 jours, dont 24 en
+  France. Voir `docs/gsc-baseline-2026-07-27.md`.
+- Correctif de fraîcheur en livraison : les fiches utilisent désormais les
+  timestamps Supabase réels et n'annoncent plus de faux audit futur.
+- Prochaines mesures : J+7 le 3 août, J+14 le 10 août, J+28 le 24 août.
 
 ---
 
@@ -12,7 +44,7 @@
 | **Domaine** | `lobservatoiredespros.com` | apex + www via CF Pages |
 | **CF Zone** | `06f85688f28bfa18e8b643ac3c4122e3` | |
 | **CF Pages project** | `lobservatoiredespros` | branch main |
-| **Dernier deploy** | `74fff826.lobservatoiredespros.pages.dev` | 2026-04-23 23:56 UTC |
+| **Dernier deploy vérifié** | `a28900b3.lobservatoiredespros.pages.dev` | 2026-07-27 17:25 UTC |
 | **Repo** | `STACK-2026/lobservatoiredespros` | GitHub (August1nnnn) |
 | **Supabase project** | `apuyeakgxjgdcfssrtek` | eu-west-3 Paris, KARMASTRO org |
 | **Resend domaine** | `send.lobservatoiredespros.com` | ID `00a3fe8d-80cd-45d6-be82-02b59d987a3b` |
@@ -22,7 +54,7 @@
 
 ---
 
-## 📊 Données actuelles (post-Phase 2.1 IDF)
+## 📊 Données historiques (post-Phase 2.1 IDF, remplacées par l'état de référence ci-dessus)
 
 | Métrique | Valeur | Δ vs Phase 1 |
 |---|---|---|
