@@ -52,7 +52,7 @@ export const observations: Observation[] = [
       datePublication: "2026-05-11",
       dateRevision: "2026-05-11",
       readingTime: 12,
-      authorSlug: "antoine-delaunay",
+      authorSlug: "redaction",
       coverAlt: "Capture d'ecran de l'Annuaire des Entreprises Sirene affichant la fiche d'un artisan",
       tldr: "Avant de signer un devis, vérifie toujours 4 points. L'existence légale de l'entreprise avec son SIRET. Ses qualifications RGE si tu vises des aides. Son état de santé financière via le BODACC. Et la cohérence de ses avis sur plusieurs sites. C'est gratuit et ça prend 10 minutes.",
       sections: [
@@ -327,7 +327,7 @@ export const observations: Observation[] = [
     datePublication: "2026-04-19",
     dateRevision: "2026-04-23",
     readingTime: 12,
-    authorSlug: "camille-fabre",
+    authorSlug: "redaction",
     coverAlt: "Capture d'écran d'un site d'artisan affichant un logo RGE",
     tldr:
       "Sur 412 sites web d'artisans du département de l'Yonne vérifiés entre novembre 2025 et avril 2026, six entreprises affichaient une mention RGE qui n'était plus, ou pas encore, valide au registre officiel France Rénov'. Toutes ont retiré la mention sous dix jours après notre signalement. Aucune n'a contesté les faits. L'enquête s'est appuyée sur la consultation quotidienne de l'annuaire ADEME des professionnels qualifiés.",
@@ -442,7 +442,7 @@ export const observations: Observation[] = [
     datePublication: "2026-04-15",
     dateRevision: "2026-04-23",
     readingTime: 7,
-    authorSlug: "antoine-delaunay",
+    authorSlug: "redaction",
     coverAlt: "Capture d'écran d'une fiche Google Business affichant une note étoilée",
     tldr:
       "Le Score de Confiance calculé par L'Observatoire n'utilise pas directement la note Google moyenne. Il l'ignore complètement en dessous de 10 avis, l'intègre comme un signal modéré entre 10 et 30 avis, et ne lui accorde un poids sérieux qu'à partir de 30 avis cohérents sur au moins 18 mois. Les avis Google sont manipulables, concentrés et mal distribués dans le temps. Notre méthode croise quatre sources avant de retenir un pourcentage : INSEE Sirene, ADEME RGE, BODACC, Google Places analysé par la rédaction.",
@@ -555,7 +555,7 @@ export const observations: Observation[] = [
     datePublication: "2026-04-11",
     dateRevision: "2026-04-23",
     readingTime: 9,
-    authorSlug: "sarah-poitevin",
+    authorSlug: "redaction",
     coverAlt: "Atelier de menuiserie traditionnelle à Dijon",
     tldr:
       "Atelier Maurel, installé à Dijon depuis 1974, est l'un des trois Portraits Lauréat de l'édition d'avril en Côte-d'Or. Quatre générations se sont succédé dans l'atelier de la rue des Perrières, deux compagnons du devoir y travaillent aujourd'hui, l'attestation décennale a été vérifiée sur place. Sa directrice, Clémence Maurel, refuse un chantier sur deux. Reportage et entretien dans l'atelier, vérification de trois clients finaux, consultation des qualifications Qualibat et des dépôts de comptes BODACC.",

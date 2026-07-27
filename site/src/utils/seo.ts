@@ -73,11 +73,7 @@ export function jsonLdArticle(opts: {
     image: opts.image || `${siteConfig.url}${siteConfig.ogImage}`,
     datePublished: opts.datePublished,
     dateModified: opts.dateModified || opts.datePublished,
-    author: {
-      "@type": "Person",
-      name: opts.author,
-      ...(opts.authorUrl ? { url: opts.authorUrl } : {}),
-    },
+    author: { "@id": ORG_ID },
     publisher: { "@id": ORG_ID },
     mainEntityOfPage: { "@type": "WebPage", "@id": opts.url },
     inLanguage: siteConfig.locale,
@@ -334,20 +330,22 @@ export function jsonLdAdministrativeArea(opts: {
   };
 }
 
-/** JSON-LD Dataset , déclare une page comme SOURCE DE DONNÉES citable par les
- *  moteurs IA (AI Overviews, Perplexity, ChatGPT). variableMeasured porte les
- *  agrégats propriétaires (nb pros, % RGE, score médian) que les LLM reprennent
- *  et attribuent à L'Observatoire des Pros. C'est le signal "ceci est de la
- *  donnée originale" que les autres annuaires n'émettent pas.
+/** JSON-LD Dataset. Le balisage décrit les données visibles et leurs
+ *  distributions, sans présumer de leur reprise par un moteur tiers.
  */
 export function jsonLdDataset(opts: {
   name: string;
   description: string;
   url: string;
+  identifier?: string;
+  version?: string;
   spatialName?: string;
   temporalCoverage?: string;
   dateModified?: string;
   measurementTechnique?: string;
+  includedInDataCatalog?: string;
+  distributions?: { name: string; contentUrl: string; encodingFormat: string }[];
+  isBasedOn?: string[];
   variables: { name: string; value: number; unitText?: string }[];
 }) {
   return {
@@ -356,6 +354,8 @@ export function jsonLdDataset(opts: {
     name: opts.name,
     description: opts.description,
     url: opts.url,
+    ...(opts.identifier ? { identifier: opts.identifier } : {}),
+    ...(opts.version ? { version: opts.version } : {}),
     isAccessibleForFree: true,
     creator: { "@id": ORG_ID },
     publisher: { "@id": ORG_ID },
@@ -363,6 +363,20 @@ export function jsonLdDataset(opts: {
     ...(opts.temporalCoverage ? { temporalCoverage: opts.temporalCoverage } : {}),
     ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),
     ...(opts.measurementTechnique ? { measurementTechnique: opts.measurementTechnique } : {}),
+    ...(opts.includedInDataCatalog
+      ? { includedInDataCatalog: { "@id": opts.includedInDataCatalog } }
+      : {}),
+    ...(opts.isBasedOn?.length ? { isBasedOn: opts.isBasedOn } : {}),
+    ...(opts.distributions?.length
+      ? {
+          distribution: opts.distributions.map((distribution) => ({
+            "@type": "DataDownload",
+            name: distribution.name,
+            contentUrl: distribution.contentUrl,
+            encodingFormat: distribution.encodingFormat,
+          })),
+        }
+      : {}),
     ...(opts.spatialName
       ? { spatialCoverage: { "@type": "AdministrativeArea", name: opts.spatialName } }
       : {}),
@@ -375,25 +389,63 @@ export function jsonLdDataset(opts: {
   };
 }
 
-/** JSON-LD SpeakableSpecification à embarquer dans WebPage pour désigner les
- *  passages lisibles par assistants vocaux / AI Overviews.
- */
-export function jsonLdSpeakable(opts: {
+/** JSON-LD DataCatalog pour la page et les distributions nationales. */
+export function jsonLdDataCatalog(opts: {
   url: string;
-  cssSelectors?: string[];
-  xpath?: string[];
+  datasetUrl: string;
+  jsonUrl: string;
+  csvUrl: string;
+  identifier: string;
+  version: string;
+  dateModified?: string | null;
+  rowCount: number;
+  establishmentCount: number;
 }) {
   return {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    "@id": `${opts.url}#webpage`,
+    "@type": "DataCatalog",
+    "@id": `${opts.url}#catalog`,
+    name: "Catalogue des agrégats métier et département",
+    description:
+      "Agrégats des établissements actifs observés par métier et département à partir des données publiques croisées par L'Observatoire des Pros.",
     url: opts.url,
-    speakable: {
-      "@type": "SpeakableSpecification",
-      ...(opts.cssSelectors && opts.cssSelectors.length
-        ? { cssSelector: opts.cssSelectors }
-        : {}),
-      ...(opts.xpath && opts.xpath.length ? { xpath: opts.xpath } : {}),
+    publisher: { "@id": ORG_ID },
+    ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),
+    dataset: {
+      "@type": "Dataset",
+      "@id": `${opts.datasetUrl}#dataset`,
+      name: "Classements agrégés des professionnels par métier et département",
+      identifier: opts.identifier,
+      version: opts.version,
+      url: opts.datasetUrl,
+      description: `${opts.rowCount} agrégats métier et département portant sur un corpus de ${opts.establishmentCount} établissements actifs.`,
+      creator: { "@id": ORG_ID },
+      publisher: { "@id": ORG_ID },
+      isAccessibleForFree: true,
+      license: `${siteConfig.url}/mentions-legales/`,
+      ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),
+      measurementTechnique:
+        "Agrégation des établissements actifs reliés à un métier et un département, avec déduplication par identifiant interne.",
+      isBasedOn: [
+        "https://sirene.fr/",
+        "https://france-renov.gouv.fr/annuaire-rge",
+        "https://www.bodacc.fr/",
+        "https://www.qualibat.com/",
+      ],
+      distribution: [
+        {
+          "@type": "DataDownload",
+          name: "Agrégats au format JSON",
+          contentUrl: opts.jsonUrl,
+          encodingFormat: "application/json",
+        },
+        {
+          "@type": "DataDownload",
+          name: "Agrégats au format CSV",
+          contentUrl: opts.csvUrl,
+          encodingFormat: "text/csv",
+        },
+      ],
     },
   };
 }

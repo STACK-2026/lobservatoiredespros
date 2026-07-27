@@ -327,40 +327,7 @@ function buildJsonLd(ctx: JsonLdContext, avis: Array<any> = []): unknown[] {
     };
   }
 
-  // Speakable
-  const speakableLd = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "@id": `${pageUrl}#webpage`,
-    url: pageUrl,
-    speakable: {
-      "@type": "SpeakableSpecification",
-      cssSelector: ["[data-speakable]", "h1"],
-    },
-  };
-
-  // Person : Camille Fabre, rédactrice en chef (E-E-A-T)
-  const personLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    "@id": `${SITE}/redaction/camille-fabre/#person`,
-    name: "Camille Fabre",
-    url: `${SITE}/redaction/camille-fabre/`,
-    jobTitle: "Rédactrice en chef",
-    knowsAbout: [
-      "Réglementation du bâtiment",
-      "Certifications RGE et Qualibat",
-      "Données publiques Sirene INSEE",
-      "Médias éditoriaux indépendants",
-    ],
-    worksFor: {
-      "@type": "NewsMediaOrganization",
-      "@id": `${SITE}/#organization`,
-      name: "L'Observatoire des Pros",
-    },
-  };
-
-  const ldArray: unknown[] = [breadcrumbLd, lb, speakableLd, personLd];
+  const ldArray: unknown[] = [breadcrumbLd, lb];
 
   // FAQPage
   if (faqEntries.length) {
@@ -788,9 +755,9 @@ ${ldScripts}
 
   <section class="byline">
     <div class="row">
-      <div class="av">CF</div>
+      <div class="av">LR</div>
       <div>
-        <p>Suivi rédactionnel par <a href="/redaction/camille-fabre/">Camille Fabre</a>, rédactrice en chef. Méthodologie complète sur <a href="/methode/">la page Méthode</a>.</p>
+        <p>Suivi éditorial par <a href="/redaction/">la rédaction de L'Observatoire</a>. Méthodologie complète sur <a href="/methode/">la page Méthode</a>.</p>
         <p class="small">Toutes les données affichées proviennent exclusivement de sources publiques officielles : INSEE Sirene (état civil), ADEME / france-renov.gouv.fr (RGE), Qualibat (qualifications), BODACC (événements légaux). Aucune information n'est saisie par l'entreprise sans contrôle éditorial.</p>
         ${pro.tier === "gratuit" ? `<p class="small">Cette entreprise n'a pas candidaté à un Portrait Vérifié ou Lauréat. Pour enrichir le dossier ou signaler une erreur, voir <a href="/candidater/">candidater</a> ou <a href="/contact/">contact</a>.</p>` : ""}
       </div>

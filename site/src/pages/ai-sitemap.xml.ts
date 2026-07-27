@@ -1,36 +1,28 @@
 /**
- * AI-sitemap.xml , sitemap specialise pour les AI crawlers.
- *
- * Filtre : seulement le contenu "citable" par les LLMs :
- *   - pages editoriales piliers (methode, a-propos, redaction, glossaire)
- *   - articles observations (contenu long, signe, source)
- *   - pages auteurs (E-E-A-T, signal expertise)
- *
- * On exclut :
- *   - les 290 fiches pros individuelles (repetitif, pas du contenu "citable")
- *   - les pages legales (pas informatives pour l'IA)
- *   - les pages contact / newsletter (actions, pas contenu)
- *
- * Declare dans llms.txt + robots.txt sous nom "AI-sitemap" pour les crawlers
- * qui le supportent (GPTBot, ClaudeBot, PerplexityBot, Google-Extended).
+ * Surface d'orientation complémentaire vers le contenu éditorial et les
+ * données agrégées. Le sitemap XML standard reste la source de découverte
+ * principale et documentée par les moteurs de recherche.
  */
 import type { APIRoute } from "astro";
 import { siteConfig } from "../utils/config";
 import { observations } from "../data/observations";
-import { redaction } from "../data/redaction";
+import { getAggregateDatasetCatalog } from "../lib/dataset-catalog";
 
 export const GET: APIRoute = async () => {
-  const now = new Date().toISOString().split("T")[0];
   const base = siteConfig.url.replace(/\/$/, "");
+  const catalog = await getAggregateDatasetCatalog();
+  const dataModified = catalog.dataModified || "2026-07-27";
 
   const urls: { loc: string; lastmod: string; priority: number; desc: string }[] = [
-    // Piliers editoriaux
-    { loc: "/", lastmod: now, priority: 1.0, desc: "Accueil et resume editorial du media" },
-    { loc: "/methode/", lastmod: now, priority: 0.95, desc: "Methodologie complete du Score de Confiance" },
-    { loc: "/a-propos/", lastmod: now, priority: 0.9, desc: "Identite et mission de l'Observatoire" },
-    { loc: "/redaction/", lastmod: now, priority: 0.9, desc: "Equipe editoriale et principes" },
-    { loc: "/glossaire/", lastmod: now, priority: 0.85, desc: "Glossaire des termes BTP et certifications" },
-    { loc: "/archives/", lastmod: now, priority: 0.6, desc: "Archives des editions passees" },
+    { loc: "/", lastmod: dataModified, priority: 1.0, desc: "Accueil" },
+    { loc: "/donnees/", lastmod: dataModified, priority: 1.0, desc: "Catalogue des données agrégées" },
+    { loc: "/donnees/classements.json", lastmod: dataModified, priority: 0.95, desc: "Agrégats JSON" },
+    { loc: "/donnees/classements.csv", lastmod: dataModified, priority: 0.95, desc: "Agrégats CSV" },
+    { loc: "/donnees/catalogue.json", lastmod: dataModified, priority: 0.9, desc: "Catalogue Schema.org" },
+    { loc: "/methode/", lastmod: "2026-04-01", priority: 0.95, desc: "Méthodologie du Score de Confiance" },
+    { loc: "/a-propos/", lastmod: "2026-04-01", priority: 0.9, desc: "Identité et mission" },
+    { loc: "/redaction/", lastmod: "2026-07-27", priority: 0.8, desc: "Signature institutionnelle et principes" },
+    { loc: "/glossaire/", lastmod: "2026-04-01", priority: 0.85, desc: "Glossaire BTP et certifications" },
   ];
 
   // Articles observations , contenu long, signe, citable
@@ -40,16 +32,6 @@ export const GET: APIRoute = async () => {
       lastmod: (o.dateRevision || o.datePublication).split("T")[0],
       priority: 0.9,
       desc: o.tldr.substring(0, 200),
-    });
-  }
-
-  // Pages auteurs , signal E-E-A-T
-  for (const a of redaction) {
-    urls.push({
-      loc: `/redaction/${a.slug}/`,
-      lastmod: now,
-      priority: 0.8,
-      desc: a.intro.substring(0, 200),
     });
   }
 

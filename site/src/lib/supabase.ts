@@ -129,7 +129,11 @@ export async function getZoneBySlug(slug: string): Promise<ZoneRow | null> {
 let _proZonesCache: { pro_id: string; zone_id: string }[] | null = null;
 let _proMetiersCache: { pro_id: string; metier_id: string }[] | null = null;
 
-async function fetchAllPaginated<T>(table: string, cols: string): Promise<T[]> {
+async function fetchAllPaginated<T>(
+  table: string,
+  cols: string,
+  orderColumns: string[],
+): Promise<T[]> {
   const page = 1000;
   const all: T[] = [];
   for (let start = 0; ; start += page) {
@@ -139,7 +143,11 @@ async function fetchAllPaginated<T>(table: string, cols: string): Promise<T[]> {
     // long builds > 1h where Supabase connection drops occasionally).
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const res = await supabase.from(table).select(cols).range(start, start + page - 1);
+        let query = supabase.from(table).select(cols);
+        for (const column of orderColumns) {
+          query = query.order(column, { ascending: true });
+        }
+        const res = await query.range(start, start + page - 1);
         data = res.data;
         error = res.error;
         if (!error) break;
@@ -164,6 +172,7 @@ export async function getAllProZones() {
     _proZonesCache = await fetchAllPaginated<{ pro_id: string; zone_id: string }>(
       "pro_zones",
       "pro_id, zone_id",
+      ["pro_id", "zone_id"],
     );
   }
   return _proZonesCache;
@@ -174,6 +183,7 @@ export async function getAllProMetiers() {
     _proMetiersCache = await fetchAllPaginated<{ pro_id: string; metier_id: string }>(
       "pro_metiers",
       "pro_id, metier_id",
+      ["pro_id", "metier_id"],
     );
   }
   return _proMetiersCache;
@@ -190,6 +200,8 @@ export interface ProLite {
   niveau_confiance: string | null;
   etat_administratif: string | null;
   date_creation_entreprise: string | null;
+  last_trust_sync: string | null;
+  updated_at: string | null;
   active: boolean;
 }
 
@@ -198,7 +210,8 @@ export async function getAllProLite(): Promise<ProLite[]> {
   if (!_proLiteCache) {
     _proLiteCache = await fetchAllPaginated<ProLite>(
       "pros",
-      "id,slug,nom_entreprise,ville,rge,qualibat,score_confiance,niveau_confiance,etat_administratif,date_creation_entreprise,active",
+      "id,slug,nom_entreprise,ville,rge,qualibat,score_confiance,niveau_confiance,etat_administratif,date_creation_entreprise,last_trust_sync,updated_at,active",
+      ["id"],
     );
   }
   return _proLiteCache;

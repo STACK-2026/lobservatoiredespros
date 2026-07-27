@@ -8,7 +8,7 @@ import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
 const title = "La rédaction , L'Observatoire des Pros";
-const description = "Les trois journalistes et analystes qui composent la rédaction de L'Observatoire : parcours, specialites et principes editoriaux qui nous guident.";
+const description = "La signature institutionnelle, la méthode de travail et les principes éditoriaux de L'Observatoire des Pros.";
 const url = `${siteConfig.url}/redaction/`;
 
 const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { name: "La rédaction", url }])];
@@ -21,34 +21,41 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       <Masthead category="LA REDACTION" signature={`Edition N°${siteConfig.editionNumber}`} />
       <h1 class="heading-display">La rédaction.</h1>
       <p class="lead">
-        Trois journalistes et analystes indépendants composent la rédaction de L'Observatoire. Voici leurs parcours, leurs specialites et les articles qui leur sont confies.
+        Les contenus sont signés « La rédaction de L'Observatoire ». Cette signature
+        institutionnelle évite d'attribuer un texte à une personne dont l'identité ou
+        l'expérience professionnelle ne seraient pas publiquement documentées.
       </p>
     </div>
 
     <section class="container-editorial">
       <PullQuote cite="Charte éditoriale de L'Observatoire">
-        Un media n'est sérieux que si ses auteurs sont visibles, ses angles assumes, ses sources citées. Nous nous tenons a cette règle.
+        Une signature ne doit jamais suggérer une expertise individuelle qui ne peut
+        pas être vérifiée. Les sources, les dates et la méthode restent les preuves
+        publiques attachées à chaque contenu.
       </PullQuote>
     </section>
 
     <section class="container-wide redaction-liste-section">
-      <EditorialHeader category="NOS JOURNALISTES ET ANALYSTES" title={`Equipe éditoriale ${siteConfig.editionYear}`} />
+      <EditorialHeader category="SIGNATURE ÉDITORIALE" title={`Équipe éditoriale ${siteConfig.editionYear}`} />
       <div class="redaction-grid stagger-children">
-        {siteConfig.blog.authors.map((a) => (
-          <article class="author-card card-editorial" id={a.slug}>
-            <div class="author-avatar" aria-hidden="true">
-              <span class="author-initial">{a.name.split(" ").map(n => n[0]).join("")}</span>
-            </div>
-            <div class="author-body">
-              <h2 class="italic-fraunces">{a.name}</h2>
-              <p class="author-role meta-label-or">{a.role}</p>
-              <p class="author-bio">{a.bio}</p>
-              <p class="author-link">
-                <a class="btn-ghost" href={`/redaction/${a.slug}/`}>Profil complet de {a.name.split(" ")[0]} <span class="arrow">&rarr;</span></a>
-              </p>
-            </div>
-          </article>
-        ))}
+        <article class="author-card card-editorial" id="redaction">
+          <div class="author-avatar" aria-hidden="true">
+            <span class="author-initial">LR</span>
+          </div>
+          <div class="author-body">
+            <h2 class="italic-fraunces">La rédaction de L'Observatoire</h2>
+            <p class="author-role meta-label-or">Signature institutionnelle</p>
+            <p class="author-bio">
+              Cette signature couvre la collecte, l'agrégation, la vérification et
+              l'explication des données publiées. Les jeux de données, leur date de
+              modification et leurs sources sont accessibles dans le catalogue public.
+            </p>
+            <p class="author-link">
+              <a class="btn-ghost" href="/donnees/">Consulter les données <span class="arrow">&rarr;</span></a>
+              <a class="btn-ghost" href="/methode/">Lire la méthode <span class="arrow">&rarr;</span></a>
+            </p>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -105,7 +112,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
   .redaction-head .heading-display { margin: 0.4rem 0 1rem; }
 
   .redaction-liste-section { padding: 3rem 0 1rem; max-width: 62rem; margin: 0 auto; }
-  .redaction-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.4rem; margin-top: 2rem; }
+  .redaction-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.4rem; margin-top: 2rem; }
   @media (max-width: 860px) { .redaction-grid { grid-template-columns: 1fr; } }
 
   .author-card { padding: 1.8rem 1.8rem 2rem; display: grid; grid-template-columns: auto 1fr; gap: 1.3rem; scroll-margin-top: 7rem; }

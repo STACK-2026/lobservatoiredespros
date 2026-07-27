@@ -1,0 +1,167 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Masthead from "../../components/Masthead.astro";
+import { siteConfig } from "../../utils/config";
+import { jsonLdBreadcrumbs, jsonLdDataCatalog } from "../../utils/seo";
+import {
+  DATASET_IDENTIFIER,
+  DATA_CATALOG_URL,
+  DATA_CSV_URL,
+  DATA_JSON_URL,
+  catalogVersion,
+  getAggregateDatasetCatalog,
+} from "../../lib/dataset-catalog";
+
+const catalog = await getAggregateDatasetCatalog();
+const version = catalogVersion(catalog.dataModified);
+const modifiedFr = catalog.dataModified
+  ? new Date(`${catalog.dataModified}T12:00:00Z`).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    })
+  : "date indisponible";
+const title = "Données agrégées sur les professionnels par métier et département";
+const description = `${catalog.rows.length} agrégats métier et département, disponibles en JSON et CSV avec méthodologie, provenance et date de mise à jour.`;
+
+const jsonLd = [
+  jsonLdBreadcrumbs([
+    { name: "Accueil", url: siteConfig.url },
+    { name: "Données", url: DATA_CATALOG_URL },
+  ]),
+  jsonLdDataCatalog({
+    url: DATA_CATALOG_URL,
+    datasetUrl: DATA_CATALOG_URL,
+    jsonUrl: DATA_JSON_URL,
+    csvUrl: DATA_CSV_URL,
+    identifier: DATASET_IDENTIFIER,
+    version,
+    dateModified: catalog.dataModified,
+    rowCount: catalog.rows.length,
+    establishmentCount: catalog.activeEstablishments,
+  }),
+];
+---
+
+<BaseLayout title={title} description={description} canonicalUrl={DATA_CATALOG_URL} jsonLd={jsonLd}>
+  <article class="data-page">
+    <div class="container-editorial">
+      <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Données" }]} />
+      <Masthead category="CATALOGUE DE DONNÉES" signature={`Version ${version}`} />
+
+      <header class="data-header">
+        <p class="meta-label-or">DONNÉES AGRÉGÉES ET VÉRIFIABLES</p>
+        <h1 class="heading-display">Les classements, dans un format exploitable.</h1>
+        <p class="lead">
+          Ce catalogue publie les agrégats complets de L'Observatoire des Pros
+          par métier et département. Les fichiers ne contiennent aucune donnée
+          individuelle supplémentaire.
+        </p>
+      </header>
+
+      <section class="data-stats" aria-label="Périmètre du jeu de données">
+        <div>
+          <strong>{catalog.rows.length.toLocaleString("fr-FR")}</strong>
+          <span>couples métier et département</span>
+        </div>
+        <div>
+          <strong>{catalog.activeEstablishments.toLocaleString("fr-FR")}</strong>
+          <span>établissements actifs dans le corpus</span>
+        </div>
+        <div>
+          <strong>{modifiedFr}</strong>
+          <span>dernière modification d'une ligne source</span>
+        </div>
+      </section>
+
+      <section class="data-section">
+        <h2>Télécharger</h2>
+        <div class="download-grid">
+          <a href="/donnees/classements.json">
+            <strong>JSON</strong>
+            <span>Structure complète, métadonnées et agrégats</span>
+          </a>
+          <a href="/donnees/classements.csv">
+            <strong>CSV</strong>
+            <span>Table prête pour un tableur ou une analyse</span>
+          </a>
+          <a href="/donnees/catalogue.json">
+            <strong>JSON-LD</strong>
+            <span>Description Schema.org du catalogue</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="data-section prose">
+        <h2>Ce que mesure chaque ligne</h2>
+        <p>
+          Une ligne correspond à un couple métier et département. Le total
+          porte sur les établissements actifs reliés aux deux dimensions dans
+          la base. Les relations dupliquées sont supprimées avant le calcul.
+        </p>
+        <ul>
+          <li>nombre d'établissements actifs ;</li>
+          <li>nombre et part portant les indicateurs RGE et Qualibat ;</li>
+          <li>Score de Confiance médian ;</li>
+          <li>couverture de l'enrichissement de confiance ;</li>
+          <li>date de dernière modification des lignes utilisées ;</li>
+          <li>URL canonique du classement correspondant.</li>
+        </ul>
+      </section>
+
+      <section class="data-section prose">
+        <h2>Sources et limites</h2>
+        <p>
+          Le corpus est construit à partir de Sirene INSEE et enrichi avec les
+          sources publiques consultées par L'Observatoire, notamment France
+          Rénov', BODACC et Qualibat. Une valeur nulle ou un pourcentage égal à
+          zéro ne doit pas être interprété comme une absence certaine sans
+          consulter la couverture d'enrichissement et la méthodologie.
+        </p>
+        <p>
+          Les conditions de réutilisation sont celles indiquées dans les
+          <a href="/mentions-legales/">mentions légales</a>. Pour signaler une
+          erreur, écrire à <a href={`mailto:${siteConfig.legal.email}`}>{siteConfig.legal.email}</a>.
+        </p>
+      </section>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .data-page { padding: 2rem 0 5rem; }
+  .data-header { margin: 3rem 0; }
+  .data-header h1 { max-width: 15ch; margin: 0.75rem 0 1rem; }
+  .data-header .lead { max-width: 46rem; }
+  .data-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    margin: 2.5rem 0 4rem;
+    background: rgba(26, 22, 20, 0.16);
+    border: 1px solid rgba(26, 22, 20, 0.16);
+  }
+  .data-stats div { display: grid; gap: 0.5rem; padding: 1.5rem; background: var(--paper); }
+  .data-stats strong { font-family: var(--font-display); font-size: 1.75rem; color: var(--observatoire); }
+  .data-stats span { color: var(--ink-muted); font-size: 0.9rem; }
+  .data-section { margin: 3.5rem 0; }
+  .download-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .download-grid a {
+    display: grid;
+    gap: 0.5rem;
+    min-height: 9rem;
+    padding: 1.5rem;
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid rgba(26, 22, 20, 0.18);
+    background: var(--paper);
+  }
+  .download-grid a:hover { border-color: var(--or); transform: translateY(-2px); }
+  .download-grid strong { font-family: var(--font-mono); color: var(--observatoire); }
+  .download-grid span { color: var(--ink-muted); }
+  @media (max-width: 720px) {
+    .data-stats, .download-grid { grid-template-columns: 1fr; }
+  }
+</style>

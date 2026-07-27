@@ -3,3 +3,8 @@
 
 # www -> apex 301
 https://www.lobservatoiredespros.com/* https://lobservatoiredespros.com/:splat 301!
+
+# Anciennes signatures individuelles, consolidées vers la rédaction
+/redaction/camille-fabre/ /redaction/ 301
+/redaction/antoine-delaunay/ /redaction/ 301
+/redaction/sarah-poitevin/ /redaction/ 301

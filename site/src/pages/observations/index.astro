@@ -5,7 +5,6 @@ import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import EditorialHeader from "../../components/EditorialHeader.astro";
 import SpeakableTLDR from "../../components/SpeakableTLDR.astro";
 import { observations } from "../../data/observations";
-import { auteurBySlug } from "../../data/redaction";
 import { siteConfig } from "../../utils/config";
 import { jsonLdBreadcrumbs } from "../../utils/seo";
 
@@ -63,7 +62,6 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
       <EditorialHeader category="ÉDITION EN COURS" title="Articles publiés" />
       <ol class="obs-list">
         {articlesTries.map((o, i) => {
-          const auteur = auteurBySlug(o.authorSlug);
           const dateFR = new Date(o.datePublication).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
           return (
             <li class="obs-item">
@@ -81,7 +79,7 @@ const jsonLd = [jsonLdBreadcrumbs([{ name: "Accueil", url: siteConfig.url }, { n
                   <h2 class="obs-title">{o.titre}</h2>
                   <p class="obs-soustitre">{o.sousTitre}</p>
                   <div class="obs-footer">
-                    {auteur && <span class="obs-author">Par <strong>{auteur.nom}</strong>, {auteur.role}</span>}
+                    <span class="obs-author">Par <strong>La rédaction de L'Observatoire</strong></span>
                     <span class="obs-cta">Lire l'article <span class="obs-arrow" aria-hidden="true">&rarr;</span></span>
                   </div>
                 </div>
