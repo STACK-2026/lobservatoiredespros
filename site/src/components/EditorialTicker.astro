@@ -1,108 +1,54 @@
 ---
 /**
- * EditorialTicker , fil presse live style Bloomberg/Mediapart.
+ * EditorialTicker , extraits factuels du registre public.
  *
- * Marquee horizontal qui defile en haut de page. Genere 12-20 events a partir
- * des pros Supabase avec format :
- *   [HH:MM] [Action] n°XXX · [Nom entreprise] · [Ville] · Score XX → YY
- *
- * Animation : ticker-scroll 60s linear infinite. Pause au hover.
- * Prefers-reduced-motion : animation desactivee mais texte reste visible (scroll manuel).
- * Accessibility : aria-live="off" (trop bruyant pour lecteurs d'ecran).
+ * Le bandeau ne simule aucune activité en temps réel. Il expose uniquement
+ * des attributs présents dans Supabase et reste déterministe entre deux
+ * modifications de données.
  */
 import { supabase } from "../lib/supabase";
 
 interface TickerEvent {
-  time: string;
-  type: "observation" | "score" | "certification" | "dossier";
+  type: "observation" | "certification";
   label: string;
   detail: string;
-  slug?: string; // lien vers la fiche pro
+  slug: string;
 }
 
-// Fetch top pros (par score) pour generer des events credibles
+// Extraits réels et ordonnés de façon stable.
 const { data: pros } = await supabase
   .from("pros")
   .select("nom_entreprise, ville, code_postal, score_confiance, siret, rge, date_creation_entreprise, slug")
   .eq("active", true)
+  .not("slug", "is", null)
   .order("score_confiance", { ascending: false })
+  .order("id")
   .limit(18);
 
-// Generer des events "live" deterministes basés sur les vrais pros
 const events: TickerEvent[] = [];
-const now = new Date();
 if (pros && pros.length > 0) {
-  pros.forEach((p: any, i: number) => {
-    const minutesAgo = (i * 7) + Math.floor((p.siret || "0").slice(-2).charCodeAt(0) % 15);
-    const d = new Date(now.getTime() - minutesAgo * 60_000);
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    const score = p.score_confiance || 4.5;
-    const prev = Math.max(0, score - 0.3).toFixed(1);
-    const nxt = score.toFixed(1);
+  pros.forEach((p: any) => {
+    const score = Number(p.score_confiance || 0).toFixed(1);
     const ville = p.ville ? p.ville.replace(/-/g, " ") : "";
     const cp = p.code_postal ? p.code_postal.slice(0, 2) : "";
+    const lieu = ville ? `${ville}${cp ? ` (${cp})` : ""}` : cp || "France";
+    const creation = p.date_creation_entreprise
+      ? `créé en ${String(p.date_creation_entreprise).slice(0, 4)}`
+      : null;
+    const detail = [
+      p.nom_entreprise,
+      lieu,
+      creation,
+      `Score publié ${score}/10`,
+    ]
+      .filter(Boolean)
+      .join(" · ");
 
-    // Alterner les types d'events
-    const kind = i % 4;
-    const slug = p.slug || undefined;
-    if (kind === 0) {
-      events.push({
-        time: `${hh}:${mm}`,
-        type: "observation",
-        label: `Observation n°${(i + 1) * 1372 + 47382}`,
-        detail: `${p.nom_entreprise} · ${ville} (${cp}) · Score ${nxt}/10`,
-        slug,
-      });
-    } else if (kind === 1) {
-      events.push({
-        time: `${hh}:${mm}`,
-        type: "score",
-        label: `Score recalculé`,
-        detail: `${p.nom_entreprise} · ${prev} → ${nxt}`,
-        slug,
-      });
-    } else if (kind === 2 && p.rge) {
-      events.push({
-        time: `${hh}:${mm}`,
-        type: "certification",
-        label: `Certification RGE confirmée`,
-        detail: `${p.nom_entreprise} · ${ville}`,
-        slug,
-      });
-    } else if (kind === 2) {
-      events.push({
-        time: `${hh}:${mm}`,
-        type: "dossier",
-        label: `Dossier ouvert`,
-        detail: `${p.nom_entreprise} · examen en cours`,
-        slug,
-      });
-    } else {
-      events.push({
-        time: `${hh}:${mm}`,
-        type: "observation",
-        label: `SIRET vérifié`,
-        detail: `${p.nom_entreprise} · ${ville} · actif INSEE`,
-        slug,
-      });
-    }
-  });
-}
-
-// Fallback si aucun pros en DB , avec liens vers pages de classement
-if (events.length === 0) {
-  const seed: Array<Omit<TickerEvent, "time"> & { href?: string }> = [
-    { type: "observation", label: "Édition N°1 publiée", detail: "290 plombiers · Yonne (89)" },
-    { type: "observation", label: "Nouvelle observation", detail: "SARL DUBOIS & Fils · Auxerre · Score 4.5/10" },
-    { type: "certification", label: "RGE confirmé", detail: "Plomberie HE · Auxerre" },
-    { type: "dossier", label: "Dossier ouvert", detail: "Certification RGE perdue à Sens" },
-  ];
-  seed.forEach((s, i) => {
-    const d = new Date(now.getTime() - i * 13 * 60_000);
     events.push({
-      time: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
-      ...s,
+      type: p.rge ? "certification" : "observation",
+      label: p.rge ? "RGE répertorié" : "Établissement observé",
+      detail,
+      slug: p.slug,
     });
   });
 }
@@ -111,32 +57,33 @@ if (events.length === 0) {
 const loop = [...events, ...events];
 ---
 
-<div class="editorial-ticker" role="complementary" aria-label="Fil d'actualité de la rédaction" aria-live="off">
-  <div class="et-label">
-    <span class="et-live-dot" aria-hidden="true"></span>
-    <span class="et-label-text">En direct</span>
-    <span class="et-label-sep" aria-hidden="true"></span>
-    <span class="et-edition folio">Édition N°1</span>
-  </div>
-  <div class="et-track-wrapper">
-    <div class="et-track">
-      {loop.map((e) => {
-        const href = e.slug ? `/pro/${e.slug}/` : "/selection/";
-        const ariaLabel = `${e.label} , ${e.detail}`;
-        return (
-          <a class={`et-item et-item-${e.type}`} href={href} aria-label={ariaLabel}>
-            <span class="et-time">{e.time}</span>
-            <span class="et-type-dot" aria-hidden="true"></span>
-            <span class="et-item-label">{e.label}</span>
-            <span class="et-item-sep" aria-hidden="true">·</span>
-            <span class="et-item-detail">{e.detail}</span>
-            <span class="et-item-arrow" aria-hidden="true">&rarr;</span>
-          </a>
-        );
-      })}
+{events.length > 0 && (
+  <div class="editorial-ticker" role="complementary" aria-label="Extraits du registre public" aria-live="off">
+    <div class="et-label">
+      <span class="et-source-dot" aria-hidden="true"></span>
+      <span class="et-label-text">Registre public</span>
+      <span class="et-label-sep" aria-hidden="true"></span>
+      <span class="et-edition folio">Extraits factuels</span>
+    </div>
+    <div class="et-track-wrapper">
+      <div class="et-track">
+        {loop.map((e) => {
+          const href = `/pro/${e.slug}/`;
+          const ariaLabel = `${e.label} , ${e.detail}`;
+          return (
+            <a class={`et-item et-item-${e.type}`} href={href} aria-label={ariaLabel}>
+              <span class="et-type-dot" aria-hidden="true"></span>
+              <span class="et-item-label">{e.label}</span>
+              <span class="et-item-sep" aria-hidden="true">·</span>
+              <span class="et-item-detail">{e.detail}</span>
+              <span class="et-item-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          );
+        })}
+      </div>
     </div>
   </div>
-</div>
+)}
 
 <style>
   .editorial-ticker {
@@ -163,19 +110,12 @@ const loop = [...events, ...events];
     z-index: 2;
     white-space: nowrap;
   }
-  .et-live-dot {
+  .et-source-dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #E53935;
-    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.6);
-    animation: et-live-pulse 1.6s ease-out infinite;
+    background: var(--or);
     flex-shrink: 0;
-  }
-  @keyframes et-live-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7); }
-    70% { box-shadow: 0 0 0 7px rgba(229, 57, 53, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
   }
   .et-label-text {
     font-weight: 700;
@@ -250,13 +190,6 @@ const loop = [...events, ...events];
     margin-left: 0.1rem;
     transform: translateX(0);
   }
-  .et-time {
-    font-family: var(--font-mono);
-    color: rgba(247, 243, 236, 0.55);
-    font-size: 0.72rem;
-    letter-spacing: 0.02em;
-    font-variant-numeric: tabular-nums;
-  }
   .et-type-dot {
     width: 5px;
     height: 5px;
@@ -264,9 +197,7 @@ const loop = [...events, ...events];
     flex-shrink: 0;
   }
   .et-item-observation .et-type-dot { background: var(--or); }
-  .et-item-score .et-type-dot { background: var(--observatoire); box-shadow: 0 0 8px rgba(30, 58, 82, 0.6); }
   .et-item-certification .et-type-dot { background: #4A913A; }
-  .et-item-dossier .et-type-dot { background: var(--cachet); }
 
   .et-item-label {
     color: var(--paper);
@@ -275,7 +206,6 @@ const loop = [...events, ...events];
   }
   .et-item-observation .et-item-label { color: var(--or-soft); }
   .et-item-certification .et-item-label { color: #A4D595; }
-  .et-item-dossier .et-item-label { color: #E8A09A; }
 
   .et-item-sep {
     color: rgba(247, 243, 236, 0.3);
@@ -295,6 +225,5 @@ const loop = [...events, ...events];
 
   @media (prefers-reduced-motion: reduce) {
     .et-track { animation: none; overflow-x: auto; }
-    .et-live-dot { animation: none; box-shadow: none; }
   }
 </style>

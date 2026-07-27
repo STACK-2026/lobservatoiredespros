@@ -186,6 +186,28 @@ Le lot de suivi :
 - passe un cycle TDD rouge puis vert, suite GEO 9 sur 9 ;
 - passe un build plafonné Supabase de 244 pages.
 
+Production du lot de suivi :
+
+- PR 2 fusionnée au commit
+  `1ec662aaf7e0bfb780a27ae9a82c2e753f275e87` ;
+- workflow intégral `30296583919` vert en 42 min 51 s ;
+- déploiement Cloudflare
+  `f68edc43-f64e-4a4a-b83d-d002ae75e495` ;
+- fiches statique et edge contrôlées en 200 avec une date Supabase réelle ;
+- six user-agents IA contrôlés en 200 ;
+- empreintes des ressources GEO inchangées.
+
+## Handoff du micro-lot suivant
+
+Le contrôle élargi a ensuite trouvé un faux fil global « En direct » et des
+valeurs `lastmod` retombant sur la date du rebuild. Le correctif est préparé
+sur `codex/odp-truthful-crawl-signals`, mais n'est pas fusionné. L'utilisateur
+a demandé d'arrêter les tests et de reprendre demain.
+
+Le `dist` local provient d'un build interrompu et ne doit pas être déployé.
+État exact et ordre de reprise :
+`docs/geo-resume-2026-07-28.md`.
+
 ## Livraison
 
 Le gate d'authenticité est levé : les profils individuels ont été retirés et

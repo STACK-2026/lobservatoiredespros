@@ -242,6 +242,44 @@ test("les fiches pros utilisent uniquement des dates de source réelles", async 
   assert.equal(latestSourceDate({}), null);
 });
 
+test("les signaux globaux et sitemaps n'inventent ni activité ni fraîcheur", async () => {
+  const ticker = await read("src/components/EditorialTicker.astro");
+  const qualifications = await read("src/components/QualificationsBlock.astro");
+  const sitemap = await read("src/pages/sitemap.xml.ts");
+  const extensionSource = await read("src/lib/pros-all.ts");
+  const extensionSitemap = await read(
+    "src/pages/sitemap-pros-ext-[shard].xml.ts",
+  );
+
+  for (const inventedSignal of [
+    /En direct/,
+    /Score recalculé/,
+    /Dossier ouvert/,
+    /minutesAgo/,
+    /const now = new Date\(\)/,
+  ]) {
+    assert.doesNotMatch(ticker, inventedSignal);
+  }
+  assert.match(ticker, /Registre public/);
+  assert.match(ticker, /Établissement observé/);
+
+  assert.doesNotMatch(
+    qualifications,
+    /:\s*today\.toLocaleDateString\("fr-FR"/,
+  );
+  assert.match(qualifications, /\{lastChecked && \(/);
+
+  assert.match(sitemap, /\.order\("id"\)/);
+  assert.doesNotMatch(sitemap, /lastmod:\s*now/);
+  assert.doesNotMatch(sitemap, /u\.lastmod\s*\|\|\s*now/);
+  assert.match(extensionSource, /latestSourceDate/);
+  assert.doesNotMatch(
+    extensionSource,
+    /return new Date\(\)\.toISOString\(\)/,
+  );
+  assert.match(extensionSitemap, /r\.lastmod\s*\?/);
+});
+
 test("l'agrégateur déduplique et exclut les établissements inactifs", async () => {
   const { aggregateDatasetRows } = await import("../src/lib/dataset-aggregate.mjs");
   const result = aggregateDatasetRows({

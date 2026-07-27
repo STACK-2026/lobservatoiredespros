@@ -1,7 +1,7 @@
 # État actuel , L'Observatoire des Pros
 
-**Dernière mise à jour** : 2026-07-27 19:30 (socle GEO et données citables)
-**Statut** : Site LIVE, couverture nationale, catalogue de données public
+**Dernière mise à jour** : 2026-07-28 00:25 (clôture et handoff GEO)
+**Statut** : Site LIVE, fraîcheur réelle en production, micro-lot crawl en pause
 
 > Les sections historiques d'avril sont conservées comme journal de contexte.
 > En cas d'écart, le présent encadré et
@@ -9,11 +9,11 @@
 
 ## État de référence au 27 juillet 2026
 
-- Production source : merge `e8b56e2909cc49f95821c980ad7513f323008962`.
+- Production source : merge `1ec662aaf7e0bfb780a27ae9a82c2e753f275e87`.
 - Déploiement Cloudflare vérifié :
-  `a28900b3-ce39-4749-9d5b-65afe532c6c0`.
+  `f68edc43-f64e-4a4a-b83d-d002ae75e495`.
 - Rollback immédiatement antérieur :
-  `da3648e0-6715-4b5f-91fc-e100a4e005b0`.
+  `3ef2844a-d2be-4630-ab76-bc420ade592f`.
 - Corpus : 103 650 établissements actifs.
 - Catalogue : 1 536 agrégats métier et département en HTML, JSON et CSV.
 - Artefact : 17 577 pages HTML, 19 748 fichiers.
@@ -31,8 +31,11 @@
   474 le 22, alors que les URL témoins restent indexées.
 - IA générative GSC : 40 impressions sur 39 pages en 7 jours, dont 24 en
   France. Voir `docs/gsc-baseline-2026-07-27.md`.
-- Correctif de fraîcheur en livraison : les fiches utilisent désormais les
+- Correctif de fraîcheur en production : les fiches utilisent désormais les
   timestamps Supabase réels et n'annoncent plus de faux audit futur.
+- Micro-lot de confiance en pause sur `codex/odp-truthful-crawl-signals` :
+  ticker factuel, dates de qualification et `lastmod` vérifiables. Reprise
+  détaillée dans `docs/geo-resume-2026-07-28.md`.
 - Prochaines mesures : J+7 le 3 août, J+14 le 10 août, J+28 le 24 août.
 
 ---
@@ -44,7 +47,7 @@
 | **Domaine** | `lobservatoiredespros.com` | apex + www via CF Pages |
 | **CF Zone** | `06f85688f28bfa18e8b643ac3c4122e3` | |
 | **CF Pages project** | `lobservatoiredespros` | branch main |
-| **Dernier deploy vérifié** | `a28900b3.lobservatoiredespros.pages.dev` | 2026-07-27 17:25 UTC |
+| **Dernier deploy vérifié** | `f68edc43.lobservatoiredespros.pages.dev` | 2026-07-27 19:46 UTC |
 | **Repo** | `STACK-2026/lobservatoiredespros` | GitHub (August1nnnn) |
 | **Supabase project** | `apuyeakgxjgdcfssrtek` | eu-west-3 Paris, KARMASTRO org |
 | **Resend domaine** | `send.lobservatoiredespros.com` | ID `00a3fe8d-80cd-45d6-be82-02b59d987a3b` |

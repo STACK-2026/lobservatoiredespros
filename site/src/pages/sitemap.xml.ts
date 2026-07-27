@@ -5,6 +5,7 @@ import { getAggregateDatasetCatalog } from "../lib/dataset-catalog";
 import { observations } from "../data/observations";
 import { TARIFS } from "../data/tarifs";
 import wave1Pros from "../data/wave1_pros.json";
+import { latestSourceDate } from "../lib/source-freshness.mjs";
 
 interface SitemapEntry {
   loc: string;
@@ -34,8 +35,9 @@ const STATIC_URLS: SitemapEntry[] = [
   { loc: "/newsletter/", priority: 0.5, changefreq: "monthly" },
 ];
 
+const TARIFS_LASTMOD = "2026-06-11";
+
 export const GET: APIRoute = async () => {
-  const now = new Date().toISOString().split("T")[0];
   const base = siteConfig.url.replace(/\/$/, "");
 
   const urls: SitemapEntry[] = [...STATIC_URLS];
@@ -45,7 +47,7 @@ export const GET: APIRoute = async () => {
 
   try {
     const catalog = await getAggregateDatasetCatalog();
-    const lastmod = catalog.dataModified || "2026-07-27";
+    const lastmod = catalog.dataModified || undefined;
     for (const row of catalog.rows) {
       if (!row.dataModified) continue;
       const path = new URL(row.url).pathname;
@@ -65,6 +67,12 @@ export const GET: APIRoute = async () => {
       { loc: "/donnees/classements.csv", priority: 0.8, changefreq: "weekly", lastmod },
       { loc: "/donnees/catalogue.json", priority: 0.8, changefreq: "weekly", lastmod },
     );
+    if (lastmod) {
+      for (const path of ["/", "/metiers/", "/departements/"]) {
+        const entry = urls.find((candidate) => candidate.loc === path);
+        if (entry) entry.lastmod = lastmod;
+      }
+    }
   } catch (e) {
     console.warn("Sitemap: catalogue de données indisponible", e);
   }
@@ -90,7 +98,7 @@ export const GET: APIRoute = async () => {
         loc: `/${m.slug}/`,
         priority: 0.8,
         changefreq: "weekly",
-        lastmod: metierLastmod.get(m.slug) || now,
+        lastmod: metierLastmod.get(m.slug),
       });
     }
 
@@ -103,18 +111,18 @@ export const GET: APIRoute = async () => {
         loc: `/${metierSlug}/${deptSlug}/`,
         priority: 0.85,
         changefreq: "weekly",
-        lastmod: aggregateLastmodByPath.get(`/${metierSlug}/${deptSlug}/`) || now,
+        lastmod: aggregateLastmodByPath.get(`/${metierSlug}/${deptSlug}/`),
       });
     }
   } catch (e) {
     console.warn("Sitemap: failed to fetch metiers/combos, fallback to pilotes", e);
     // Fallback en cas d'erreur DB : pilote historique (5×3)
     for (const m of siteConfig.metiersPilote) {
-      urls.push({ loc: `/${m.slug}/`, priority: 0.8, changefreq: "weekly", lastmod: now });
+      urls.push({ loc: `/${m.slug}/`, priority: 0.8, changefreq: "weekly" });
     }
     for (const m of siteConfig.metiersPilote) {
       for (const d of siteConfig.departementsPilote) {
-        urls.push({ loc: `/${m.slug}/${d.slug}/`, priority: 0.85, changefreq: "weekly", lastmod: now });
+        urls.push({ loc: `/${m.slug}/${d.slug}/`, priority: 0.85, changefreq: "weekly" });
       }
     }
   }
@@ -125,7 +133,7 @@ export const GET: APIRoute = async () => {
       loc: `/observations/${o.slug}/`,
       priority: 0.85,
       changefreq: "monthly",
-      lastmod: (o.dateRevision || o.datePublication || now).split("T")[0],
+      lastmod: (o.dateRevision || o.datePublication).split("T")[0],
     });
   }
   // URLs guides tarifaires Phase 2.4 (61 prestations × 1 page chacune
@@ -136,7 +144,7 @@ export const GET: APIRoute = async () => {
       loc: `/tarifs/${t.metier}/${t.slug}/`,
       priority: 0.85,
       changefreq: "monthly",
-      lastmod: now,
+      lastmod: TARIFS_LASTMOD,
     });
     tarifsByMetier.set(t.metier, (tarifsByMetier.get(t.metier) || 0) + 1);
   }
@@ -145,7 +153,7 @@ export const GET: APIRoute = async () => {
       loc: `/tarifs/${metierSlug}/`,
       priority: 0.75,
       changefreq: "monthly",
-      lastmod: now,
+      lastmod: TARIFS_LASTMOD,
     });
   }
 
@@ -160,7 +168,7 @@ export const GET: APIRoute = async () => {
         loc: `/observations/etat-du-marche/${z.slug}/`,
         priority: 0.75,
         changefreq: "monthly",
-        lastmod: deptLastmod.get(z.slug) || now,
+        lastmod: deptLastmod.get(z.slug),
       });
     }
   } catch (e) {
@@ -178,14 +186,16 @@ export const GET: APIRoute = async () => {
     for (let start = 0; ; start += page) {
       const { data: batch, error } = await supabase
         .from("pros")
-        .select("slug, updated_at")
+        .select("slug, created_at, updated_at, enriched_at, last_trust_sync")
         .eq("active", true)
         .not("slug", "is", null)
+        .order("id")
         .range(start, start + page - 1);
       if (error || !batch || batch.length === 0) break;
       for (const p of batch) {
         if (p.slug && wave1Set.has(p.slug)) {
-          lastmodBySlug[p.slug] = p.updated_at ? p.updated_at.split("T")[0] : now;
+          const lastmod = latestSourceDate(p);
+          if (lastmod) lastmodBySlug[p.slug] = lastmod;
         }
       }
       if (batch.length < page) break;
@@ -195,13 +205,13 @@ export const GET: APIRoute = async () => {
         loc: `/pro/${slug}/`,
         priority: 0.6,
         changefreq: "monthly",
-        lastmod: lastmodBySlug[slug] || now,
+        lastmod: lastmodBySlug[slug],
       });
     }
   } catch (e) {
     console.warn("Sitemap: failed to fetch pros, falling back to wave1 only", e);
     for (const slug of wave1Pros as string[]) {
-      urls.push({ loc: `/pro/${slug}/`, priority: 0.6, changefreq: "monthly", lastmod: now });
+      urls.push({ loc: `/pro/${slug}/`, priority: 0.6, changefreq: "monthly" });
     }
   }
 
@@ -211,8 +221,7 @@ ${urls
   .map(
     (u) => `  <url>
     <loc>${base}${u.loc}</loc>
-    <lastmod>${u.lastmod || now}</lastmod>
-    <changefreq>${u.changefreq}</changefreq>
+${u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>\n` : ""}    <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority.toFixed(2)}</priority>
   </url>`
   )

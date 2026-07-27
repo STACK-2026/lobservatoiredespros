@@ -38,8 +38,7 @@ ${slice
   .map(
     (r) => `  <url>
     <loc>${base}/pro/${r.slug}/</loc>
-    <lastmod>${r.lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
+${r.lastmod ? `    <lastmod>${r.lastmod}</lastmod>\n` : ""}    <changefreq>monthly</changefreq>
     <priority>0.50</priority>
   </url>`,
   )

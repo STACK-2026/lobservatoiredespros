@@ -4,6 +4,30 @@ Historique des audits après chaque grosse étape. Chronologique inverse.
 
 ---
 
+## 2026-07-28, 00:25, clôture GEO et micro-lot crawl en pause
+
+**Production vérifiée** :
+
+- PR 2 fusionnée, commit `1ec662a` ;
+- workflow intégral `30296583919` vert en 42 min 51 s ;
+- Cloudflare `f68edc43-f64e-4a4a-b83d-d002ae75e495` ;
+- profils statique et edge datés par les timestamps Supabase réels ;
+- ressources GEO inchangées, routes, redirections et six agents IA verts.
+
+**Découverte suivante** :
+
+- faux ticker global « En direct » avec heures et actions synthétiques ;
+- fallback de date du jour sur certaines qualifications ;
+- `lastmod` du rebuild utilisé lorsqu'une date source manquait ;
+- micro-lot correctif préparé avec TDD rouge puis 10 sur 10 vert ;
+- 105 404 URL de sitemap conservées, aucune duplication.
+
+**Pause demandée** : le second build exact a été interrompu. Rien de ce
+micro-lot n'est fusionné ni déployé. Reprise :
+`docs/geo-resume-2026-07-28.md`.
+
+---
+
 ## 2026-07-27, 19:50, diagnostic de rupture GSC et fraîcheur réelle
 
 **Diagnostic** :

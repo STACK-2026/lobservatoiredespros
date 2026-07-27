@@ -53,7 +53,7 @@ const nextExpiry = actives
 
 const lastChecked = allQuals[0]?.last_checked_at
   ? new Date(allQuals[0].last_checked_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-  : today.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  : null;
 
 function formatDate(d: string | null): string {
   if (!d) return "-";
@@ -162,8 +162,12 @@ function domainIcon(q: any): string {
           ) : (
             <>Toutes les certifications connues de l'entreprise</>
           )}
-          <span class="qb-v3-hero-dot" aria-hidden="true">·</span>
-          <span class="folio">vérifié {lastChecked}</span>
+          {lastChecked && (
+            <>
+              <span class="qb-v3-hero-dot" aria-hidden="true">·</span>
+              <span class="folio">vérifié {lastChecked}</span>
+            </>
+          )}
         </p>
       </div>
       <div class="qb-v3-hero-right">
